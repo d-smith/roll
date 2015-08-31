@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/xtraclabs/roll/roll"
+	"github.com/xtraclabs/roll/roll/mocks"
 	"io"
 	"net"
 	"net/http"
@@ -41,9 +42,10 @@ func TestServer(t *testing.T, core *roll.Core) (net.Listener, string) {
 	return ln, addr
 }
 
-func NewTestCore() *roll.Core {
+func NewTestCore() (*roll.Core, *roll.CoreConfig) {
 	var coreConfig = roll.CoreConfig{}
-	return roll.NewCore(&coreConfig)
+	coreConfig.DeveloperRepo = new(mocks.DeveloperRepo)
+	return roll.NewCore(&coreConfig), &coreConfig
 }
 
 func checkFatal(t *testing.T, err error) {

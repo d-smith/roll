@@ -42,5 +42,7 @@ func handleDeveloperPut(core *roll.Core, w http.ResponseWriter, r *http.Request)
 		respondError(w, http.StatusBadRequest, fmt.Errorf("Invalid email: %s", email))
 	}
 
+	core.StoreDeveloper(&req)
+
 	respondOk(w, nil)
 }
