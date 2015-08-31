@@ -92,3 +92,12 @@ func checkResponseStatus(t *testing.T, resp *http.Response, code int) {
 		t.Fatalf("Expected status %d got %d with body \n%s\n", code, resp.StatusCode, body)
 	}
 }
+
+func checkResponseBody(t *testing.T, resp *http.Response, out interface{}) {
+	defer resp.Body.Close()
+
+	dec := json.NewDecoder(resp.Body)
+	if err := dec.Decode(out); err != nil {
+		t.Fatalf("Error: %s", err)
+	}
+}

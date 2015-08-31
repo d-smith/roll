@@ -1,6 +1,7 @@
 package http
 
 import (
+	"github.com/CenturyLinkLabs/imagelayers/Godeps/_workspace/src/github.com/stretchr/testify/assert"
 	"github.com/xtraclabs/roll/roll"
 	"github.com/xtraclabs/roll/roll/mocks"
 	"net/http"
@@ -32,12 +33,16 @@ func TestGetDeveloper(t *testing.T) {
 	defer ln.Close()
 
 	testObj := coreConfig.DeveloperRepo.(*mocks.DeveloperRepo)
-	testObj.On("RetrieveDeveloper", "joe@dev.com").Return(&roll.Developer{FirstName: "Joe", LastName: "Dev"}, nil)
+	testObj.On("RetrieveDeveloper", "joe@dev.com").Return(&roll.Developer{FirstName: "Joe", LastName: "Dev", Email: "joe@dev.com"}, nil)
 
 	resp := testHttpGet(t, addr+"/v1/developers/joe@dev.com", nil)
 	testObj.AssertCalled(t, "RetrieveDeveloper", "joe@dev.com")
 
-	checkResponseStatus(t, resp, http.StatusNoContent)
+	var actual roll.Developer
 
-	//TODO - check response body
+	checkResponseBody(t, resp, &actual)
+	assert.Equal(t, "Joe", actual.FirstName)
+	assert.Equal(t, "Dev", actual.LastName)
+	assert.Equal(t, "joe@dev.com", actual.Email)
+
 }

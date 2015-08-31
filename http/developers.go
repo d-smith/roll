@@ -32,15 +32,13 @@ func handleDeveloperGet(core *roll.Core, w http.ResponseWriter, r *http.Request)
 		respondError(w, http.StatusBadRequest, fmt.Errorf("Invalid email: %s", email))
 	}
 
-	_, err := core.RetrieveDeveloper(email)
+	dev, err := core.RetrieveDeveloper(email)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, err) //TODO - more helpful error messages and better status codes
 		return
 	}
 
-	//Todo - marshall the returned body
-
-	respondOk(w, nil)
+	respondOk(w, dev)
 }
 
 func handleDeveloperPut(core *roll.Core, w http.ResponseWriter, r *http.Request) {
