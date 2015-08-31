@@ -8,7 +8,8 @@ import (
 )
 
 func main() {
-	core := roll.NewCore()
+	var coreConfig = roll.CoreConfig{}
+	core := roll.NewCore(&coreConfig)
 
 	log.Println("Listening on port 12345")
 	http.ListenAndServe(":12345", rollhttp.Handler(core))

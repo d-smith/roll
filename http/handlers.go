@@ -7,6 +7,6 @@ import (
 
 func Handler(core *roll.Core) http.Handler {
 	mux := http.NewServeMux()
-	mux.Handle("/v1/developers", handleDevelopers(core))
+	mux.Handle(DevelopersBaseUri, handleDevelopers(core))
 	return mux
 }

@@ -2,6 +2,8 @@ package http
 
 import (
 	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
 )
 
@@ -33,4 +35,14 @@ func respondOk(w http.ResponseWriter, body interface{}) {
 		enc := json.NewEncoder(w)
 		enc.Encode(body)
 	}
+}
+
+func parseRequest(r *http.Request, out interface{}) error {
+	dec := json.NewDecoder(r.Body)
+	err := dec.Decode(out)
+	if err != nil && err != io.EOF {
+		return fmt.Errorf("Failed to parse JSON input: %s", err)
+	}
+
+	return err
 }

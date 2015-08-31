@@ -2,6 +2,8 @@ package roll
 
 type Core struct{}
 
-func NewCore() *Core {
+type CoreConfig struct{}
+
+func NewCore(config *CoreConfig) *Core {
 	return &Core{}
 }
