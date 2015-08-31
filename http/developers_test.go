@@ -25,3 +25,19 @@ func TestStoreDeveloper(t *testing.T) {
 
 	checkResponseStatus(t, resp, http.StatusNoContent)
 }
+
+func TestGetDeveloper(t *testing.T) {
+	core, coreConfig := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	testObj := coreConfig.DeveloperRepo.(*mocks.DeveloperRepo)
+	testObj.On("RetrieveDeveloper", "joe@dev.com").Return(&roll.Developer{FirstName: "Joe", LastName: "Dev"}, nil)
+
+	resp := testHttpGet(t, addr+"/v1/developers/joe@dev.com", nil)
+	testObj.AssertCalled(t, "RetrieveDeveloper", "joe@dev.com")
+
+	checkResponseStatus(t, resp, http.StatusNoContent)
+
+	//TODO - check response body
+}

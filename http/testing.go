@@ -54,6 +54,10 @@ func checkFatal(t *testing.T, err error) {
 	}
 }
 
+func testHttpGet(t *testing.T, addr string, body interface{}) *http.Response {
+	return testHttpData(t, "GET", addr, body)
+}
+
 func testHttpPut(t *testing.T, addr string, body interface{}) *http.Response {
 	return testHttpData(t, "PUT", addr, body)
 }

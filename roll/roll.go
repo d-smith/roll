@@ -24,3 +24,7 @@ func NewCore(config *CoreConfig) *Core {
 func (core *Core) StoreDeveloper(dev *Developer) {
 	core.developerRepo.StoreDeveloper(dev)
 }
+
+func (core *Core) RetrieveDeveloper(email string) (*Developer, error) {
+	return core.developerRepo.RetrieveDeveloper(email)
+}

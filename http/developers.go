@@ -27,6 +27,19 @@ func handleDevelopers(core *roll.Core) http.Handler {
 }
 
 func handleDeveloperGet(core *roll.Core, w http.ResponseWriter, r *http.Request) {
+	email := strings.TrimPrefix(r.RequestURI, DevelopersBaseUri)
+	if !roll.ValidateEmail(email) {
+		respondError(w, http.StatusBadRequest, fmt.Errorf("Invalid email: %s", email))
+	}
+
+	_, err := core.RetrieveDeveloper(email)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err) //TODO - more helpful error messages and better status codes
+		return
+	}
+
+	//Todo - marshall the returned body
+
 	respondOk(w, nil)
 }
 

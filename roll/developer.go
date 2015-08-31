@@ -15,6 +15,6 @@ func ValidateEmail(email string) bool {
 }
 
 type DeveloperRepo interface {
-	RetrieveDeveloper() (*Developer, error)
+	RetrieveDeveloper(email string) (*Developer, error)
 	StoreDeveloper(*Developer) error
 }
