@@ -11,6 +11,7 @@ import (
 func main() {
 	var coreConfig = roll.CoreConfig{
 		DeveloperRepo: repos.NewDynamoDevRepo(),
+		ApplicationRepo: repos.NewDynamoAppRepo(),
 	}
 
 
