@@ -45,6 +45,7 @@ func TestServer(t *testing.T, core *roll.Core) (net.Listener, string) {
 func NewTestCore() (*roll.Core, *roll.CoreConfig) {
 	var coreConfig = roll.CoreConfig{}
 	coreConfig.DeveloperRepo = new(mocks.DeveloperRepo)
+	coreConfig.ApplicationRepo = new(mocks.ApplicationRepo)
 	return roll.NewCore(&coreConfig), &coreConfig
 }
 
