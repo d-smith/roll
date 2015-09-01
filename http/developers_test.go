@@ -1,7 +1,7 @@
 package http
 
 import (
-	"github.com/CenturyLinkLabs/imagelayers/Godeps/_workspace/src/github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/assert"
 	"github.com/xtraclabs/roll/roll"
 	"github.com/xtraclabs/roll/roll/mocks"
 	"net/http"
