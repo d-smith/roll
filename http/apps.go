@@ -28,6 +28,10 @@ func handleApplications(core *roll.Core) http.Handler {
 
 func handleApplicationGet(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 	apiKey := strings.TrimPrefix(r.RequestURI, ApplicationsBaseUri)
+	if apiKey == "" {
+		respondNotFound(w)
+		return
+	}
 
 	dev, err := core.RetrieveApplication(apiKey)
 	if err != nil {
@@ -49,6 +53,14 @@ func handleApplicationPut(core *roll.Core, w http.ResponseWriter, r *http.Reques
 		respondError(w, http.StatusBadRequest, err)
 		return
 	}
+
+	//Make sure we use the apikey in the resource not any apikey sent in the JSON.
+	apiKey := strings.TrimPrefix(r.RequestURI, ApplicationsBaseUri)
+	req.APIKey = apiKey
+
+
+	//TODO - remove the API key from the JSON structure - it's carried in the resource
+
 
 	log.Println("storing app def ", req)
 	core.StoreApplication(&req)
