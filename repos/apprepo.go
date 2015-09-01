@@ -4,8 +4,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/xtraclabs/roll/roll"
-	"errors"
 	"github.com/xtraclabs/roll/secrets"
+	"log"
 )
 
 type DynamoAppRepo struct {
@@ -43,5 +43,28 @@ func (dar *DynamoAppRepo) StoreApplication(app *roll.Application) error {
 }
 
 func (dar *DynamoAppRepo)RetrieveApplication(apiKey string) (*roll.Application, error) {
-	return nil,  errors.New("RetrieveApplication not implemented")
+	params := &dynamodb.GetItemInput{
+		TableName: aws.String("Application"),
+		Key: map[string]*dynamodb.AttributeValue{
+			"APIKey": {S: aws.String(apiKey)},
+		},
+	}
+
+	log.Println("Get item")
+	out, err := dar.client.GetItem(params)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(out.Item) == 0 {
+		return nil, nil
+	}
+
+	log.Println("Load struct with data returned from dynamo")
+	return &roll.Application{
+		APIKey:     extractString(out.Item["APIKey"]),
+		ApplicationName:     extractString(out.Item["ApplicationName"]),
+		APISecret: extractString(out.Item["APISecret"]),
+		DeveloperEmail:  extractString(out.Item["DeveloperEmail"]),
+	}, nil
 }
