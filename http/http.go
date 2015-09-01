@@ -37,6 +37,10 @@ func respondOk(w http.ResponseWriter, body interface{}) {
 	}
 }
 
+func respondNotFound(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusNotFound)
+}
+
 func parseRequest(r *http.Request, out interface{}) error {
 	dec := json.NewDecoder(r.Body)
 	err := dec.Decode(out)

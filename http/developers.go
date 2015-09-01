@@ -38,6 +38,11 @@ func handleDeveloperGet(core *roll.Core, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	if dev == nil {
+		respondNotFound(w)
+		return
+	}
+
 	respondOk(w, dev)
 }
 
