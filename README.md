@@ -71,7 +71,8 @@ Register an app:
 curl -X PUT -d '{
 "APIKey":"111-222-3333",
 "ApplicationName":"Hangry Birdz",
-"DeveloperEmail":"doug@dev.com"
+"DeveloperEmail":"doug@dev.com",
+"RedirectUri":"http://localhost:3000/ab"
 }' localhost:12345/v1/applications/111-222-3333
 </pre>
 

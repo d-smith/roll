@@ -17,6 +17,7 @@ func TestStoreApp(t *testing.T) {
 		ApplicationName:"ambivilant birds",
 		DeveloperEmail:"doug@dev.com",
 		APIKey:"1111-2222-3333333-4444444",
+		RedirectUri: "http://localhost:3000/ab",
 	}
 
 	testObj := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
@@ -38,6 +39,7 @@ func TestGetApplication(t *testing.T) {
 		APIKey: "1111-2222-3333333-4444444",
 		ApplicationName:"fight club",
 		APISecret: "not for browser clients",
+		RedirectUri: "http://localhost:3000/ab",
 	}
 
 	testObj := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
@@ -53,5 +55,6 @@ func TestGetApplication(t *testing.T) {
 	assert.Equal(t, "1111-2222-3333333-4444444", actual.APIKey)
 	assert.Equal(t, "fight club", actual.ApplicationName)
 	assert.Equal(t, "not for browser clients", actual.APISecret)
+	assert.Equal(t, "http://localhost:3000/ab", actual.RedirectUri)
 
 }
