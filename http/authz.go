@@ -4,10 +4,16 @@ import (
 	"github.com/xtraclabs/roll/roll"
 	"net/http"
 	"errors"
+	"html/template"
 )
 
 
+var templates = template.Must(template.ParseFiles("static/authorize.html"))
 
+type authPageContext struct {
+	AppName string
+	ClientId string
+}
 
 const (
 //AuthorizeBaseUri is the base uri for the service.
@@ -38,30 +44,30 @@ func requiredQueryParamsPresent(r *http.Request) bool {
 	return true
 }
 
-func validateInputParams(core *roll.Core, r *http.Request) error {
+func validateInputParams(core *roll.Core, r *http.Request) (*roll.Application, error) {
 	params := r.URL.Query()
 
 	if params["response_type"][0] != "token" {
-		return errors.New("Only token is support for response_type")
+		return nil, errors.New("Only token is support for response_type")
 	}
 
 
 	//Client id is application key
 	app, err := core.RetrieveApplication(params["client_id"][0])
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if app == nil {
-		return errors.New("Invalid client id")
+		return nil, errors.New("Invalid client id")
 	}
 
 
 	if app.RedirectUri != params["redirect_uri"][0] {
-		return errors.New("redirect_uri does not match registered redirect URIs")
+		return nil, errors.New("redirect_uri does not match registered redirect URIs")
 	}
 
-	return nil
+	return app, nil
 }
 
 func handleAuthZGet(core *roll.Core, w http.ResponseWriter, r *http.Request) {
@@ -73,12 +79,22 @@ func handleAuthZGet(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 	}
 
 	//Validate client_id and redirect_uri
-	err := validateInputParams(core, r)
+	app, err := validateInputParams(core, r)
 	if err != nil {
 		respondError(w, http.StatusBadRequest,err)
 		return
 	}
 
+	//Build and return the login page
+	pageCtx := &authPageContext{
+		AppName:app.ApplicationName,
+		ClientId:app.APIKey,
+	}
 
-	respondOk(w, nil)
+	err = templates.ExecuteTemplate(w, "authorize.html", pageCtx)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError,err)
+		return
+	}
+
 }
