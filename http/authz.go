@@ -133,8 +133,12 @@ func lookupApplicationFromFormClientId(core *roll.Core, r *http.Request) (*roll.
 	return app,nil
 }
 
+func buildDeniedRedirectUrl(app *roll.Application) string {
+	return fmt.Sprintf("%s#error=access_denied", app.RedirectUri)
+}
+
 func buildRedirectUrl(token string, app *roll.Application) string {
-	return fmt.Sprintf("%s#token=%s", app.RedirectUri,token)
+	return fmt.Sprintf("%s#access_token=%s&token_type=Bearer", app.RedirectUri,token)
 }
 
 func handleAuthZValidate(core *roll.Core, w http.ResponseWriter, r *http.Request)  {
@@ -146,16 +150,17 @@ func handleAuthZValidate(core *roll.Core, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	//Check if user denied authorization
-	if denied(r) {
-		respondUnauthorized(w)
-		return
-	}
-
 	//Lookup the client based on the hidden input field
 	app, err := lookupApplicationFromFormClientId(core, r)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError,err)
+	}
+
+	//Check if user denied authorization
+	if denied(r) {
+		redirectURL := buildDeniedRedirectUrl(app)
+		http.Redirect(w,r,redirectURL, http.StatusFound)
+		return
 	}
 
 	//Fake out the authenticaiton
@@ -174,5 +179,5 @@ func handleAuthZValidate(core *roll.Core, w http.ResponseWriter, r *http.Request
 
 	//Redirect the user to the new URL
 	http.Redirect(w,r,redirectURL, http.StatusFound)
-	
+
 }
