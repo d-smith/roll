@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"errors"
 	"html/template"
+	"fmt"
 )
 
 
@@ -16,8 +17,8 @@ type authPageContext struct {
 }
 
 const (
-//AuthorizeBaseUri is the base uri for the service.
 	AuthorizeBaseUri = "/oauth2/authorize"
+	ValidateBaseUri = "/oauth2/validate"
 )
 
 func handleAuthorize(core *roll.Core) http.Handler {
@@ -97,4 +98,28 @@ func handleAuthZGet(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+}
+
+func handleValidate(core *roll.Core) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case "POST":
+			handleAuthZValidate(core, w, r)
+		default:
+			respondError(w, http.StatusMethodNotAllowed, errors.New("Method not allowed"))
+		}
+	})
+}
+
+func handleAuthZValidate(core *roll.Core, w http.ResponseWriter, r *http.Request)  {
+	err := r.ParseForm()
+	if err != nil {
+		respondError(w, http.StatusInternalServerError,err)
+		return
+	}
+
+	fmt.Println(r.Form)
+
+	respondError(w, http.StatusInternalServerError,errors.New("Not implemented"))
+	return
 }

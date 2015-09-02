@@ -10,5 +10,6 @@ func Handler(core *roll.Core) http.Handler {
 	mux.Handle(DevelopersBaseUri, handleDevelopers(core))
 	mux.Handle(ApplicationsBaseUri, handleApplications(core))
 	mux.Handle(AuthorizeBaseUri, handleAuthorize(core))
+	mux.Handle(ValidateBaseUri, handleValidate(core))
 	return mux
 }
