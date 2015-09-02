@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Authorize Access to XTRAC Data<</title>
+</head>
+<body>
+{{.AppName}} Would Like Access to Your XTRAC Data
+
+<form>
+    User Name:<br/>
+    <input type="text" name="username"/><br/>
+    Password:<br/>
+    <input type="password" name="password"/><br/>
+    <input type="submit" name="authstatus" value="Allow"/>
+    <input type="submit" name="authstatus" value="Deny"/>
+    <input type="hidden" name="client_id" value="{{.ClientId}}">
+</form>
+</body>
+</body>
+</html>
