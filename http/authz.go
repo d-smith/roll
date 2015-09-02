@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"errors"
 	"html/template"
+	"log"
+	"github.com/xtraclabs/roll/secrets"
 	"fmt"
 )
 
@@ -111,15 +113,66 @@ func handleValidate(core *roll.Core) http.Handler {
 	})
 }
 
+func denied(r *http.Request) bool {
+	authstate := r.Form["authorize"][0]
+	return authstate != "allow"
+}
+
+func lookupApplicationFromFormClientId(core *roll.Core, r *http.Request) (*roll.Application, error) {
+	app, err := core.RetrieveApplication(r.Form["client_id"][0])
+	if err != nil {
+		return nil, err
+	}
+
+	if app == nil {
+		return nil, errors.New("Invalid client id")
+	}
+
+	//TODO - separate error handling for internal error and invalid client id
+
+	return app,nil
+}
+
+func buildRedirectUrl(token string, app *roll.Application) string {
+	return fmt.Sprintf("%s#token=%s", app.RedirectUri,token)
+}
+
 func handleAuthZValidate(core *roll.Core, w http.ResponseWriter, r *http.Request)  {
+
+	//Parse request form
 	err := r.ParseForm()
 	if err != nil {
 		respondError(w, http.StatusInternalServerError,err)
 		return
 	}
 
-	fmt.Println(r.Form)
+	//Check if user denied authorization
+	if denied(r) {
+		respondUnauthorized(w)
+		return
+	}
 
-	respondError(w, http.StatusInternalServerError,errors.New("Not implemented"))
-	return
+	//Lookup the client based on the hidden input field
+	app, err := lookupApplicationFromFormClientId(core, r)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError,err)
+	}
+
+	//Fake out the authenticaiton
+	log.Println("WARNING - CURRENTLY NO LOOKUP OF LOGIN ENDPOINT AND AUTHENTICATION CALL")
+
+	//Fake out token creation
+	log.Println("WARNING - CURRENTLY FAKING TOKEN GENERATION")
+	token,err := secrets.GenerateApiSecret()
+	if err != nil {
+		respondError(w, http.StatusInternalServerError,err)
+		return
+	}
+
+	//Build redirect url
+	redirectURL := buildRedirectUrl(token, app)
+
+	//Redirect the user to the new URL
+	http.Redirect(w,r,redirectURL, http.StatusFound)
+	
 }
