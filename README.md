@@ -42,7 +42,7 @@ Still need to vendor my dependencies, but they are:
 * [AWS Golang SDK](https://github.com/aws/aws-sdk-go)
 * [Hashicorp Vault Golang API](github.com/hashicorp/vault/api)
 * [JWT-go](github.com/dgrijalva/jwt-go)
-* [Go UUID](go get github.com/nu7hatch/gouuid)
+* [Go UUID](github.com/nu7hatch/gouuid)
 
 I used the [mockery tool](https://github.com/vektra/mockery) to generate the mocks - I don't think there's a runtime
  dependency but go get it as per its instructions if you see build weirdness.
@@ -75,7 +75,7 @@ curl -X PUT -d '{
 "APIKey":"111-222-3333",
 "ApplicationName":"Hangry Birdz",
 "DeveloperEmail":"doug@dev.com",
-"RedirectUri":"http://localhost:2000/oauth2_callback"
+"RedirectURI":"http://localhost:2000/oauth2_callback"
 }' localhost:12345/v1/applications/111-222-3333
 </pre>
 
@@ -106,7 +106,7 @@ curl -X PUT -d '{
 "APIKey":"111-222-3333",
 "ApplicationName":"Hangry Birdz",
 "DeveloperEmail":"doug@dev.com",
-"RedirectUri":"http://localhost:2000/oauth2_callback"
+"RedirectURI":"http://localhost:2000/oauth2_callback"
 }' localhost:12345/v1/applications/111-222-3333
 </pre>
 

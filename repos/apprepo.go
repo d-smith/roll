@@ -39,7 +39,7 @@ func (dar *DynamoAppRepo) StoreApplication(app *roll.Application) error {
 			"ApplicationName": {S: aws.String(app.ApplicationName)},
 			"APISecret":       {S: aws.String(apiSecret)},
 			"DeveloperEmail":  {S: aws.String(app.DeveloperEmail)},
-			"RedirectUri":     {S: aws.String(app.RedirectUri)},
+			"RedirectUri":     {S: aws.String(app.RedirectURI)},
 		},
 	}
 	_, err = dar.client.PutItem(params)
@@ -72,6 +72,6 @@ func (dar *DynamoAppRepo) RetrieveApplication(apiKey string) (*roll.Application,
 		ApplicationName: extractString(out.Item["ApplicationName"]),
 		APISecret:       extractString(out.Item["APISecret"]),
 		DeveloperEmail:  extractString(out.Item["DeveloperEmail"]),
-		RedirectUri:     extractString(out.Item["RedirectUri"]),
+		RedirectURI:     extractString(out.Item["RedirectUri"]),
 	}, nil
 }

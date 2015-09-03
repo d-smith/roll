@@ -6,6 +6,8 @@ import (
 	"time"
 )
 
+//GenerateToken generates a signed JWT for an application using the
+//provided private key which is assocaited with the application.
 func GenerateToken(app *Application, privateKey string) (string, error) {
 	t := jwt.New(jwt.GetSigningMethod("RS256"))
 

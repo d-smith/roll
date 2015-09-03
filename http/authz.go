@@ -65,7 +65,7 @@ func validateInputParams(core *roll.Core, r *http.Request) (*roll.Application, e
 		return nil, errors.New("Invalid client id")
 	}
 
-	if app.RedirectUri != params["redirect_uri"][0] {
+	if app.RedirectURI != params["redirect_uri"][0] {
 		return nil, errors.New("redirect_uri does not match registered redirect URIs")
 	}
 
@@ -133,11 +133,11 @@ func lookupApplicationFromFormClientID(core *roll.Core, r *http.Request) (*roll.
 }
 
 func buildDeniedRedirectURL(app *roll.Application) string {
-	return fmt.Sprintf("%s#error=access_denied", app.RedirectUri)
+	return fmt.Sprintf("%s#error=access_denied", app.RedirectURI)
 }
 
 func buildRedirectURL(token string, app *roll.Application) string {
-	return fmt.Sprintf("%s#access_token=%s&token_type=Bearer", app.RedirectUri, token)
+	return fmt.Sprintf("%s#access_token=%s&token_type=Bearer", app.RedirectURI, token)
 }
 
 func generateJWT(core *roll.Core, app *roll.Application) (string, error) {
