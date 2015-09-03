@@ -1,5 +1,6 @@
 package roll
 
 type SecretsRepo interface {
-	StoreKeysForApp(appid string, privateKey string, publicKey string) error
+	StoreKeysForApp(appkey string, privateKey string, publicKey string) error
+	RetrievePrivateKeyForApp(appkey string) (string, error)
 }

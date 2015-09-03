@@ -38,16 +38,39 @@ func NewVaultSecretsRepo() *VaultSecretsRepo {
 	}
 }
 
+func pathForKey(apikey string) string {
+	return "secret/" + apikey
+}
+
 func (v *VaultSecretsRepo) StoreKeysForApp(apikey string, privateKey string, publicKey string) error {
 	logical := v.vaultClient.Logical()
 	data := make(map[string]interface{})
 	data["privateKey"] = privateKey
 	data["publicKey"] = publicKey
-	path := "secret/" + apikey
+	path := pathForKey(apikey)
 	s, err := logical.Write(path, data)
 	if s == nil {
 		log.Println("Keys for " + apikey + " written to ", path)
 	}
 	log.Println(fmt.Sprintf("%v", s))
 	return err
+}
+
+func (v *VaultSecretsRepo) RetrievePrivateKeyForApp(apikey string) (string, error) {
+	logical := v.vaultClient.Logical()
+	path := pathForKey(apikey)
+	log.Println("Load secret from path ", path)
+	secret, err := logical.Read(path)
+	if err != nil {
+		return "", err
+	}
+
+	log.Println(fmt.Sprintf("secret -  %v", secret))
+	if secret == nil {
+		log.Println("return error - nil secret")
+		return "", errors.New("No keys stored for apikey " + apikey)
+	}
+
+	pk := secret.Data["privateKey"]
+	return pk.(string),nil
 }

@@ -6,7 +6,6 @@ import (
 	"errors"
 	"html/template"
 	"log"
-	"github.com/xtraclabs/roll/secrets"
 	"fmt"
 )
 
@@ -141,6 +140,16 @@ func buildRedirectUrl(token string, app *roll.Application) string {
 	return fmt.Sprintf("%s#access_token=%s&token_type=Bearer", app.RedirectUri,token)
 }
 
+func generateJWT(core *roll.Core, app *roll.Application) (string, error) {
+	privateKey, err := core.RetrievePrivateKeyForApp(app.APIKey)
+	if err != nil {
+		return "",err
+	}
+
+	token, err := roll.GenerateToken(app, privateKey)
+	return token, err
+}
+
 func handleAuthZValidate(core *roll.Core, w http.ResponseWriter, r *http.Request)  {
 
 	//Parse request form
@@ -167,9 +176,9 @@ func handleAuthZValidate(core *roll.Core, w http.ResponseWriter, r *http.Request
 	log.Println("WARNING - CURRENTLY NO LOOKUP OF LOGIN ENDPOINT AND AUTHENTICATION CALL")
 
 	//Fake out token creation
-	log.Println("WARNING - CURRENTLY FAKING TOKEN GENERATION")
-	token,err := secrets.GenerateApiSecret()
+	token, err := generateJWT(core, app)
 	if err != nil {
+		log.Println("Error generating token: ", err.Error())
 		respondError(w, http.StatusInternalServerError,err)
 		return
 	}

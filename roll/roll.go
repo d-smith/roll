@@ -56,3 +56,7 @@ func (core *Core) RetrieveApplication(apikey string) (*Application, error) {
 func (core *Core) StoreKeysForApp(apikey, privateKey, publicKey string) error {
 	return core.secretsRepo.StoreKeysForApp(apikey, privateKey, publicKey)
 }
+
+func (core *Core) RetrievePrivateKeyForApp(apikey string) (string, error) {
+	return core.secretsRepo.RetrievePrivateKeyForApp(apikey)
+}
