@@ -5,15 +5,15 @@ import (
 )
 
 type Core struct {
-	developerRepo DeveloperRepo
+	developerRepo   DeveloperRepo
 	applicationRepo ApplicationRepo
-	secretsRepo SecretsRepo
+	secretsRepo     SecretsRepo
 }
 
 type CoreConfig struct {
 	DeveloperRepo   DeveloperRepo
 	ApplicationRepo ApplicationRepo
-	SecretsRepo SecretsRepo
+	SecretsRepo     SecretsRepo
 }
 
 func NewCore(config *CoreConfig) *Core {
@@ -31,9 +31,9 @@ func NewCore(config *CoreConfig) *Core {
 	}
 
 	return &Core{
-		developerRepo: config.DeveloperRepo,
+		developerRepo:   config.DeveloperRepo,
 		applicationRepo: config.ApplicationRepo,
-		secretsRepo: config.SecretsRepo,
+		secretsRepo:     config.SecretsRepo,
 	}
 }
 

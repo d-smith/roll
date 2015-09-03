@@ -1,10 +1,11 @@
 package repos
+
 import (
 	"errors"
-	"os"
-	vault "github.com/hashicorp/vault/api"
 	"fmt"
+	vault "github.com/hashicorp/vault/api"
 	"log"
+	"os"
 )
 
 var vaultEndpoint string
@@ -25,7 +26,6 @@ func init() {
 type VaultSecretsRepo struct {
 	vaultClient *vault.Client
 }
-
 
 func NewVaultSecretsRepo() *VaultSecretsRepo {
 	vc, err := vault.NewClient(vault.DefaultConfig())
@@ -50,7 +50,7 @@ func (v *VaultSecretsRepo) StoreKeysForApp(apikey string, privateKey string, pub
 	path := pathForKey(apikey)
 	s, err := logical.Write(path, data)
 	if s == nil {
-		log.Println("Keys for " + apikey + " written to ", path)
+		log.Println("Keys for "+apikey+" written to ", path)
 	}
 	log.Println(fmt.Sprintf("%v", s))
 	return err
@@ -72,5 +72,5 @@ func (v *VaultSecretsRepo) RetrievePrivateKeyForApp(apikey string) (string, erro
 	}
 
 	pk := secret.Data["privateKey"]
-	return pk.(string),nil
+	return pk.(string), nil
 }

@@ -1,12 +1,12 @@
 package http
 
 import (
-	"testing"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/xtraclabs/roll/roll"
 	"github.com/xtraclabs/roll/roll/mocks"
 	"net/http"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
+	"testing"
 )
 
 func TestStoreApp(t *testing.T) {
@@ -15,10 +15,10 @@ func TestStoreApp(t *testing.T) {
 	defer ln.Close()
 
 	app := roll.Application{
-		ApplicationName:"ambivilant birds",
-		DeveloperEmail:"doug@dev.com",
-		APIKey:"1111-2222-3333333-4444444",
-		RedirectUri: "http://localhost:3000/ab",
+		ApplicationName: "ambivilant birds",
+		DeveloperEmail:  "doug@dev.com",
+		APIKey:          "1111-2222-3333333-4444444",
+		RedirectUri:     "http://localhost:3000/ab",
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
@@ -26,12 +26,11 @@ func TestStoreApp(t *testing.T) {
 
 	secretsRepoMock := coreConfig.SecretsRepo.(*mocks.SecretsRepo)
 	secretsRepoMock.On("StoreKeysForApp",
-		mock.AnythingOfType("string"),mock.AnythingOfType("string"),mock.AnythingOfType("string")).Return(nil).Once()
+		mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(nil).Once()
 
 	resp := testHttpPut(t, addr+"/v1/applications/1111-2222-3333333-4444444", app)
 	appRepoMock.AssertCalled(t, "StoreApplication", &app)
 	secretsRepoMock.AssertExpectations(t)
-
 
 	checkResponseStatus(t, resp, http.StatusNoContent)
 }
@@ -41,12 +40,12 @@ func TestGetApplication(t *testing.T) {
 	ln, addr := TestServer(t, core)
 	defer ln.Close()
 
-	returnVal := roll.Application {
-		DeveloperEmail:"doug@dev.com",
-		APIKey: "1111-2222-3333333-4444444",
-		ApplicationName:"fight club",
-		APISecret: "not for browser clients",
-		RedirectUri: "http://localhost:3000/ab",
+	returnVal := roll.Application{
+		DeveloperEmail:  "doug@dev.com",
+		APIKey:          "1111-2222-3333333-4444444",
+		ApplicationName: "fight club",
+		APISecret:       "not for browser clients",
+		RedirectUri:     "http://localhost:3000/ab",
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)

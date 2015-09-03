@@ -31,11 +31,11 @@ func (dar *DynamoAppRepo) StoreApplication(app *roll.Application) error {
 	params := &dynamodb.PutItemInput{
 		TableName: aws.String("Application"),
 		Item: map[string]*dynamodb.AttributeValue{
-			"APIKey":     {S: aws.String(app.APIKey)},
-			"ApplicationName":     {S: aws.String(app.ApplicationName)},
-			"APISecret":     {S: aws.String(apiSecret)},
-			"DeveloperEmail": {S: aws.String(app.DeveloperEmail)},
-			"RedirectUri": {S: aws.String(app.RedirectUri)},
+			"APIKey":          {S: aws.String(app.APIKey)},
+			"ApplicationName": {S: aws.String(app.ApplicationName)},
+			"APISecret":       {S: aws.String(apiSecret)},
+			"DeveloperEmail":  {S: aws.String(app.DeveloperEmail)},
+			"RedirectUri":     {S: aws.String(app.RedirectUri)},
 		},
 	}
 	_, err = dar.client.PutItem(params)
@@ -43,7 +43,7 @@ func (dar *DynamoAppRepo) StoreApplication(app *roll.Application) error {
 	return err
 }
 
-func (dar *DynamoAppRepo)RetrieveApplication(apiKey string) (*roll.Application, error) {
+func (dar *DynamoAppRepo) RetrieveApplication(apiKey string) (*roll.Application, error) {
 	params := &dynamodb.GetItemInput{
 		TableName: aws.String("Application"),
 		Key: map[string]*dynamodb.AttributeValue{
@@ -63,10 +63,10 @@ func (dar *DynamoAppRepo)RetrieveApplication(apiKey string) (*roll.Application, 
 
 	log.Println("Load struct with data returned from dynamo")
 	return &roll.Application{
-		APIKey:     extractString(out.Item["APIKey"]),
-		ApplicationName:     extractString(out.Item["ApplicationName"]),
-		APISecret: extractString(out.Item["APISecret"]),
+		APIKey:          extractString(out.Item["APIKey"]),
+		ApplicationName: extractString(out.Item["ApplicationName"]),
+		APISecret:       extractString(out.Item["APISecret"]),
 		DeveloperEmail:  extractString(out.Item["DeveloperEmail"]),
-		RedirectUri: extractString(out.Item["RedirectUri"]),
+		RedirectUri:     extractString(out.Item["RedirectUri"]),
 	}, nil
 }

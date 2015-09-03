@@ -2,17 +2,16 @@ package roll
 
 import (
 	jwt "github.com/dgrijalva/jwt-go"
-	"time"
 	"github.com/nu7hatch/gouuid"
+	"time"
 )
-
 
 func GenerateToken(app *Application, privateKey string) (string, error) {
 	t := jwt.New(jwt.GetSigningMethod("RS256"))
 
 	u, err := uuid.NewV4()
 	if err != nil {
-		return "",err
+		return "", err
 	}
 
 	t.Claims["aud"] = app.APIKey
@@ -21,12 +20,12 @@ func GenerateToken(app *Application, privateKey string) (string, error) {
 
 	signKey, err := jwt.ParseRSAPrivateKeyFromPEM([]byte(privateKey))
 	if err != nil {
-		return "",nil
+		return "", nil
 	}
 
-	tokenString,err := t.SignedString(signKey)
+	tokenString, err := t.SignedString(signKey)
 	if err != nil {
-		return "",err
+		return "", err
 	}
 
 	return tokenString, nil

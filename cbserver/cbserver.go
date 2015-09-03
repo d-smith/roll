@@ -1,9 +1,10 @@
 package main
+
 import (
-	"net/http"
 	"flag"
 	"fmt"
 	"html/template"
+	"net/http"
 )
 
 var templates = template.Must(template.ParseFiles("static/callback.html"))

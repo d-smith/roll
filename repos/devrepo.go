@@ -1,10 +1,10 @@
 package repos
 
 import (
-	"log"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/xtraclabs/roll/roll"
+	"log"
 )
 
 type DynamoDevRepo struct {
@@ -51,7 +51,6 @@ func (dddr DynamoDevRepo) RetrieveDeveloper(email string) (*roll.Developer, erro
 		LastName:  extractString(out.Item["LastName"]),
 	}, nil
 }
-
 
 func (dddr DynamoDevRepo) StoreDeveloper(dev *roll.Developer) error {
 	params := &dynamodb.PutItemInput{

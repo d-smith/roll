@@ -5,7 +5,7 @@ type Application struct {
 	APIKey          string
 	ApplicationName string
 	APISecret       string
-	RedirectUri		string
+	RedirectUri     string
 }
 
 type ApplicationRepo interface {

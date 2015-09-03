@@ -1,13 +1,13 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	rollhttp "github.com/xtraclabs/roll/http"
+	"github.com/xtraclabs/roll/repos"
 	"github.com/xtraclabs/roll/roll"
 	"log"
 	"net/http"
-	"github.com/xtraclabs/roll/repos"
-	"flag"
-	"fmt"
 )
 
 func main() {
@@ -20,14 +20,13 @@ func main() {
 	}
 
 	var coreConfig = roll.CoreConfig{
-		DeveloperRepo: repos.NewDynamoDevRepo(),
+		DeveloperRepo:   repos.NewDynamoDevRepo(),
 		ApplicationRepo: repos.NewDynamoAppRepo(),
-		SecretsRepo: repos.NewVaultSecretsRepo(),
+		SecretsRepo:     repos.NewVaultSecretsRepo(),
 	}
-
 
 	core := roll.NewCore(&coreConfig)
 
-	log.Println("Listening on port ",*port)
+	log.Println("Listening on port ", *port)
 	http.ListenAndServe(fmt.Sprintf(":%d", *port), rollhttp.Handler(core))
 }

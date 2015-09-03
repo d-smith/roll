@@ -1,12 +1,12 @@
 package http
 
 import (
-	"github.com/xtraclabs/roll/roll"
-	"net/http"
 	"errors"
-	"strings"
-	"log"
+	"github.com/xtraclabs/roll/roll"
 	"github.com/xtraclabs/roll/secrets"
+	"log"
+	"net/http"
+	"strings"
 )
 
 const (
@@ -59,7 +59,6 @@ func handleApplicationPut(core *roll.Core, w http.ResponseWriter, r *http.Reques
 	apiKey := strings.TrimPrefix(r.RequestURI, ApplicationsBaseUri)
 	req.APIKey = apiKey
 
-
 	//Generate a private/public key pair
 	private, public, err := secrets.GenerateKeyPair()
 	if err != nil {
@@ -68,7 +67,7 @@ func handleApplicationPut(core *roll.Core, w http.ResponseWriter, r *http.Reques
 	}
 
 	//Store keys in secrets vault
-	err = core.StoreKeysForApp(apiKey, private,public)
+	err = core.StoreKeysForApp(apiKey, private, public)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, err)
 		return
