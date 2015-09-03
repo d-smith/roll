@@ -58,13 +58,13 @@ curl -v -X PUT -d '
 "Email":"doug@dev.com",
 "FirstName":"Doug",
 "LastName":"Dev"
-}' localhost:12345/v1/developers/doug@dev.com
+}' localhost:3000/v1/developers/doug@dev.com
 </pre>
 
 Retrieve a dev:
 
 <pre>
-curl -v localhost:12345/v1/developers/doug@dev.com
+curl -v localhost:3000/v1/developers/doug@dev.com
 </pre>
 
 
@@ -76,13 +76,13 @@ curl -X PUT -d '{
 "ApplicationName":"Hangry Birdz",
 "DeveloperEmail":"doug@dev.com",
 "RedirectURI":"http://localhost:2000/oauth2_callback"
-}' localhost:12345/v1/applications/111-222-3333
+}' localhost:3000/v1/applications/111-222-3333
 </pre>
 
 Retrieve registered app:
 
 <pre>
-curl -v localhost:12345/v1/applications/111-222-3333
+curl -v localhost:3000/v1/applications/111-222-3333
 </pre>
 
 ### Implicit Grant Flow
@@ -107,7 +107,7 @@ curl -X PUT -d '{
 "ApplicationName":"Hangry Birdz",
 "DeveloperEmail":"doug@dev.com",
 "RedirectURI":"http://localhost:2000/oauth2_callback"
-}' localhost:12345/v1/applications/111-222-3333
+}' localhost:3000/v1/applications/111-222-3333
 </pre>
 
 For the next step, fire up your browser for point to:

@@ -8,7 +8,8 @@ import (
 	"encoding/pem"
 )
 
-func GenerateApiSecret() (string, error) {
+//GenerateAPISecret generates a string to be used as an API secret
+func GenerateAPISecret() (string, error) {
 	randbuf := make([]byte, 32)
 
 	_, err := rand.Read(randbuf)
@@ -19,6 +20,8 @@ func GenerateApiSecret() (string, error) {
 	return base64.StdEncoding.EncodeToString(randbuf), nil
 }
 
+//GenerateKeyPair generates a random 1024 byte RSA private and public key pair, returning
+//PEM encodings of the keys
 func GenerateKeyPair() (string, string, error) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 1024)
 	if err != nil {

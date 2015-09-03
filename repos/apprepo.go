@@ -27,7 +27,7 @@ func (dar *DynamoAppRepo) StoreApplication(app *roll.Application) error {
 	//TODO - do we generate a secret everytime this is called? Probably need a POST to
 	//create and a put to update - refactor later after talking this through with others
 
-	apiSecret, err := secrets.GenerateApiSecret()
+	apiSecret, err := secrets.GenerateAPISecret()
 	if err != nil {
 		return err
 	}
