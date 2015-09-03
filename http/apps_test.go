@@ -6,6 +6,7 @@ import (
 	"github.com/xtraclabs/roll/roll/mocks"
 	"net/http"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestStoreApp(t *testing.T) {
@@ -20,11 +21,17 @@ func TestStoreApp(t *testing.T) {
 		RedirectUri: "http://localhost:3000/ab",
 	}
 
-	testObj := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	testObj.On("StoreApplication", &app).Return(nil)
+	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
+	appRepoMock.On("StoreApplication", &app).Return(nil)
+
+	secretsRepoMock := coreConfig.SecretsRepo.(*mocks.SecretsRepo)
+	secretsRepoMock.On("StoreKeysForApp",
+		mock.AnythingOfType("string"),mock.AnythingOfType("string"),mock.AnythingOfType("string")).Return(nil).Once()
 
 	resp := testHttpPut(t, addr+"/v1/applications/1111-2222-3333333-4444444", app)
-	testObj.AssertCalled(t, "StoreApplication", &app)
+	appRepoMock.AssertCalled(t, "StoreApplication", &app)
+	secretsRepoMock.AssertExpectations(t)
+
 
 	checkResponseStatus(t, resp, http.StatusNoContent)
 }
@@ -42,11 +49,11 @@ func TestGetApplication(t *testing.T) {
 		RedirectUri: "http://localhost:3000/ab",
 	}
 
-	testObj := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	testObj.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
+	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
 	resp := testHttpGet(t, addr+"/v1/applications/1111-2222-3333333-4444444", nil)
-	testObj.AssertCalled(t, "RetrieveApplication", "1111-2222-3333333-4444444")
+	appRepoMock.AssertCalled(t, "RetrieveApplication", "1111-2222-3333333-4444444")
 
 	var actual roll.Application
 

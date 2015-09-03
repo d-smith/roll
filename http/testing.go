@@ -46,6 +46,7 @@ func NewTestCore() (*roll.Core, *roll.CoreConfig) {
 	var coreConfig = roll.CoreConfig{}
 	coreConfig.DeveloperRepo = new(mocks.DeveloperRepo)
 	coreConfig.ApplicationRepo = new(mocks.ApplicationRepo)
+	coreConfig.SecretsRepo = new(mocks.SecretsRepo)
 	return roll.NewCore(&coreConfig), &coreConfig
 }
 

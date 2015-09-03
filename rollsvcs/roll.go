@@ -22,6 +22,7 @@ func main() {
 	var coreConfig = roll.CoreConfig{
 		DeveloperRepo: repos.NewDynamoDevRepo(),
 		ApplicationRepo: repos.NewDynamoAppRepo(),
+		SecretsRepo: repos.NewVaultSecretsRepo(),
 	}
 
 

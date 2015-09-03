@@ -18,11 +18,11 @@ func TestStoreDeveloper(t *testing.T) {
 		LastName:  "Developer",
 	}
 
-	testObj := coreConfig.DeveloperRepo.(*mocks.DeveloperRepo)
-	testObj.On("StoreDeveloper", &dev).Return(nil)
+	devRepoMock := coreConfig.DeveloperRepo.(*mocks.DeveloperRepo)
+	devRepoMock.On("StoreDeveloper", &dev).Return(nil)
 
 	resp := testHttpPut(t, addr+"/v1/developers/foo@gmail.com", dev)
-	testObj.AssertCalled(t, "StoreDeveloper", &dev)
+	devRepoMock.AssertCalled(t, "StoreDeveloper", &dev)
 
 	checkResponseStatus(t, resp, http.StatusNoContent)
 }
@@ -32,11 +32,11 @@ func TestGetDeveloper(t *testing.T) {
 	ln, addr := TestServer(t, core)
 	defer ln.Close()
 
-	testObj := coreConfig.DeveloperRepo.(*mocks.DeveloperRepo)
-	testObj.On("RetrieveDeveloper", "joe@dev.com").Return(&roll.Developer{FirstName: "Joe", LastName: "Dev", Email: "joe@dev.com"}, nil)
+	devRepoMock := coreConfig.DeveloperRepo.(*mocks.DeveloperRepo)
+	devRepoMock.On("RetrieveDeveloper", "joe@dev.com").Return(&roll.Developer{FirstName: "Joe", LastName: "Dev", Email: "joe@dev.com"}, nil)
 
 	resp := testHttpGet(t, addr+"/v1/developers/joe@dev.com", nil)
-	testObj.AssertCalled(t, "RetrieveDeveloper", "joe@dev.com")
+	devRepoMock.AssertCalled(t, "RetrieveDeveloper", "joe@dev.com")
 
 	var actual roll.Developer
 

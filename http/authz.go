@@ -11,7 +11,7 @@ import (
 )
 
 
-var templates = template.Must(template.ParseFiles("static/authorize.html"))
+var templates = template.Must(template.ParseFiles("../html/authorize.html"))
 
 type authPageContext struct {
 	AppName string
