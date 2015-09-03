@@ -42,6 +42,7 @@ Still need to vendor my dependencies, but they are:
 * [AWS Golang SDK](https://github.com/aws/aws-sdk-go)
 * [Hashicorp Vault Golang API](github.com/hashicorp/vault/api)
 * [JWT-go](github.com/dgrijalva/jwt-go)
+* [Go UUID](go get github.com/nu7hatch/gouuid)
 
 I used the [mockery tool](https://github.com/vektra/mockery) to generate the mocks - I don't think there's a runtime
  dependency but go get it as per its instructions if you see build weirdness.
