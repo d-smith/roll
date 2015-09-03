@@ -8,10 +8,13 @@ import (
 	"log"
 )
 
+//DynamoAppRepo presents a repository interface for storing and retrieving application definitions,
+//backed by DynamoDB
 type DynamoAppRepo struct {
 	client *dynamodb.DynamoDB
 }
 
+//NewDynamoAppRepo returns a new instance of type DynamoAppRepo
 func NewDynamoAppRepo() *DynamoAppRepo {
 	//TODO - pick up region from config?
 	return &DynamoAppRepo{
@@ -19,6 +22,7 @@ func NewDynamoAppRepo() *DynamoAppRepo {
 	}
 }
 
+//StoreApplication stores an application definition in DynamoDB
 func (dar *DynamoAppRepo) StoreApplication(app *roll.Application) error {
 	//TODO - do we generate a secret everytime this is called? Probably need a POST to
 	//create and a put to update - refactor later after talking this through with others
@@ -43,6 +47,7 @@ func (dar *DynamoAppRepo) StoreApplication(app *roll.Application) error {
 	return err
 }
 
+//RetrieveApplication retrieves an application definition from DynamoDB
 func (dar *DynamoAppRepo) RetrieveApplication(apiKey string) (*roll.Application, error) {
 	params := &dynamodb.GetItemInput{
 		TableName: aws.String("Application"),

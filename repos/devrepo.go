@@ -7,6 +7,7 @@ import (
 	"log"
 )
 
+//DynamoDevRepo provides a repository for Developer objects implemented using DynamoDB
 type DynamoDevRepo struct {
 	client *dynamodb.DynamoDB
 }
@@ -19,6 +20,7 @@ func extractString(attrval *dynamodb.AttributeValue) string {
 	return *attrval.S
 }
 
+//NewDynamoDevRepo creates a new instance of DynamoDevRepo
 func NewDynamoDevRepo() *DynamoDevRepo {
 	//TODO - pick up region from config?
 	return &DynamoDevRepo{
@@ -26,6 +28,7 @@ func NewDynamoDevRepo() *DynamoDevRepo {
 	}
 }
 
+//RetrieveDeveloper retrieves a developer from DynamoDB using the developer's email as the key
 func (dddr DynamoDevRepo) RetrieveDeveloper(email string) (*roll.Developer, error) {
 	params := &dynamodb.GetItemInput{
 		TableName: aws.String("Developer"),
@@ -52,6 +55,7 @@ func (dddr DynamoDevRepo) RetrieveDeveloper(email string) (*roll.Developer, erro
 	}, nil
 }
 
+//StoreDeveloper stores a developer instance in dynamoDB
 func (dddr DynamoDevRepo) StoreDeveloper(dev *roll.Developer) error {
 	params := &dynamodb.PutItemInput{
 		TableName: aws.String("Developer"),

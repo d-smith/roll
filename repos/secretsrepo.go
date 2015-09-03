@@ -23,10 +23,13 @@ func init() {
 	}
 }
 
+//VaultSecretsRepo provides a Vault implementation of a repository for secrets. See
+//https://vaultproject.io/ for more details on Vault
 type VaultSecretsRepo struct {
 	vaultClient *vault.Client
 }
 
+//NewVaultSecretsRepo returns a new instance of VaultSecretsRepo
 func NewVaultSecretsRepo() *VaultSecretsRepo {
 	vc, err := vault.NewClient(vault.DefaultConfig())
 	if err != nil {
@@ -42,6 +45,7 @@ func pathForKey(apikey string) string {
 	return "secret/" + apikey
 }
 
+//StoreKeysForApp stores the private and public keys associated with an app in Vault
 func (v *VaultSecretsRepo) StoreKeysForApp(apikey string, privateKey string, publicKey string) error {
 	logical := v.vaultClient.Logical()
 	data := make(map[string]interface{})
@@ -56,6 +60,7 @@ func (v *VaultSecretsRepo) StoreKeysForApp(apikey string, privateKey string, pub
 	return err
 }
 
+//RetrievePrivateKeyForApp retrieves the private key associated with an application  from the Vault
 func (v *VaultSecretsRepo) RetrievePrivateKeyForApp(apikey string) (string, error) {
 	logical := v.vaultClient.Logical()
 	path := pathForKey(apikey)
