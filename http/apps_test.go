@@ -28,7 +28,7 @@ func TestStoreApp(t *testing.T) {
 	secretsRepoMock.On("StoreKeysForApp",
 		mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(nil).Once()
 
-	resp := testHttpPut(t, addr+"/v1/applications/1111-2222-3333333-4444444", app)
+	resp := testHTTPPut(t, addr+"/v1/applications/1111-2222-3333333-4444444", app)
 	appRepoMock.AssertCalled(t, "StoreApplication", &app)
 	secretsRepoMock.AssertExpectations(t)
 
@@ -51,7 +51,7 @@ func TestGetApplication(t *testing.T) {
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
 	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
-	resp := testHttpGet(t, addr+"/v1/applications/1111-2222-3333333-4444444", nil)
+	resp := testHTTPGet(t, addr+"/v1/applications/1111-2222-3333333-4444444", nil)
 	appRepoMock.AssertCalled(t, "RetrieveApplication", "1111-2222-3333333-4444444")
 
 	var actual roll.Application

@@ -14,6 +14,7 @@ import (
 //These functions inspired by/adopted from github.com/hashicorp/vault testing and http_test files in the vault
 //http package
 
+//TestListener creates a lister on the localhost, selecting a free port to listen on.
 func TestListener(t *testing.T) (net.Listener, string) {
 	ln, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
@@ -24,6 +25,7 @@ func TestListener(t *testing.T) (net.Listener, string) {
 	return ln, addr
 }
 
+//TestServerWithListener creates a test server using a given listener, running it in a new go routine.
 func TestServerWithListener(t *testing.T, ln net.Listener, core *roll.Core) {
 	mux := http.NewServeMux()
 	mux.Handle("/", Handler(core))
@@ -36,12 +38,15 @@ func TestServerWithListener(t *testing.T, ln net.Listener, core *roll.Core) {
 	go server.Serve(ln)
 }
 
+//TestServer return a test listener and its address after firing up a
+//TestServerWithListener
 func TestServer(t *testing.T, core *roll.Core) (net.Listener, string) {
 	ln, addr := TestListener(t)
 	TestServerWithListener(t, ln, core)
 	return ln, addr
 }
 
+//NewTestCore returns a roll.Core instance with mocked implementations of its internal dependencies
 func NewTestCore() (*roll.Core, *roll.CoreConfig) {
 	var coreConfig = roll.CoreConfig{}
 	coreConfig.DeveloperRepo = new(mocks.DeveloperRepo)
@@ -56,15 +61,15 @@ func checkFatal(t *testing.T, err error) {
 	}
 }
 
-func testHttpGet(t *testing.T, addr string, body interface{}) *http.Response {
-	return testHttpData(t, "GET", addr, body)
+func testHTTPGet(t *testing.T, addr string, body interface{}) *http.Response {
+	return testHTTPData(t, "GET", addr, body)
 }
 
-func testHttpPut(t *testing.T, addr string, body interface{}) *http.Response {
-	return testHttpData(t, "PUT", addr, body)
+func testHTTPPut(t *testing.T, addr string, body interface{}) *http.Response {
+	return testHTTPData(t, "PUT", addr, body)
 }
 
-func testHttpData(t *testing.T, method string, addr string, body interface{}) *http.Response {
+func testHTTPData(t *testing.T, method string, addr string, body interface{}) *http.Response {
 	bodyReader := new(bytes.Buffer)
 	if body != nil {
 		enc := json.NewEncoder(bodyReader)

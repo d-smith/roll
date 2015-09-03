@@ -13,12 +13,15 @@ var templates = template.Must(template.ParseFiles("../html/authorize.html"))
 
 type authPageContext struct {
 	AppName  string
-	ClientId string
+	ClientID string
 }
 
 const (
-	AuthorizeBaseUri = "/oauth2/authorize"
-	ValidateBaseUri  = "/oauth2/validate"
+	//AuthorizeBaseURI is the base uri for obtaining an access token using the implicit flow graph
+	AuthorizeBaseURI = "/oauth2/authorize"
+
+	//ValidateBaseURI is the base uri for the authentication callback for the implicit grant flow
+	ValidateBaseURI = "/oauth2/validate"
 )
 
 func handleAuthorize(core *roll.Core) http.Handler {
@@ -87,7 +90,7 @@ func handleAuthZGet(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 	//Build and return the login page
 	pageCtx := &authPageContext{
 		AppName:  app.ApplicationName,
-		ClientId: app.APIKey,
+		ClientID: app.APIKey,
 	}
 
 	err = templates.ExecuteTemplate(w, "authorize.html", pageCtx)
@@ -114,7 +117,7 @@ func denied(r *http.Request) bool {
 	return authstate != "allow"
 }
 
-func lookupApplicationFromFormClientId(core *roll.Core, r *http.Request) (*roll.Application, error) {
+func lookupApplicationFromFormClientID(core *roll.Core, r *http.Request) (*roll.Application, error) {
 	app, err := core.RetrieveApplication(r.Form["client_id"][0])
 	if err != nil {
 		return nil, err
@@ -129,11 +132,11 @@ func lookupApplicationFromFormClientId(core *roll.Core, r *http.Request) (*roll.
 	return app, nil
 }
 
-func buildDeniedRedirectUrl(app *roll.Application) string {
+func buildDeniedRedirectURL(app *roll.Application) string {
 	return fmt.Sprintf("%s#error=access_denied", app.RedirectUri)
 }
 
-func buildRedirectUrl(token string, app *roll.Application) string {
+func buildRedirectURL(token string, app *roll.Application) string {
 	return fmt.Sprintf("%s#access_token=%s&token_type=Bearer", app.RedirectUri, token)
 }
 
@@ -157,14 +160,14 @@ func handleAuthZValidate(core *roll.Core, w http.ResponseWriter, r *http.Request
 	}
 
 	//Lookup the client based on the hidden input field
-	app, err := lookupApplicationFromFormClientId(core, r)
+	app, err := lookupApplicationFromFormClientID(core, r)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, err)
 	}
 
 	//Check if user denied authorization
 	if denied(r) {
-		redirectURL := buildDeniedRedirectUrl(app)
+		redirectURL := buildDeniedRedirectURL(app)
 		http.Redirect(w, r, redirectURL, http.StatusFound)
 		return
 	}
@@ -181,7 +184,7 @@ func handleAuthZValidate(core *roll.Core, w http.ResponseWriter, r *http.Request
 	}
 
 	//Build redirect url
-	redirectURL := buildRedirectUrl(token, app)
+	redirectURL := buildRedirectURL(token, app)
 
 	//Redirect the user to the new URL
 	http.Redirect(w, r, redirectURL, http.StatusFound)

@@ -7,6 +7,7 @@ import (
 	"net/http"
 )
 
+//ErrorResponse is used to convey error information in JSON format
 type ErrorResponse struct {
 	Errors []string `json:"errors"`
 }

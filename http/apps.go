@@ -11,7 +11,7 @@ import (
 
 const (
 	//ApplicationsBaseUri is the base uri for the service.
-	ApplicationsBaseUri = "/v1/applications/"
+	ApplicationsBaseURI = "/v1/applications/"
 )
 
 func handleApplications(core *roll.Core) http.Handler {
@@ -28,7 +28,7 @@ func handleApplications(core *roll.Core) http.Handler {
 }
 
 func handleApplicationGet(core *roll.Core, w http.ResponseWriter, r *http.Request) {
-	apiKey := strings.TrimPrefix(r.RequestURI, ApplicationsBaseUri)
+	apiKey := strings.TrimPrefix(r.RequestURI, ApplicationsBaseURI)
 	if apiKey == "" {
 		respondNotFound(w)
 		return
@@ -56,7 +56,7 @@ func handleApplicationPut(core *roll.Core, w http.ResponseWriter, r *http.Reques
 	}
 
 	//Make sure we use the apikey in the resource not any apikey sent in the JSON.
-	apiKey := strings.TrimPrefix(r.RequestURI, ApplicationsBaseUri)
+	apiKey := strings.TrimPrefix(r.RequestURI, ApplicationsBaseURI)
 	req.APIKey = apiKey
 
 	//Generate a private/public key pair

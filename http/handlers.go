@@ -5,11 +5,12 @@ import (
 	"net/http"
 )
 
+//Handler creates a much with handlers for all routes in the roll application
 func Handler(core *roll.Core) http.Handler {
 	mux := http.NewServeMux()
-	mux.Handle(DevelopersBaseUri, handleDevelopers(core))
-	mux.Handle(ApplicationsBaseUri, handleApplications(core))
-	mux.Handle(AuthorizeBaseUri, handleAuthorize(core))
-	mux.Handle(ValidateBaseUri, handleValidate(core))
+	mux.Handle(DevelopersBaseURI, handleDevelopers(core))
+	mux.Handle(ApplicationsBaseURI, handleApplications(core))
+	mux.Handle(AuthorizeBaseURI, handleAuthorize(core))
+	mux.Handle(ValidateBaseURI, handleValidate(core))
 	return mux
 }

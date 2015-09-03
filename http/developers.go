@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	//DevelopersBaseUri is the base uri for the service.
-	DevelopersBaseUri = "/v1/developers/"
+	//DevelopersBaseURI is the base uri for the service.
+	DevelopersBaseURI = "/v1/developers/"
 )
 
 func handleDevelopers(core *roll.Core) http.Handler {
@@ -27,7 +27,7 @@ func handleDevelopers(core *roll.Core) http.Handler {
 }
 
 func handleDeveloperGet(core *roll.Core, w http.ResponseWriter, r *http.Request) {
-	email := strings.TrimPrefix(r.RequestURI, DevelopersBaseUri)
+	email := strings.TrimPrefix(r.RequestURI, DevelopersBaseURI)
 	if !roll.ValidateEmail(email) {
 		respondError(w, http.StatusBadRequest, fmt.Errorf("Invalid email: %s", email))
 	}
@@ -53,7 +53,7 @@ func handleDeveloperPut(core *roll.Core, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	email := strings.TrimPrefix(r.RequestURI, DevelopersBaseUri)
+	email := strings.TrimPrefix(r.RequestURI, DevelopersBaseURI)
 	if !roll.ValidateEmail(email) {
 		respondError(w, http.StatusBadRequest, fmt.Errorf("Invalid email: %s", email))
 	}
