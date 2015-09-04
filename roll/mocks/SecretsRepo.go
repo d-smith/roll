@@ -37,3 +37,22 @@ func (_m *SecretsRepo) RetrievePrivateKeyForApp(appkey string) (string, error) {
 
 	return r0, r1
 }
+func (_m *SecretsRepo) RetrievePublicKeyForApp(appkey string) (string, error) {
+	ret := _m.Called(appkey)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(string) string); ok {
+		r0 = rf(appkey)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(appkey)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}

@@ -19,6 +19,7 @@ func GenerateToken(app *Application, privateKey string) (string, error) {
 	t.Claims["aud"] = app.APIKey
 	t.Claims["iat"] = int64(time.Now().Unix())
 	t.Claims["jti"] = u.String()
+	t.Claims["application"] = app.ApplicationName
 
 	signKey, err := jwt.ParseRSAPrivateKeyFromPEM([]byte(privateKey))
 	if err != nil {

@@ -8,6 +8,7 @@ import (
 	"github.com/xtraclabs/roll/roll"
 	"fmt"
 	"log"
+	"strings"
 )
 
 type AuthHandler struct {
@@ -58,8 +59,18 @@ func (ah *AuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//Header format should be Bearer token
+	parts := strings.SplitAfter(authzHeader, "Bearer")
+	if len(parts) != 2 {
+		log.Println("Unexpected authorization header format - expecting bearer token")
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte("Unauthorized\n"))
+		return
+	}
+
 	//Parse the token
-	token, err := jwt.Parse(authzHeader, ah.makeKeyExtractionFunction())
+	bearerToken := strings.TrimSpace(parts[1])
+	token, err := jwt.Parse(bearerToken, ah.makeKeyExtractionFunction())
 	if err != nil {
 		log.Println(err.Error())
 		w.WriteHeader(http.StatusUnauthorized)
