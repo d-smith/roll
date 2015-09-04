@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	//ApplicationsBaseUri is the base uri for the service.
+	//ApplicationsBaseURI is the base uri for the service.
 	ApplicationsBaseURI = "/v1/applications/"
 )
 

@@ -11,11 +11,14 @@ import (
 	"strings"
 )
 
+//AuthHandler is a wrapper type, embedding the wrapped handler and the secrets repo needed to
+//look up the key for validating JWT bearer tokens
 type AuthHandler struct {
 	handler http.Handler
 	secretsRepo roll.SecretsRepo
 }
 
+//Wrap takes a handler and decorates it with JWT bearer token validation.
 func Wrap(h http.Handler) *AuthHandler {
 	return &AuthHandler {
 		handler:h,
