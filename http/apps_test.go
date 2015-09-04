@@ -19,6 +19,7 @@ func TestStoreApp(t *testing.T) {
 		DeveloperEmail:  "doug@dev.com",
 		APIKey:          "1111-2222-3333333-4444444",
 		RedirectURI:     "http://localhost:3000/ab",
+		LoginProvider:   "xtrac://localhost:9000",
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
@@ -46,6 +47,7 @@ func TestGetApplication(t *testing.T) {
 		ApplicationName: "fight club",
 		APISecret:       "not for browser clients",
 		RedirectURI:     "http://localhost:3000/ab",
+		LoginProvider:   "xtrac://localhost:9000",
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
@@ -62,5 +64,6 @@ func TestGetApplication(t *testing.T) {
 	assert.Equal(t, "fight club", actual.ApplicationName)
 	assert.Equal(t, "not for browser clients", actual.APISecret)
 	assert.Equal(t, "http://localhost:3000/ab", actual.RedirectURI)
+	assert.Equal(t, "xtrac://localhost:9000", actual.LoginProvider)
 
 }

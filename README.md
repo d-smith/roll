@@ -108,7 +108,8 @@ curl -X PUT -d '{
 "APIKey":"111-222-3333",
 "ApplicationName":"Hangry Birdz",
 "DeveloperEmail":"doug@dev.com",
-"RedirectURI":"http://localhost:2000/oauth2_callback"
+"RedirectURI":"http://localhost:2000/oauth2_callback",
+"LoginProvider":"xtrac://localhost:9000"
 }' localhost:3000/v1/applications/111-222-3333
 </pre>
 
