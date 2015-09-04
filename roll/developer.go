@@ -7,7 +7,7 @@ type Developer struct {
 	FirstName string
 	LastName  string
 	Email     string
-	ID string
+	ID        string
 }
 
 //ValidateEmail validates a string that is to be treated as an email address

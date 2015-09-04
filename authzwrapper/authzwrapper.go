@@ -1,34 +1,32 @@
 package authzwrapper
 
 import (
-	"net/http"
-	jwt "github.com/dgrijalva/jwt-go"
 	"errors"
+	"fmt"
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/xtraclabs/roll/repos"
 	"github.com/xtraclabs/roll/roll"
-	"fmt"
 	"log"
+	"net/http"
 	"strings"
 )
 
 //AuthHandler is a wrapper type, embedding the wrapped handler and the secrets repo needed to
 //look up the key for validating JWT bearer tokens
 type AuthHandler struct {
-	handler http.Handler
+	handler     http.Handler
 	secretsRepo roll.SecretsRepo
 }
 
 //Wrap takes a handler and decorates it with JWT bearer token validation.
 func Wrap(h http.Handler) *AuthHandler {
-	return &AuthHandler {
-		handler:h,
+	return &AuthHandler{
+		handler:     h,
 		secretsRepo: repos.NewVaultSecretsRepo(),
 	}
 }
 
-
-
-func (ah *AuthHandler)  makeKeyExtractionFunction() jwt.Keyfunc {
+func (ah *AuthHandler) makeKeyExtractionFunction() jwt.Keyfunc {
 	return func(token *jwt.Token) (interface{}, error) {
 		//Check the signing method
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
@@ -42,7 +40,7 @@ func (ah *AuthHandler)  makeKeyExtractionFunction() jwt.Keyfunc {
 		}
 
 		//get the public key from the vault
-		keystring, err :=  ah.secretsRepo.RetrievePublicKeyForApp(apiKey.(string))
+		keystring, err := ah.secretsRepo.RetrievePublicKeyForApp(apiKey.(string))
 		if err != nil {
 			return nil, err
 		}
@@ -55,7 +53,7 @@ func (ah *AuthHandler)  makeKeyExtractionFunction() jwt.Keyfunc {
 func (ah *AuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	//Check for header presence
 	authzHeader := r.Header.Get("Authorization")
-	if authzHeader ==  "" {
+	if authzHeader == "" {
 		log.Println("Missing Authorization header")
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write([]byte("Unauthorized\n"))
@@ -89,5 +87,5 @@ func (ah *AuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ah.handler.ServeHTTP(w,r)
+	ah.handler.ServeHTTP(w, r)
 }

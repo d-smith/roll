@@ -3,10 +3,13 @@ package http
 import (
 	"errors"
 	"fmt"
+	"github.com/xtraclabs/roll/login"
 	"github.com/xtraclabs/roll/roll"
 	"html/template"
 	"log"
 	"net/http"
+	"net/url"
+	"strings"
 )
 
 var templates = template.Must(template.ParseFiles("../html/authorize.html"))
@@ -150,6 +153,44 @@ func generateJWT(core *roll.Core, app *roll.Application) (string, error) {
 	return token, err
 }
 
+func authenticateUser(username, password string, app *roll.Application) (bool, error) {
+	//Convert login provider to a URL
+	loginURL, err := url.Parse(app.LoginProvider)
+	if err != nil {
+		return false, err
+	}
+
+	//Grab the login kit
+	kit := login.GetLoginKit(loginURL.Scheme)
+	if kit == nil {
+		return false, errors.New("No login kit for login provider " + loginURL.Scheme)
+	}
+
+	//Form the request and endpoint
+	loginRequest := kit.RequestBuilder(username, password)
+	endpoint := kit.EndpointBuilder(loginURL.Host)
+
+	//Send it
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", endpoint, strings.NewReader(loginRequest))
+	if err != nil {
+		return false, err
+	}
+
+	req.Header.Add("SOAPAction", "\"\"")
+	req.Header.Add("Content-Type", "text/xml")
+
+	log.Println(fmt.Sprintf("%v\n%s", req, loginRequest))
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return false, err
+	}
+
+	return resp.StatusCode == http.StatusOK, nil
+
+}
+
 func handleAuthZValidate(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 
 	//Parse request form
@@ -172,8 +213,19 @@ func handleAuthZValidate(core *roll.Core, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	//Fake out the authenticaiton
-	log.Println("WARNING - CURRENTLY NO LOOKUP OF LOGIN ENDPOINT AND AUTHENTICATION CALL")
+	authenticated, err := authenticateUser(r.Form["username"][0], r.Form["password"][0], app)
+	if err != nil {
+		log.Println("Error authenticating user: ", err.Error())
+		respondError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	//Was the authentication successful?
+	if !authenticated {
+		redirectURL := buildDeniedRedirectURL(app)
+		http.Redirect(w, r, redirectURL, http.StatusFound)
+		return
+	}
 
 	//Fake out token creation
 	token, err := generateJWT(core, app)

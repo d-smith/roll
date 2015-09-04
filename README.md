@@ -101,6 +101,8 @@ You will also need to fire up the callback server - go build in cbserver then ru
 ./cbserver -port 2000
 </pre>
 
+Note the callback server implements a fake XTRAC login server.
+
 Next register an app, e.g.
 
 <pre>
@@ -109,7 +111,7 @@ curl -X PUT -d '{
 "ApplicationName":"Hangry Birdz",
 "DeveloperEmail":"doug@dev.com",
 "RedirectURI":"http://localhost:2000/oauth2_callback",
-"LoginProvider":"xtrac://localhost:9000"
+"LoginProvider":"xtrac://localhost:2000"
 }' localhost:3000/v1/applications/111-222-3333
 </pre>
 

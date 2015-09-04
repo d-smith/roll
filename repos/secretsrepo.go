@@ -79,11 +79,11 @@ func (v *VaultSecretsRepo) retrieveKeyFromVault(apikey string, whichKey string) 
 	switch whichKey {
 	case "private":
 		key = secret.Data["privateKey"]
-		default:
+	default:
 		key = secret.Data["publicKey"]
 	}
 
-	return key.(string),nil
+	return key.(string), nil
 }
 
 //RetrievePrivateKeyForApp retrieves the private key associated with an application  from the Vault

@@ -6,8 +6,8 @@ type Application struct {
 	APIKey          string
 	ApplicationName string
 	APISecret       string
-	RedirectURI string
-	LoginProvider string
+	RedirectURI     string
+	LoginProvider   string
 }
 
 //ApplicationRepo represents a repository abstraction for dealing with persistent Application instances.

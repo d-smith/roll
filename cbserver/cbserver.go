@@ -18,6 +18,12 @@ func oauthCallbackHandler() http.HandlerFunc {
 	}
 }
 
+func loginCallbackHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}
+}
+
 func main() {
 
 	var port = flag.Int("port", -1, "Port to listen on")
@@ -29,5 +35,6 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.Handle("/oauth2_callback", oauthCallbackHandler())
+	mux.Handle("/XtracWeb/services/Login", loginCallbackHandler())
 	http.ListenAndServe(fmt.Sprintf(":%d", *port), mux)
 }
