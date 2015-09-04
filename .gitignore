@@ -1,3 +1,4 @@
+echo/echo
 cbserver/cbserver
 rollsvcs/rollsvcs
 coverage.json
