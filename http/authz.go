@@ -187,6 +187,8 @@ func authenticateUser(username, password string, app *roll.Application) (bool, e
 		return false, err
 	}
 
+	log.Println(fmt.Sprintf("%v", resp))
+
 	return resp.StatusCode == http.StatusOK, nil
 
 }
@@ -227,7 +229,7 @@ func handleAuthZValidate(core *roll.Core, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	//Fake out token creation
+	//Create signed token
 	token, err := generateJWT(core, app)
 	if err != nil {
 		log.Println("Error generating token: ", err.Error())
