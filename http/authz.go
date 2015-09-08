@@ -161,19 +161,28 @@ func buildDeniedRedirectURL(app *roll.Application) string {
 	return fmt.Sprintf("%s#error=access_denied", app.RedirectURI)
 }
 
-func buildRedirectURL(token string, responseType string, app *roll.Application) string {
+func buildRedirectURL(core *roll.Core, w http.ResponseWriter, responseType string, app *roll.Application) (string, error) {
 	log.Println("build redirect, app ctx:", app.RedirectURI)
 
 	var redirectURL string
 	switch responseType {
 	case "token":
+		//Create signed token
+		token, err := generateJWT(core, app)
+		if err != nil {
+			return "", err
+		}
 		redirectURL = fmt.Sprintf("%s#access_token=%s&token_type=Bearer", app.RedirectURI, token)
 	case "code":
+		token, err := generateSignedCode(core, app)
+		if err != nil {
+			return "", err
+		}
 		redirectURL = fmt.Sprintf("%s?code=%s", app.RedirectURI, token)
 	default:
 		panic(errors.New("unexpected response type in buildRedirectURL: " + responseType))
 	}
-	return redirectURL
+	return redirectURL, nil
 }
 
 func generateJWT(core *roll.Core, app *roll.Application) (string, error) {
@@ -183,6 +192,16 @@ func generateJWT(core *roll.Core, app *roll.Application) (string, error) {
 	}
 
 	token, err := roll.GenerateToken(app, privateKey)
+	return token, err
+}
+
+func generateSignedCode(core *roll.Core, app *roll.Application) (string, error) {
+	privateKey, err := core.RetrievePrivateKeyForApp(app.APIKey)
+	if err != nil {
+		return "", err
+	}
+
+	token, err := roll.GenerateCode(app, privateKey)
 	return token, err
 }
 
@@ -286,16 +305,13 @@ func handleAuthZValidate(core *roll.Core, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	//Create signed token
-	token, err := generateJWT(core, app)
+	//Build redirect url with embedded token or code
+	redirectURL, err := buildRedirectURL(core, w, responseType, app)
 	if err != nil {
-		log.Println("Error generating token: ", err.Error())
+		log.Println("Error generating redirect url: ", err.Error())
 		respondError(w, http.StatusInternalServerError, err)
 		return
 	}
-
-	//Build redirect url
-	redirectURL := buildRedirectURL(token, responseType, app)
 
 	//Redirect the user to the new URL
 	http.Redirect(w, r, redirectURL, http.StatusFound)

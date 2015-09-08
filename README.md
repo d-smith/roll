@@ -199,4 +199,11 @@ curl -X PUT -d 'Hello hello echo echo' -H 'Authorization: Bearer eyJhbGciOiJSUzI
 Hello hello echo echo
 </pre>
 
+### TODO
+
+* Create a token validation endpoint (to avoid the confused deputy problem)
+* Keep track of the callback codes we generate to avoid replays while waiting for them to expire
+* Make sure a callback code token can't be used as an access token
+* Split the validate behavior out of the authz handler file
+
 

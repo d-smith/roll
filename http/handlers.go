@@ -12,5 +12,6 @@ func Handler(core *roll.Core) http.Handler {
 	mux.Handle(ApplicationsBaseURI, handleApplications(core))
 	mux.Handle(AuthorizeBaseURI, handleAuthorize(core))
 	mux.Handle(ValidateBaseURI, handleValidate(core))
+	mux.Handle(OAuth2TokenBaseURI, handleToken(core))
 	return mux
 }
