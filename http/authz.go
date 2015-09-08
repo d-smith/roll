@@ -153,6 +153,20 @@ func generateJWT(core *roll.Core, app *roll.Application) (string, error) {
 	return token, err
 }
 
+func getResponseType(r *http.Request) (string, error) {
+	if len(r.Form["response_type"]) != 1 {
+		return "", errors.New("Expected single response_type param as part of query params")
+	}
+
+	responseType := r.Form["response_type"][0]
+	if responseType != "token" {
+		return "", errors.New("Only token request_type supported")
+	}
+
+	return responseType, nil
+
+}
+
 func authenticateUser(username, password string, app *roll.Application) (bool, error) {
 	//Convert login provider to a URL
 	loginURL, err := url.Parse(app.LoginProvider)
@@ -201,6 +215,16 @@ func handleAuthZValidate(core *roll.Core, w http.ResponseWriter, r *http.Request
 		respondError(w, http.StatusInternalServerError, err)
 		return
 	}
+
+
+	log.Println(r.Form)
+
+	_, err = getResponseType(r)
+	if err != nil {
+		respondError(w, http.StatusBadRequest, err)
+		return
+	}
+
 
 	//Lookup the client based on the hidden input field
 	app, err := lookupApplicationFromFormClientID(core, r)
