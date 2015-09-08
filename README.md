@@ -106,6 +106,8 @@ go get github.com/nu7hatch/gouuid
 Build the rollsvcs executable (go build in the rollsvcs directory), set the VAULT_ADDR and VAULT_TOKEN 
 environment variables as described above, and start the server. Here we assume the use of port 3000.
 
+Also, if you need a proxy setting to access the internet, set the HTTP_PROXY environment variable.
+
 <pre>
 ./rollsvcs -port 3000
 </pre>
@@ -171,5 +173,30 @@ The browser will be redirected to your registered callback - if you use the supp
 access token or the access denied error. You might also get an error if the client if can't be found, it it's not
 a valid client id, etc.
 
+### Protected Resource
+
+Now that an application has been configured and an access token created, we can protect resources via
+a simple wrapper.
+
+The authzwrapper package contains a simple wrapper that restricts access to requests accompanied by authorization
+bearer tokens created via the OAuth 2 flows supported by roll. 
+
+The echo server provides an example of a protected resource.
+
+To try it out, build the echo server and run it on say port 5000.
+
+If you try it without a token, access will be denied:
+
+<pre>
+curl -X PUT -d 'Hello hello echo echo' localhost:5000/echo
+Unauthorized
+</pre>
+
+If you use the token obtained through the implicit grant flow, access will be granted.
+
+<pre>
+curl -X PUT -d 'Hello hello echo echo' -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBsaWNhdGlvbiI6IkhhbmdyeSBCaXJkeiIsImF1ZCI6IjExMS0yMjItMzMzMyIsImlhdCI6MTQ0MTcyNjA2NywianRpIjoiOGZjM2MzNzYtYjMyMy00Yzg5LTdiZTktOWRkZWE3ZWJhNWM2In0.yOjkodiiJtNnXGSoz2lipBgYNyKmQApjKVHPmkiW-peAVhtyQw-q3nnD-H93-vioiq-qvwKp9R4uj1gkPSXJlPJDDj4A6AtqlbbYElQ3K2q9IPPeYiaOR2fJZtLYsIvoDZimGHq_FjZvxDzYZalFSd7BDFeQ5xmhGWczqs6vNNE' localhost:5000/echo
+Hello hello echo echo
+</pre>
 
 
