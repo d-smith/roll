@@ -12,7 +12,7 @@ import (
 	"strings"
 )
 
-var templates = template.Must(template.ParseFiles("../html/authorize.html"))
+var templates = template.Must(template.ParseFiles("../html/authorize.html", "../html/authorize3leg.html"))
 
 type authPageContext struct {
 	AppName  string
@@ -54,8 +54,8 @@ func requiredQueryParamsPresent(r *http.Request) bool {
 func validateInputParams(core *roll.Core, r *http.Request) (*roll.Application, error) {
 	params := r.URL.Query()
 
-	if params["response_type"][0] != "token" {
-		return nil, errors.New("Only token is support for response_type")
+	if params["response_type"][0] != "token" &&  params["response_type"][0] != "code" {
+		return nil, errors.New("response_type must be code or token")
 	}
 
 	//Client id is application key
@@ -73,6 +73,28 @@ func validateInputParams(core *roll.Core, r *http.Request) (*roll.Application, e
 	}
 
 	return app, nil
+}
+
+func executeAuthTemplate(w http.ResponseWriter, r *http.Request, pageCtx *authPageContext) error {
+	params := r.URL.Query()
+	responseType := params["response_type"][0]
+	var authPage string
+
+	switch responseType {
+	case "token":
+		authPage = "authorize.html"
+	case "code":
+		authPage = "authorize3leg.html"
+	default:
+		authPage = "error"
+	}
+
+	if authPage == "error" {
+		return errors.New("Unable to build authorization page for response_type " + responseType)
+	}
+
+	return templates.ExecuteTemplate(w, authPage, pageCtx)
+
 }
 
 func handleAuthZGet(core *roll.Core, w http.ResponseWriter, r *http.Request) {
@@ -96,7 +118,7 @@ func handleAuthZGet(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 		ClientID: app.APIKey,
 	}
 
-	err = templates.ExecuteTemplate(w, "authorize.html", pageCtx)
+	err = executeAuthTemplate(w, r, pageCtx)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, err)
 		return
@@ -139,8 +161,19 @@ func buildDeniedRedirectURL(app *roll.Application) string {
 	return fmt.Sprintf("%s#error=access_denied", app.RedirectURI)
 }
 
-func buildRedirectURL(token string, app *roll.Application) string {
-	return fmt.Sprintf("%s#access_token=%s&token_type=Bearer", app.RedirectURI, token)
+func buildRedirectURL(token string, responseType string, app *roll.Application) string {
+	log.Println("build redirect, app ctx:", app.RedirectURI)
+
+	var redirectURL string
+	switch responseType {
+	case "token":
+		redirectURL = fmt.Sprintf("%s#access_token=%s&token_type=Bearer", app.RedirectURI, token)
+	case "code":
+		redirectURL = fmt.Sprintf("%s?code=%s", app.RedirectURI, token)
+	default:
+		panic(errors.New("unexpected response type in buildRedirectURL: " + responseType))
+	}
+	return redirectURL
 }
 
 func generateJWT(core *roll.Core, app *roll.Application) (string, error) {
@@ -159,8 +192,8 @@ func getResponseType(r *http.Request) (string, error) {
 	}
 
 	responseType := r.Form["response_type"][0]
-	if responseType != "token" {
-		return "", errors.New("Only token request_type supported")
+	if responseType != "token" && responseType != "code" {
+		return "", errors.New("valid vaule for response_type are token and code")
 	}
 
 	return responseType, nil
@@ -219,7 +252,7 @@ func handleAuthZValidate(core *roll.Core, w http.ResponseWriter, r *http.Request
 
 	log.Println(r.Form)
 
-	_, err = getResponseType(r)
+	responseType, err := getResponseType(r)
 	if err != nil {
 		respondError(w, http.StatusBadRequest, err)
 		return
@@ -262,7 +295,7 @@ func handleAuthZValidate(core *roll.Core, w http.ResponseWriter, r *http.Request
 	}
 
 	//Build redirect url
-	redirectURL := buildRedirectURL(token, app)
+	redirectURL := buildRedirectURL(token, responseType, app)
 
 	//Redirect the user to the new URL
 	http.Redirect(w, r, redirectURL, http.StatusFound)

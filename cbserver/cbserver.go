@@ -4,16 +4,28 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
+	"log"
 	"net/http"
 )
 
 var templates = template.Must(template.ParseFiles("static/callback.html"))
 
+func isTokenCallback(r *http.Request) bool {
+	params := r.URL.Query()
+	codes := params["code"]
+	log.Println("isTokenCallback codes: ", codes)
+	return ! (len(codes) == 1)
+}
+
 func oauthCallbackHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		err := templates.ExecuteTemplate(w, "callback.html", nil)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+		if isTokenCallback(r) {
+			err := templates.ExecuteTemplate(w, "callback.html", nil)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+			}
+		} else {
+			http.Error(w, "Not implemented", http.StatusInternalServerError)
 		}
 	}
 }
