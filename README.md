@@ -205,5 +205,6 @@ Hello hello echo echo
 * Keep track of the callback codes we generate to avoid replays while waiting for them to expire
 * Make sure a callback code token can't be used as an access token
 * Split the validate behavior out of the authz handler file
+* Check auth code expiration
 
 

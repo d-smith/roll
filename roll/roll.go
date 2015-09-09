@@ -8,7 +8,7 @@ import (
 type Core struct {
 	developerRepo   DeveloperRepo
 	applicationRepo ApplicationRepo
-	secretsRepo     SecretsRepo
+	SecretsRepo SecretsRepo
 }
 
 //CoreConfig is a structure used to inject infrastructure dependency implementations into
@@ -37,7 +37,7 @@ func NewCore(config *CoreConfig) *Core {
 	return &Core{
 		developerRepo:   config.DeveloperRepo,
 		applicationRepo: config.ApplicationRepo,
-		secretsRepo:     config.SecretsRepo,
+		SecretsRepo:     config.SecretsRepo,
 	}
 }
 
@@ -64,11 +64,17 @@ func (core *Core) RetrieveApplication(apikey string) (*Application, error) {
 //StoreKeysForApp stores the private and public keys associated with an application
 //using the embedded secrets store
 func (core *Core) StoreKeysForApp(apikey, privateKey, publicKey string) error {
-	return core.secretsRepo.StoreKeysForApp(apikey, privateKey, publicKey)
+	return core.SecretsRepo.StoreKeysForApp(apikey, privateKey, publicKey)
 }
 
 //RetrievePrivateKeyForApp retrieves the private and public keys associated with an application
 //using the embedded secrets store
 func (core *Core) RetrievePrivateKeyForApp(apikey string) (string, error) {
-	return core.secretsRepo.RetrievePrivateKeyForApp(apikey)
+	return core.SecretsRepo.RetrievePrivateKeyForApp(apikey)
+}
+
+//RetrievePublicKeyForApp retrieves the private and public keys associated with an application
+//using the embedded secrets store
+func (core *Core) RetrievePublicKeyForApp(apikey string) (string, error) {
+	return core.SecretsRepo.RetrievePublicKeyForApp(apikey)
 }

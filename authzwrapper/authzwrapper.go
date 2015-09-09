@@ -1,8 +1,6 @@
 package authzwrapper
 
 import (
-	"errors"
-	"fmt"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/xtraclabs/roll/repos"
 	"github.com/xtraclabs/roll/roll"
@@ -23,30 +21,6 @@ func Wrap(h http.Handler) *AuthHandler {
 	return &AuthHandler{
 		handler:     h,
 		secretsRepo: repos.NewVaultSecretsRepo(),
-	}
-}
-
-func (ah *AuthHandler) makeKeyExtractionFunction() jwt.Keyfunc {
-	return func(token *jwt.Token) (interface{}, error) {
-		//Check the signing method
-		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
-			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
-		}
-
-		//The api key is carried in aud
-		apiKey := token.Claims["aud"]
-		if apiKey == "" {
-			return nil, errors.New("api key not found in aud claim")
-		}
-
-		//get the public key from the vault
-		keystring, err := ah.secretsRepo.RetrievePublicKeyForApp(apiKey.(string))
-		if err != nil {
-			return nil, err
-		}
-
-		//Parse the keystring
-		return jwt.ParseRSAPublicKeyFromPEM([]byte(keystring))
 	}
 }
 
@@ -71,7 +45,7 @@ func (ah *AuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	//Parse the token
 	bearerToken := strings.TrimSpace(parts[1])
-	token, err := jwt.Parse(bearerToken, ah.makeKeyExtractionFunction())
+	token, err := jwt.Parse(bearerToken, roll.GenerateKeyExtractionFunction(ah.secretsRepo))
 	if err != nil {
 		log.Println(err.Error())
 		w.WriteHeader(http.StatusUnauthorized)

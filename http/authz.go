@@ -54,7 +54,7 @@ func requiredQueryParamsPresent(r *http.Request) bool {
 func validateInputParams(core *roll.Core, r *http.Request) (*roll.Application, error) {
 	params := r.URL.Query()
 
-	if params["response_type"][0] != "token" &&  params["response_type"][0] != "code" {
+	if params["response_type"][0] != "token" && params["response_type"][0] != "code" {
 		return nil, errors.New("response_type must be code or token")
 	}
 
@@ -268,7 +268,6 @@ func handleAuthZValidate(core *roll.Core, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-
 	log.Println(r.Form)
 
 	responseType, err := getResponseType(r)
@@ -276,7 +275,6 @@ func handleAuthZValidate(core *roll.Core, w http.ResponseWriter, r *http.Request
 		respondError(w, http.StatusBadRequest, err)
 		return
 	}
-
 
 	//Lookup the client based on the hidden input field
 	app, err := lookupApplicationFromFormClientID(core, r)
