@@ -8,7 +8,7 @@ import (
 type Core struct {
 	developerRepo   DeveloperRepo
 	applicationRepo ApplicationRepo
-	SecretsRepo SecretsRepo
+	SecretsRepo     SecretsRepo
 }
 
 //CoreConfig is a structure used to inject infrastructure dependency implementations into

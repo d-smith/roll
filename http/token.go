@@ -10,12 +10,18 @@ import (
 )
 
 const (
+	//OAuth2TokenBaseURI is the oauth2 token uri
 	OAuth2TokenBaseURI = "/oauth2/token"
 )
 
 var (
+	//ErrInvalidClientDetails is returned when supplied client details don't match those on record
 	ErrInvalidClientDetails = errors.New("Invalid application details")
+
+	//ErrTokenParsing is generated if the auth code in the form of a JWT cannot be parsed
 	ErrTokenParsing         = errors.New("Invalid authorization code")
+
+	//ErrRetrievingAppData is generated if the app data assocaited with a client_id (aka api key) cannot be retrieved
 	ErrRetrievingAppData    = errors.New("Missing or invalid form data")
 )
 
@@ -31,7 +37,7 @@ func handleToken(core *roll.Core) http.Handler {
 }
 
 type authCodeContext struct {
-	clientId     string
+	clientID string
 	clientSecret string
 	redirectURI  string
 	authCode     string
@@ -48,8 +54,8 @@ func validateAndExtractFormParams(r *http.Request) (*authCodeContext, error) {
 		return nil, errors.New("Invalid grant_type")
 	}
 
-	clientId := r.FormValue("client_id")
-	if clientId == "" {
+	clientID := r.FormValue("client_id")
+	if clientID == "" {
 		return nil, errors.New("client_id missing from request")
 	}
 
@@ -69,7 +75,7 @@ func validateAndExtractFormParams(r *http.Request) (*authCodeContext, error) {
 	}
 
 	return &authCodeContext{
-		clientId:     clientId,
+		clientID:     clientID,
 		clientSecret: clientSecret,
 		redirectURI:  redirectURI,
 		authCode:     authCode,
@@ -78,7 +84,7 @@ func validateAndExtractFormParams(r *http.Request) (*authCodeContext, error) {
 }
 
 func validateClientDetails(core *roll.Core, ctx *authCodeContext) (*roll.Application, error) {
-	app, err := core.RetrieveApplication(ctx.clientId)
+	app, err := core.RetrieveApplication(ctx.clientID)
 	if err != nil {
 		log.Println("Error retrieving app data: ", err.Error())
 		return nil, ErrRetrievingAppData

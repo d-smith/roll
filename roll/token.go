@@ -1,11 +1,11 @@
 package roll
 
 import (
+	"errors"
+	"fmt"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/nu7hatch/gouuid"
 	"time"
-	"fmt"
-	"errors"
 )
 
 //GenerateToken generates a signed JWT for an application using the
