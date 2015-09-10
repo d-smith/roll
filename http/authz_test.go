@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"net/url"
+	"github.com/xtraclabs/roll/secrets"
 )
 
 func TestRequiredQueryParamsPresent(t *testing.T) {
@@ -410,6 +411,167 @@ func TestAuthValidateAuthenticateFail(t *testing.T) {
 			"password":{"y"},
 			"authorize" : {"allow"},
 			"response_type": {"token"},
+			"client_id":{"1111-2222-3333333-4444444"}})
+	assert.Nil(t, err)
+	assert.True(t, callbackInvoked)
+	assert.True(t,loginCalled)
+}
+
+func TestAuthValidateAuthenticateOkSecretsFail(t *testing.T) {
+
+	var loginCalled bool = false
+	ls := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		loginCalled = true
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer ls.Close()
+
+	//TODO - use a second callback where we serve up a script to extract the page details sent
+	//on deny and post those details to another test server.
+	var callbackInvoked bool = false
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		callbackInvoked = true
+	}))
+	defer ts.Close()
+
+
+	core, coreConfig := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	lsUrl,_ := url.Parse(ls.URL)
+
+	returnVal := roll.Application{
+		DeveloperEmail:  "doug@dev.com",
+		APIKey:          "1111-2222-3333333-4444444",
+		ApplicationName: "fight club",
+		APISecret:       "not for browser clients",
+		RedirectURI:     ts.URL,
+		LoginProvider:   "xtrac://" + lsUrl.Host,
+	}
+
+	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
+	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+
+	secretsMock := coreConfig.SecretsRepo.(*mocks.SecretsRepo)
+	secretsMock.On("RetrievePrivateKeyForApp","1111-2222-3333333-4444444").Return("", errors.New("Drat"))
+
+	_, err := http.PostForm(addr+"/oauth2/validate",
+		url.Values{"username":{"x"},
+			"password":{"y"},
+			"authorize" : {"allow"},
+			"response_type": {"token"},
+			"client_id":{"1111-2222-3333333-4444444"}})
+	assert.Nil(t, err)
+	assert.False(t, callbackInvoked)
+	assert.True(t,loginCalled)
+}
+
+func TestAuthValidateAuthenticateOk(t *testing.T) {
+
+	var loginCalled bool = false
+	ls := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		loginCalled = true
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer ls.Close()
+
+	//TODO - use a second callback where we serve up a script to extract the page details sent
+	//on deny and post those details to another test server.
+	var callbackInvoked bool = false
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		callbackInvoked = true
+	}))
+	defer ts.Close()
+
+
+	core, coreConfig := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	lsUrl,_ := url.Parse(ls.URL)
+
+	returnVal := roll.Application{
+		DeveloperEmail:  "doug@dev.com",
+		APIKey:          "1111-2222-3333333-4444444",
+		ApplicationName: "fight club",
+		APISecret:       "not for browser clients",
+		RedirectURI:     ts.URL,
+		LoginProvider:   "xtrac://" + lsUrl.Host,
+	}
+
+	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
+	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+
+
+	privateKey, _, err := secrets.GenerateKeyPair()
+	assert.Nil(t, err)
+
+	secretsMock := coreConfig.SecretsRepo.(*mocks.SecretsRepo)
+	secretsMock.On("RetrievePrivateKeyForApp","1111-2222-3333333-4444444").Return(privateKey, nil)
+
+	_, err = http.PostForm(addr+"/oauth2/validate",
+		url.Values{"username":{"x"},
+			"password":{"y"},
+			"authorize" : {"allow"},
+			"response_type": {"token"},
+			"client_id":{"1111-2222-3333333-4444444"}})
+	assert.Nil(t, err)
+	assert.True(t, callbackInvoked)
+	assert.True(t,loginCalled)
+}
+
+func TestAuthValidateCodeResponseAuthenticateOk(t *testing.T) {
+
+	var loginCalled bool = false
+	ls := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		loginCalled = true
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer ls.Close()
+
+	//TODO - use a second callback where we serve up a script to extract the page details sent
+	//on deny and post those details to another test server.
+	var callbackInvoked bool = false
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		callbackInvoked = true
+	}))
+	defer ts.Close()
+
+
+	core, coreConfig := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	lsUrl,_ := url.Parse(ls.URL)
+
+	returnVal := roll.Application{
+		DeveloperEmail:  "doug@dev.com",
+		APIKey:          "1111-2222-3333333-4444444",
+		ApplicationName: "fight club",
+		APISecret:       "not for browser clients",
+		RedirectURI:     ts.URL,
+		LoginProvider:   "xtrac://" + lsUrl.Host,
+	}
+
+	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
+	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+
+
+	privateKey, _, err := secrets.GenerateKeyPair()
+	assert.Nil(t, err)
+
+	secretsMock := coreConfig.SecretsRepo.(*mocks.SecretsRepo)
+	secretsMock.On("RetrievePrivateKeyForApp","1111-2222-3333333-4444444").Return(privateKey, nil)
+
+	_, err = http.PostForm(addr+"/oauth2/validate",
+		url.Values{"username":{"x"},
+			"password":{"y"},
+			"authorize" : {"allow"},
+			"response_type": {"code"},
 			"client_id":{"1111-2222-3333333-4444444"}})
 	assert.Nil(t, err)
 	assert.True(t, callbackInvoked)
