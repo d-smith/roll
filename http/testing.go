@@ -9,6 +9,8 @@ import (
 	"net"
 	"net/http"
 	"testing"
+	"io/ioutil"
+	"github.com/stretchr/testify/assert"
 )
 
 //These functions inspired by/adopted from github.com/hashicorp/vault testing and http_test files in the vault
@@ -107,4 +109,24 @@ func checkResponseBody(t *testing.T, resp *http.Response, out interface{}) {
 	if err := dec.Decode(out); err != nil {
 		t.Fatalf("Error: %s", err)
 	}
+}
+
+func responseAsString(t *testing.T, r *http.Response) string {
+	defer r.Body.Close()
+	body, err := ioutil.ReadAll(r.Body)
+	if assert.Nil(t, err) {
+		return string(body)
+	}
+
+	return ""
+}
+
+func requestAsString(t *testing.T, r *http.Request) string {
+	defer r.Body.Close()
+	body, err := ioutil.ReadAll(r.Body)
+	if assert.Nil(t, err) {
+		return string(body)
+	}
+
+	return ""
 }

@@ -8,7 +8,7 @@ import (
 	"errors"
 	"net/http/httptest"
 	"strings"
-	"io/ioutil"
+	"net/url"
 )
 
 func TestRequiredQueryParamsPresent(t *testing.T) {
@@ -203,11 +203,8 @@ func TestHandleAuthorize(t *testing.T) {
 	resp := testHTTPGet(t, addr+"/oauth2/authorize?client_id=1111-2222-3333333-4444444&redirect_uri=http://localhost:3000/ab&response_type=token", nil)
 	appRepoMock.AssertCalled(t, "RetrieveApplication", "1111-2222-3333333-4444444")
 
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	assert.Nil(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
-	bodyStr := string(body)
+	bodyStr := responseAsString(t, resp)
 	assert.True(t, strings.Contains(bodyStr, `name="client_id" value="1111-2222-3333333-4444444"`))
 	assert.True(t, strings.Contains(bodyStr, ` <h2>fight club`))
 	assert.True(t, strings.Contains(bodyStr, `name="response_type" value="token"`))
@@ -255,4 +252,166 @@ func TestHandleAuthorizeBadRedirectParam(t *testing.T) {
 	resp := testHTTPGet(t, addr+"/oauth2/authorize?client_id=1111-2222-3333333-4444444&redirect_uri=not-in-the-face&response_type=token", nil)
 	appRepoMock.AssertCalled(t, "RetrieveApplication", "1111-2222-3333333-4444444")
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+}
+
+
+func TestAuthValidateMissingParams(t *testing.T) {
+	core, coreConfig := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	returnVal := roll.Application{
+		DeveloperEmail:  "doug@dev.com",
+		APIKey:          "1111-2222-3333333-4444444",
+		ApplicationName: "fight club",
+		APISecret:       "not for browser clients",
+		RedirectURI:     "http://localhost:3000/ab",
+		LoginProvider:   "xtrac://localhost:9000",
+	}
+
+	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
+	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+
+	resp, err := http.PostForm(addr+"/oauth2/validate",
+		url.Values{"username":{},
+		"password":{}})
+	assert.Nil(t,err)
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	body := responseAsString(t, resp)
+	assert.True(t, strings.Contains(body, "Expected single response_type param as part of query params"))
+}
+
+func TestAuthValidateBadResponseType(t *testing.T) {
+	core, coreConfig := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	returnVal := roll.Application{
+		DeveloperEmail:  "doug@dev.com",
+		APIKey:          "1111-2222-3333333-4444444",
+		ApplicationName: "fight club",
+		APISecret:       "not for browser clients",
+		RedirectURI:     "http://localhost:3000/ab",
+		LoginProvider:   "xtrac://localhost:9000",
+	}
+
+	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
+	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+
+	resp, err := http.PostForm(addr+"/oauth2/validate",
+		url.Values{"username":{"x"},
+			"password":{"y"},
+			"authorize" : {"allow"},
+			"response_type": {"bad"},
+			"client_id":{"111-22-33"}})
+	assert.Nil(t,err)
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	body := responseAsString(t, resp)
+	assert.True(t, strings.Contains(body, "valid values for response_type are token and code"))
+}
+
+func TestAuthValidateBadClientId(t *testing.T) {
+	core, coreConfig := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
+	appRepoMock.On("RetrieveApplication", "111-22-33").Return(nil, nil)
+
+	resp, err := http.PostForm(addr+"/oauth2/validate",
+		url.Values{"username":{"x"},
+			"password":{"y"},
+			"authorize" : {"allow"},
+			"response_type": {"token"},
+			"client_id":{"111-22-33"}})
+	assert.Nil(t,err)
+	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+	body := responseAsString(t, resp)
+	assert.True(t, strings.Contains(body, "Invalid client id"))
+}
+
+
+func TestAuthValidateDenied(t *testing.T) {
+	//TODO - use a second callback where we serve up a script to extract the page details sent
+	//on deny and post those details to another test server.
+	var callbackInvoked bool = false
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		callbackInvoked = true
+	}))
+	defer ts.Close()
+
+
+	core, coreConfig := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	returnVal := roll.Application{
+		DeveloperEmail:  "doug@dev.com",
+		APIKey:          "1111-2222-3333333-4444444",
+		ApplicationName: "fight club",
+		APISecret:       "not for browser clients",
+		RedirectURI:     ts.URL,
+		LoginProvider:   "xtrac://localhost:9000",
+	}
+
+	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
+	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+
+	_, err := http.PostForm(addr+"/oauth2/validate",
+		url.Values{"username":{"x"},
+			"password":{"y"},
+			"authorize" : {"deny"},
+			"response_type": {"token"},
+			"client_id":{"1111-2222-3333333-4444444"}})
+	assert.Nil(t, err)
+	assert.True(t, callbackInvoked)
+}
+
+func TestAuthValidateAuthenticateFail(t *testing.T) {
+
+	var loginCalled bool = false
+	ls := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		loginCalled = true
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer ls.Close()
+
+	//TODO - use a second callback where we serve up a script to extract the page details sent
+	//on deny and post those details to another test server.
+	var callbackInvoked bool = false
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		callbackInvoked = true
+	}))
+	defer ts.Close()
+
+
+	core, coreConfig := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	lsUrl,_ := url.Parse(ls.URL)
+
+	returnVal := roll.Application{
+		DeveloperEmail:  "doug@dev.com",
+		APIKey:          "1111-2222-3333333-4444444",
+		ApplicationName: "fight club",
+		APISecret:       "not for browser clients",
+		RedirectURI:     ts.URL,
+		LoginProvider:   "xtrac://" + lsUrl.Host,
+	}
+
+	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
+	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+
+	_, err := http.PostForm(addr+"/oauth2/validate",
+		url.Values{"username":{"x"},
+			"password":{"y"},
+			"authorize" : {"allow"},
+			"response_type": {"token"},
+			"client_id":{"1111-2222-3333333-4444444"}})
+	assert.Nil(t, err)
+	assert.True(t, callbackInvoked)
+	assert.True(t,loginCalled)
 }

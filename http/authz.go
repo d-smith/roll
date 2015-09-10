@@ -206,13 +206,13 @@ func generateSignedCode(core *roll.Core, app *roll.Application) (string, error) 
 }
 
 func getResponseType(r *http.Request) (string, error) {
-	if len(r.Form["response_type"]) != 1 {
+	responseType := r.FormValue("response_type")
+	if responseType == "" {
 		return "", errors.New("Expected single response_type param as part of query params")
 	}
 
-	responseType := r.Form["response_type"][0]
 	if responseType != "token" && responseType != "code" {
-		return "", errors.New("valid vaule for response_type are token and code")
+		return "", errors.New("valid values for response_type are token and code")
 	}
 
 	return responseType, nil
@@ -261,15 +261,7 @@ func authenticateUser(username, password string, app *roll.Application) (bool, e
 
 func handleAuthZValidate(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 
-	//Parse request form
-	err := r.ParseForm()
-	if err != nil {
-		respondError(w, http.StatusInternalServerError, err)
-		return
-	}
-
-	log.Println(r.Form)
-
+	//Get the response type
 	responseType, err := getResponseType(r)
 	if err != nil {
 		respondError(w, http.StatusBadRequest, err)
@@ -280,16 +272,19 @@ func handleAuthZValidate(core *roll.Core, w http.ResponseWriter, r *http.Request
 	app, err := lookupApplicationFromFormClientID(core, r)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, err)
+		return
 	}
 
-	//Check if user denied authorization
+	//Check if user denied authorization. Note we assume if the request was not allowed it was denied.
 	if denied(r) {
 		redirectURL := buildDeniedRedirectURL(app)
 		http.Redirect(w, r, redirectURL, http.StatusFound)
 		return
 	}
 
-	authenticated, err := authenticateUser(r.Form["username"][0], r.Form["password"][0], app)
+
+	//Authenticate the user
+	authenticated, err := authenticateUser(r.FormValue("username"), r.FormValue("password"), app)
 	if err != nil {
 		log.Println("Error authenticating user: ", err.Error())
 		respondError(w, http.StatusInternalServerError, err)
