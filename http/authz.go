@@ -76,8 +76,7 @@ func validateInputParams(core *roll.Core, r *http.Request) (*roll.Application, e
 }
 
 func executeAuthTemplate(w http.ResponseWriter, r *http.Request, pageCtx *authPageContext) error {
-	params := r.URL.Query()
-	responseType := params["response_type"][0]
+	responseType := r.FormValue("response_type")
 	var authPage string
 
 	switch responseType {

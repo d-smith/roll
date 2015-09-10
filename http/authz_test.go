@@ -6,6 +6,8 @@ import (
 	"github.com/xtraclabs/roll/roll"
 	"github.com/xtraclabs/roll/roll/mocks"
 	"errors"
+	"net/http/httptest"
+	"strings"
 )
 
 func TestRequiredQueryParamsPresent(t *testing.T) {
@@ -92,5 +94,69 @@ func TestInputParamsInvalidRedirectURI(t *testing.T) {
 	app, err := validateInputParams(core, req)
 	assert.NotNil(t, err)
 	assert.Nil(t, app)
+
+}
+
+func TestExecuteAuthTemplateForCode(t *testing.T) {
+	w := httptest.NewRecorder()
+	pageCtx := &authPageContext{
+		AppName:  "test-application-name",
+		ClientID: "test-application-key",
+	}
+
+	req, _ := http.NewRequest("POST","/?client_id=1111-2222-3333333-4444444&redirect_uri=bogus&response_type=code", nil)
+
+	err := executeAuthTemplate(w,req,pageCtx)
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusOK, w.Code)
+	body :=  w.Body.String()
+	assert.True(t, strings.Contains(body, `name="client_id" value="test-application-key"`))
+	assert.True(t, strings.Contains(body, ` <h2>test-application-name`))
+	assert.True(t, strings.Contains(body, `name="response_type" value="code"`))
+}
+
+func TestExecuteAuthTemplateForToken(t *testing.T) {
+	w := httptest.NewRecorder()
+	pageCtx := &authPageContext{
+		AppName:  "test-application-name",
+		ClientID: "test-application-key",
+	}
+
+	req, _ := http.NewRequest("POST","/?client_id=1111-2222-3333333-4444444&redirect_uri=bogus&response_type=token", nil)
+
+	err := executeAuthTemplate(w,req,pageCtx)
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusOK, w.Code)
+	body :=  w.Body.String()
+	assert.True(t, strings.Contains(body, `name="client_id" value="test-application-key"`))
+	assert.True(t, strings.Contains(body, ` <h2>test-application-name`))
+	assert.True(t, strings.Contains(body, `name="response_type" value="token"`))
+}
+
+func TestExecuteAuthTemplateMissingResponseType(t *testing.T) {
+	w := httptest.NewRecorder()
+	pageCtx := &authPageContext{
+		AppName:  "test-application-name",
+		ClientID: "test-application-key",
+	}
+
+	req, _ := http.NewRequest("POST","/?client_id=1111-2222-3333333-4444444&redirect_uri=bogus", nil)
+
+	err := executeAuthTemplate(w,req,pageCtx)
+	assert.NotNil(t, err)
+
+}
+
+func TestExecuteAuthTemplateBogusResponseType(t *testing.T) {
+	w := httptest.NewRecorder()
+	pageCtx := &authPageContext{
+		AppName:  "test-application-name",
+		ClientID: "test-application-key",
+	}
+
+	req, _ := http.NewRequest("POST","/?client_id=1111-2222-3333333-4444444&redirect_uri=bogus&response_type=bogus", nil)
+
+	err := executeAuthTemplate(w,req,pageCtx)
+	assert.NotNil(t, err)
 
 }
