@@ -18,9 +18,6 @@ var (
 	//ErrInvalidClientDetails is returned when supplied client details don't match those on record
 	ErrInvalidClientDetails = errors.New("Invalid application details")
 
-	//ErrTokenParsing is generated if the auth code in the form of a JWT cannot be parsed
-	ErrTokenParsing         = errors.New("Invalid authorization code")
-
 	//ErrRetrievingAppData is generated if the app data assocaited with a client_id (aka api key) cannot be retrieved
 	ErrRetrievingAppData    = errors.New("Missing or invalid form data")
 )
@@ -90,6 +87,10 @@ func validateClientDetails(core *roll.Core, ctx *authCodeContext) (*roll.Applica
 		return nil, ErrRetrievingAppData
 	}
 
+	if app == nil {
+		return nil, errors.New("Invalid client id")
+	}
+
 	if app.APISecret != ctx.clientSecret {
 		return nil, ErrInvalidClientDetails
 	}
@@ -105,7 +106,7 @@ func validateClientDetails(core *roll.Core, ctx *authCodeContext) (*roll.Applica
 func validateCode(secretsRepo roll.SecretsRepo, ctx *authCodeContext) error {
 	token, err := jwt.Parse(ctx.authCode, roll.GenerateKeyExtractionFunction(secretsRepo))
 	if err != nil {
-		return ErrTokenParsing
+		return err
 	}
 
 	//Make sure the token is valid
@@ -143,13 +144,7 @@ func handleTokenPost(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 
 	//Validate the code - it should be a token signed with the users' private key
 	if err = validateCode(core.SecretsRepo, codeContext); err != nil {
-		switch err {
-		case ErrTokenParsing:
-			respondError(w, http.StatusInternalServerError, err)
-		default:
-			respondError(w, http.StatusBadRequest, err)
-		}
-
+		respondError(w, http.StatusUnauthorized, err)
 		return
 	}
 
