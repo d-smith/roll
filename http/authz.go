@@ -52,14 +52,14 @@ func requiredQueryParamsPresent(r *http.Request) bool {
 }
 
 func validateInputParams(core *roll.Core, r *http.Request) (*roll.Application, error) {
-	params := r.URL.Query()
-
-	if params["response_type"][0] != "token" && params["response_type"][0] != "code" {
+	responseType := r.FormValue("response_type")
+	if responseType != "token" && responseType != "code" {
 		return nil, errors.New("response_type must be code or token")
 	}
 
 	//Client id is application key
-	app, err := core.RetrieveApplication(params["client_id"][0])
+	clientID := r.FormValue("client_id")
+	app, err := core.RetrieveApplication(clientID)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +68,8 @@ func validateInputParams(core *roll.Core, r *http.Request) (*roll.Application, e
 		return nil, errors.New("Invalid client id")
 	}
 
-	if app.RedirectURI != params["redirect_uri"][0] {
+	redirectURI := r.FormValue("redirect_uri")
+	if app.RedirectURI != redirectURI {
 		return nil, errors.New("redirect_uri does not match registered redirect URIs")
 	}
 

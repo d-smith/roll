@@ -8,6 +8,7 @@ import (
 	"errors"
 	"net/http/httptest"
 	"strings"
+	"io/ioutil"
 )
 
 func TestRequiredQueryParamsPresent(t *testing.T) {
@@ -59,6 +60,25 @@ func TestInputParamsInvalidResponseType(t *testing.T) {
 	app, err := validateInputParams(nil, req)
 	assert.Nil(t,app)
 	assert.NotNil(t,err)
+}
+
+func TestInputParamsMissingResponseType(t *testing.T) {
+	req, _ := http.NewRequest("POST","/?client_id=1111-2222-3333333-4444444&redirect_uri=http://localhost:3000/ab", nil)
+	app, err := validateInputParams(nil, req)
+	assert.Nil(t,app)
+	assert.NotNil(t,err)
+}
+
+func TestInputParamsMissingClientID(t *testing.T) {
+	core, coreConfig := NewTestCore()
+	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
+	appRepoMock.On("RetrieveApplication", "").Return(nil, nil)
+
+	req, _ := http.NewRequest("POST","/?redirect_uri=http://localhost:3000/ab&response_type=code", nil)
+	app, err := validateInputParams(core, req)
+	assert.Nil(t,app)
+	assert.NotNil(t,err)
+	println(err.Error())
 }
 
 func TestInputParamsNoSuchClientId(t *testing.T) {
@@ -159,4 +179,80 @@ func TestExecuteAuthTemplateBogusResponseType(t *testing.T) {
 	err := executeAuthTemplate(w,req,pageCtx)
 	assert.NotNil(t, err)
 
+}
+
+func TestHandleAuthorize(t *testing.T) {
+	core, coreConfig := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	returnVal := roll.Application{
+		DeveloperEmail:  "doug@dev.com",
+		APIKey:          "1111-2222-3333333-4444444",
+		ApplicationName: "fight club",
+		APISecret:       "not for browser clients",
+		RedirectURI:     "http://localhost:3000/ab",
+		LoginProvider:   "xtrac://localhost:9000",
+	}
+
+	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
+	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+
+
+
+	resp := testHTTPGet(t, addr+"/oauth2/authorize?client_id=1111-2222-3333333-4444444&redirect_uri=http://localhost:3000/ab&response_type=token", nil)
+	appRepoMock.AssertCalled(t, "RetrieveApplication", "1111-2222-3333333-4444444")
+
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	bodyStr := string(body)
+	assert.True(t, strings.Contains(bodyStr, `name="client_id" value="1111-2222-3333333-4444444"`))
+	assert.True(t, strings.Contains(bodyStr, ` <h2>fight club`))
+	assert.True(t, strings.Contains(bodyStr, `name="response_type" value="token"`))
+
+}
+
+func TestHandleAuthorizeUnsupportedMethod(t *testing.T) {
+	core, _ := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	resp, err := http.Post(addr+"/oauth2/authorize","",nil)
+	assert.Nil(t,err)
+	assert.Equal(t, http.StatusMethodNotAllowed, resp.StatusCode)
+}
+
+func TestHandleAuthorizeMissingParams(t *testing.T) {
+	core, _ := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	resp := testHTTPGet(t, addr+"/oauth2/authorize",nil)
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+}
+
+func TestHandleAuthorizeBadRedirectParam(t *testing.T) {
+	core, coreConfig := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	returnVal := roll.Application{
+		DeveloperEmail:  "doug@dev.com",
+		APIKey:          "1111-2222-3333333-4444444",
+		ApplicationName: "fight club",
+		APISecret:       "not for browser clients",
+		RedirectURI:     "http://localhost:3000/ab",
+		LoginProvider:   "xtrac://localhost:9000",
+	}
+
+	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
+	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+
+
+
+	resp := testHTTPGet(t, addr+"/oauth2/authorize?client_id=1111-2222-3333333-4444444&redirect_uri=not-in-the-face&response_type=token", nil)
+	appRepoMock.AssertCalled(t, "RetrieveApplication", "1111-2222-3333333-4444444")
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 }
