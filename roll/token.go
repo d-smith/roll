@@ -5,6 +5,7 @@ import (
 	"fmt"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/nu7hatch/gouuid"
+	"log"
 	"time"
 )
 
@@ -84,6 +85,39 @@ func GenerateKeyExtractionFunction(secretsRepo SecretsRepo) jwt.Keyfunc {
 		if err != nil {
 			return nil, err
 		}
+
+		//Parse the keystring
+		return jwt.ParseRSAPublicKeyFromPEM([]byte(keystring))
+	}
+}
+
+func GenerateKeyExtractionFunctionForJTWFlow(applicationRepo ApplicationRepo) jwt.Keyfunc {
+	return func(token *jwt.Token) (interface{}, error) {
+		//Check the signing method
+		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
+			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+		}
+
+		//The api key is carried in iss
+		apiKey := token.Claims["iss"]
+		if apiKey == "" {
+			return nil, errors.New("api key not found in iss claim")
+		}
+
+		//Look up the application
+		app, err := applicationRepo.RetrieveApplication(apiKey.(string))
+		if err != nil {
+			return nil, err
+		}
+
+		if app == nil {
+			return nil, errors.New("No app definition associated with iss found")
+		}
+
+		//Grab the public key from the app definition
+		keystring := app.JWTFlowPublicKey
+
+		log.Println("validating with '", keystring, "'")
 
 		//Parse the keystring
 		return jwt.ParseRSAPublicKeyFromPEM([]byte(keystring))

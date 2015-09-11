@@ -5,11 +5,15 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/xtraclabs/roll/roll"
 	"github.com/xtraclabs/roll/roll/mocks"
+	"github.com/xtraclabs/roll/secrets"
 	"net/http"
 	"net/url"
 	"strings"
 	"testing"
 )
+
+//Look at https://github.com/d-smith/go-examples/tree/master/certs and run the
+//program to see how the public key was extracted from the certPEM below
 
 const certPEM = `
 -----BEGIN CERTIFICATE-----
@@ -42,7 +46,11 @@ VQIDAQAB
 -----END RSA PUBLIC KEY-----
 `
 
-func TestJWTFlowMissingClientSecret(t *testing.T) {
+//Look at and run https://github.com/d-smith/go-examples/tree/master/jwt/jwtkeycert to
+//see where the assertion used in this test came from.
+const jwtAssertion = `eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIxMTExLTIyMjItMzMzMzMzMy00NDQ0NDQ0Iiwic3ViIjoiZHJzY2FuIn0.XpMy2bJAjfnw3wcadaehayCiWlMwBbIftlFDO_s8rUPPV31b3lqmyPoOvw4FOB_ManLIyJ13PpUobvTwadFGhbkS7B-GFFAJxv3q179qU5ZE6IwlhR80aky9icKzNWj77ozYx041-itWYWbvRxLRMORRygTPeE7T6b4VhZud18mGIeObuLim7YDR7_mZCDdjSeh734dSJBj7y3nilOm-AsmSKPkg0EZ5z_S_74LZo6x4asdKrSnUww3efo4t3si9UnFhF_cbMOekCPHkigSd57tcTqz38PX8aHkj-N8crHDup7_T150UnE4anQY8yyEErmtOpuB-imW-yjSkecfZrg`
+
+func TestJWTFlowSetupMissingClientSecret(t *testing.T) {
 	core, _ := NewTestCore()
 	ln, addr := TestServer(t, core)
 	defer ln.Close()
@@ -55,7 +63,7 @@ func TestJWTFlowMissingClientSecret(t *testing.T) {
 	assert.True(t, strings.Contains(body, "client_secret missing from request"))
 }
 
-func TestJWTFlowMissingCertPEM(t *testing.T) {
+func TestJWTFlowSetupMissingCertPEM(t *testing.T) {
 	core, _ := NewTestCore()
 	ln, addr := TestServer(t, core)
 	defer ln.Close()
@@ -68,7 +76,7 @@ func TestJWTFlowMissingCertPEM(t *testing.T) {
 	assert.True(t, strings.Contains(body, "cert_pem missing from request"))
 }
 
-func TestJWTFlowAppLookupError(t *testing.T) {
+func TestJWTFlowSetupAppLookupError(t *testing.T) {
 	core, coreConfig := NewTestCore()
 	ln, addr := TestServer(t, core)
 	defer ln.Close()
@@ -85,7 +93,7 @@ func TestJWTFlowAppLookupError(t *testing.T) {
 
 }
 
-func TestJWTFlowAppNotFound(t *testing.T) {
+func TestJWTFlowSetupAppNotFound(t *testing.T) {
 	core, coreConfig := NewTestCore()
 	ln, addr := TestServer(t, core)
 	defer ln.Close()
@@ -101,7 +109,7 @@ func TestJWTFlowAppNotFound(t *testing.T) {
 	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
 }
 
-func TestJWTFlowInvalidClientSecret(t *testing.T) {
+func TestJWTFlowSetupInvalidClientSecret(t *testing.T) {
 	core, coreConfig := NewTestCore()
 	ln, addr := TestServer(t, core)
 	defer ln.Close()
@@ -126,7 +134,7 @@ func TestJWTFlowInvalidClientSecret(t *testing.T) {
 	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 }
 
-func TestJWTFlowInvalidCertPEM(t *testing.T) {
+func TestJWTFlowSetupInvalidCertPEM(t *testing.T) {
 	core, coreConfig := NewTestCore()
 	ln, addr := TestServer(t, core)
 	defer ln.Close()
@@ -151,7 +159,7 @@ func TestJWTFlowInvalidCertPEM(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 }
 
-func TestJWTFlowAppUpdateError(t *testing.T) {
+func TestJWTFlowSetupAppUpdateError(t *testing.T) {
 	core, coreConfig := NewTestCore()
 	ln, addr := TestServer(t, core)
 	defer ln.Close()
@@ -187,7 +195,7 @@ func TestJWTFlowAppUpdateError(t *testing.T) {
 	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 }
 
-func TestJWTFlowAppUpdateOk(t *testing.T) {
+func TestJWTFlowSetupAppUpdateOk(t *testing.T) {
 	core, coreConfig := NewTestCore()
 	ln, addr := TestServer(t, core)
 	defer ln.Close()
@@ -221,4 +229,95 @@ func TestJWTFlowAppUpdateOk(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusNoContent, resp.StatusCode)
+}
+
+func TestJWTFlowMissingAssertion(t *testing.T) {
+	core, _ := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	resp, err := http.PostForm(addr+OAuth2TokenBaseURI,
+		url.Values{"grant_type": {"urn:ietf:params:oauth:grant-type:jwt-bearer"}})
+
+	assert.Nil(t, err)
+	body := responseAsString(t, resp)
+	assert.True(t, strings.Contains(body, "assertion missing from request"))
+}
+
+func TestJWTFlowMalformedAssertion(t *testing.T) {
+	core, _ := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	resp, err := http.PostForm(addr+OAuth2TokenBaseURI,
+		url.Values{"grant_type": {"urn:ietf:params:oauth:grant-type:jwt-bearer"},
+			"assertion": {"this is not a jwt"}})
+
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+}
+
+func TestJWTFlowValidAssertionAppLookupError(t *testing.T) {
+	core, coreConfig := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
+	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(nil, errors.New("Drat"))
+
+	resp, err := http.PostForm(addr+OAuth2TokenBaseURI,
+		url.Values{"grant_type": {"urn:ietf:params:oauth:grant-type:jwt-bearer"},
+			"assertion": {jwtAssertion}})
+
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+}
+
+func TestJWTFlowValidAssertionAppLookupReturnsNil(t *testing.T) {
+	core, coreConfig := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
+	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(nil, nil)
+
+	resp, err := http.PostForm(addr+OAuth2TokenBaseURI,
+		url.Values{"grant_type": {"urn:ietf:params:oauth:grant-type:jwt-bearer"},
+			"assertion": {jwtAssertion}})
+
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+}
+
+func TestJWTFlowValidAssertionOkYeah(t *testing.T) {
+	core, coreConfig := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	returnVal := roll.Application{
+		DeveloperEmail:   "doug@dev.com",
+		APIKey:           "1111-2222-3333333-4444444",
+		ApplicationName:  "fight club",
+		APISecret:        "not for browser clients",
+		RedirectURI:      "http://localhost:3000/ab",
+		LoginProvider:    "xtrac://localhost:9000",
+		JWTFlowPublicKey: publicKey,
+	}
+
+	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
+	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+
+	privateKey, publicKey, err := secrets.GenerateKeyPair()
+	assert.Nil(t, err)
+
+	secretsMock := coreConfig.SecretsRepo.(*mocks.SecretsRepo)
+	secretsMock.On("RetrievePrivateKeyForApp", "1111-2222-3333333-4444444").Return(privateKey, nil)
+	secretsMock.On("RetrievePublicKeyForApp", "1111-2222-3333333-4444444").Return(publicKey, nil)
+
+	resp, err := http.PostForm(addr+OAuth2TokenBaseURI,
+		url.Values{"grant_type": {"urn:ietf:params:oauth:grant-type:jwt-bearer"},
+			"assertion": {jwtAssertion}})
+
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }

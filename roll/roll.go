@@ -7,7 +7,7 @@ import (
 //Core encapsulates the infrastructure dependencies associated with the application
 type Core struct {
 	developerRepo   DeveloperRepo
-	applicationRepo ApplicationRepo
+	ApplicationRepo ApplicationRepo
 	SecretsRepo     SecretsRepo
 }
 
@@ -36,7 +36,7 @@ func NewCore(config *CoreConfig) *Core {
 
 	return &Core{
 		developerRepo:   config.DeveloperRepo,
-		applicationRepo: config.ApplicationRepo,
+		ApplicationRepo: config.ApplicationRepo,
 		SecretsRepo:     config.SecretsRepo,
 	}
 }
@@ -53,12 +53,12 @@ func (core *Core) RetrieveDeveloper(email string) (*Developer, error) {
 
 //StoreApplication stores an application using the embedded Application repository
 func (core *Core) StoreApplication(app *Application) error {
-	return core.applicationRepo.StoreApplication(app)
+	return core.ApplicationRepo.StoreApplication(app)
 }
 
 //RetrieveApplication retrieves an application using the embedded Application repository
 func (core *Core) RetrieveApplication(apikey string) (*Application, error) {
-	return core.applicationRepo.RetrieveApplication(apikey)
+	return core.ApplicationRepo.RetrieveApplication(apikey)
 }
 
 //StoreKeysForApp stores the private and public keys associated with an application

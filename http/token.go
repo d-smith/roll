@@ -41,6 +41,7 @@ type authCodeContext struct {
 	authCode     string
 	username     string
 	password     string
+	assertion    string
 }
 
 func (acc *authCodeContext) validate() error {
@@ -49,6 +50,8 @@ func (acc *authCodeContext) validate() error {
 		return acc.validateAuthCodeGrantType()
 	case "password":
 		return acc.validatePasswordGrantType()
+	case "urn:ietf:params:oauth:grant-type:jwt-bearer":
+		return acc.validateJWTGrantType()
 	default:
 		return errors.New("Invalid grant_type")
 	}
@@ -95,6 +98,14 @@ func (acc *authCodeContext) validatePasswordGrantType() error {
 	return nil
 }
 
+func (acc *authCodeContext) validateJWTGrantType() error {
+	if acc.assertion == "" {
+		return errors.New("assertion missing from request")
+	}
+
+	return nil
+}
+
 type accessTokenResponse struct {
 	AccessToken string `json:"access_token"`
 	TokenType   string `json:"token_type"`
@@ -110,14 +121,15 @@ func validateAndExtractFormParams(r *http.Request) (*authCodeContext, error) {
 		authCode:     r.FormValue("code"),
 		username:     r.FormValue("username"),
 		password:     r.FormValue("password"),
+		assertion:    r.FormValue("assertion"),
 	}
 
 	return acc, acc.validate()
 
 }
 
-func validateClientDetails(core *roll.Core, ctx *authCodeContext) (*roll.Application, error) {
-	app, err := core.RetrieveApplication(ctx.clientID)
+func lookupApplication(core *roll.Core, clientID string) (*roll.Application, error) {
+	app, err := core.RetrieveApplication(clientID)
 	if err != nil {
 		log.Println("Error retrieving app data: ", err.Error())
 		return nil, ErrRetrievingAppData
@@ -125,6 +137,15 @@ func validateClientDetails(core *roll.Core, ctx *authCodeContext) (*roll.Applica
 
 	if app == nil {
 		return nil, errors.New("Invalid client id")
+	}
+
+	return app, nil
+}
+
+func validateClientDetails(core *roll.Core, ctx *authCodeContext) (*roll.Application, error) {
+	app, err := lookupApplication(core, ctx.clientID)
+	if err != nil {
+		return nil, err
 	}
 
 	if app.APISecret != ctx.clientSecret {
@@ -170,6 +191,8 @@ func handleTokenPost(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 		handleAuthCodeGrantType(core, w, r, codeContext)
 	case "password":
 		handlePasswordGrantType(core, w, r, codeContext)
+	case "urn:ietf:params:oauth:grant-type:jwt-bearer":
+		handleJWTGrantType(core, w, r, codeContext)
 	default:
 		//Never say never...
 		respondError(w, http.StatusBadRequest, err)
@@ -254,6 +277,38 @@ func handlePasswordGrantType(core *roll.Core, w http.ResponseWriter, r *http.Req
 	}
 
 	//Create the access token
+	generateAndRespondWithAccessToken(core, app, w)
+
+}
+
+func handleJWTGrantType(core *roll.Core, w http.ResponseWriter, r *http.Request, codeContext *authCodeContext) {
+	log.Println("handleJWTGrantType")
+
+	//First step is to verify the token signature
+	log.Println("verify token signature")
+	token, err := jwt.Parse(codeContext.assertion, roll.GenerateKeyExtractionFunctionForJTWFlow(core.ApplicationRepo))
+	if err != nil {
+		log.Println(err.Error())
+		respondError(w, http.StatusUnauthorized, err)
+		return
+	}
+
+	//Grab the app definition based on iss carries the api key/client_id
+	log.Println("look up application definition")
+	app, err := lookupApplication(core, token.Claims["iss"].(string))
+	if err != nil {
+		switch err {
+		case ErrInvalidClientDetails:
+			respondError(w, http.StatusBadRequest, ErrInvalidClientDetails)
+		default:
+			respondError(w, http.StatusInternalServerError, err)
+		}
+
+		return
+	}
+
+	//Now we can generate a token since we had the app needed to form the token
+	log.Println("generate token")
 	generateAndRespondWithAccessToken(core, app, w)
 
 }
