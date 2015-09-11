@@ -76,7 +76,23 @@ func (acc *authCodeContext) validateAuthCodeGrantType() error {
 }
 
 func (acc *authCodeContext) validatePasswordGrantType() error {
-	return errors.New("password not implemented")
+	if acc.clientID == "" {
+		return errors.New("client_id missing from request")
+	}
+
+	if acc.clientSecret == "" {
+		return errors.New("client_secret missing from request")
+	}
+
+	if acc.username == "" {
+		return errors.New("username missing from request")
+	}
+
+	if acc.password == "" {
+		return errors.New("password missing from request")
+	}
+
+	return nil
 }
 
 type accessTokenResponse struct {
@@ -115,12 +131,11 @@ func validateClientDetails(core *roll.Core, ctx *authCodeContext) (*roll.Applica
 		return nil, ErrInvalidClientDetails
 	}
 
-	if app.RedirectURI != ctx.redirectURI {
+	if ctx.grantType == "authorization_code" && app.RedirectURI != ctx.redirectURI {
 		return nil, ErrInvalidClientDetails
 	}
 
 	return app, nil
-
 }
 
 func validateCode(secretsRepo roll.SecretsRepo, ctx *authCodeContext) error {
@@ -153,10 +168,36 @@ func handleTokenPost(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 	switch codeContext.grantType {
 	case "authorization_code":
 		handleAuthCodeGrantType(core, w, r, codeContext)
+	case "password":
+		handlePasswordGrantType(core, w, r, codeContext)
 	default:
 		//Never say never...
 		respondError(w, http.StatusBadRequest, err)
 	}
+}
+
+func generateAndRespondWithAccessToken(core *roll.Core, app *roll.Application, w http.ResponseWriter) {
+	token, err := generateJWT(core, app)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	//Respond with a JSON document included the access_token and a token type of
+	//bearer
+	at := accessTokenResponse{
+		AccessToken: token,
+		TokenType:   "Bearer",
+	}
+
+	atBytes, err := json.Marshal(&at)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	w.Write(atBytes)
 }
 
 func handleAuthCodeGrantType(core *roll.Core, w http.ResponseWriter, r *http.Request, codeContext *authCodeContext) {
@@ -181,25 +222,38 @@ func handleAuthCodeGrantType(core *roll.Core, w http.ResponseWriter, r *http.Req
 	}
 
 	//If everything is cool, generate a JWT access token
-	token, err := generateJWT(core, app)
+	generateAndRespondWithAccessToken(core, app, w)
+}
+
+func handlePasswordGrantType(core *roll.Core, w http.ResponseWriter, r *http.Request, codeContext *authCodeContext) {
+	//Validate client details
+	app, err := validateClientDetails(core, codeContext)
 	if err != nil {
+		switch err {
+		case ErrInvalidClientDetails:
+			respondError(w, http.StatusBadRequest, ErrInvalidClientDetails)
+		default:
+			respondError(w, http.StatusInternalServerError, err)
+		}
+
+		return
+	}
+
+	//If the client details checkout, authenticate the user credentials
+	authenticated, err := authenticateUser(codeContext.username, codeContext.password, app)
+	if err != nil {
+		log.Println("Error authenticating user: ", err.Error())
 		respondError(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	//Respond with a JSON document included the access_token and a token type of
-	//bearer
-	at := accessTokenResponse{
-		AccessToken: token,
-		TokenType:   "Bearer",
-	}
-
-	atBytes, err := json.Marshal(&at)
-	if err != nil {
-		respondError(w, http.StatusInternalServerError, err)
+	//If the user credentials don't check out, we're done.
+	if !authenticated {
+		respondError(w, http.StatusUnauthorized, nil)
 		return
 	}
 
-	w.Header().Add("Content-Type", "application/json")
-	w.Write(atBytes)
+	//Create the access token
+	generateAndRespondWithAccessToken(core, app, w)
+
 }
