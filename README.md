@@ -173,6 +173,15 @@ The browser will be redirected to your registered callback - if you use the supp
 access token or the access denied error. You might also get an error if the client if can't be found, it it's not
 a valid client id, etc.
 
+### Username Password Flow
+
+This can be executed directly via curl, e.g.
+
+<pre>
+curl --data "client_id=111-222-3333" --data "grant_type=password" --data "client_secret=2vwTI2FMKeokuXZrgzmrUXR0DFmaFvcjnM/KBoRoxaU=" --data "username=foo" --data "password=passw0rd" localhost:3000/oauth2/token
+</pre>
+
+
 ### Protected Resource
 
 Now that an application has been configured and an access token created, we can protect resources via
