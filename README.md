@@ -2,6 +2,10 @@
 
 Patterns and some code inspired by Hashicorp vault.
 
+<pre>
+Currently in PoC status - don't even think about using this is a production situation.
+</pre>
+
 ### Runtime set up
 
 #### Vault
@@ -215,5 +219,6 @@ Hello hello echo echo
 * Make sure a callback code token can't be used as an access token
 * Split the validate behavior out of the authz handler file
 * Check auth code expiration
+* What about refresh tokens?
 
 
