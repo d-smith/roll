@@ -19,7 +19,7 @@ var (
 	ErrInvalidClientDetails = errors.New("Invalid application details")
 
 	//ErrRetrievingAppData is generated if the app data assocaited with a client_id (aka api key) cannot be retrieved
-	ErrRetrievingAppData    = errors.New("Missing or invalid form data")
+	ErrRetrievingAppData = errors.New("Missing or invalid form data")
 )
 
 func handleToken(core *roll.Core) http.Handler {
@@ -34,10 +34,49 @@ func handleToken(core *roll.Core) http.Handler {
 }
 
 type authCodeContext struct {
-	clientID string
+	grantType    string
+	clientID     string
 	clientSecret string
 	redirectURI  string
 	authCode     string
+	username     string
+	password     string
+}
+
+func (acc *authCodeContext) validate() error {
+	switch acc.grantType {
+	case "authorization_code":
+		return acc.validateAuthCodeGrantType()
+	case "password":
+		return acc.validatePasswordGrantType()
+	default:
+		return errors.New("Invalid grant_type")
+	}
+}
+
+func (acc *authCodeContext) validateAuthCodeGrantType() error {
+
+	if acc.clientID == "" {
+		return errors.New("client_id missing from request")
+	}
+
+	if acc.clientSecret == "" {
+		return errors.New("client_secret missing from request")
+	}
+
+	if acc.redirectURI == "" {
+		return errors.New("redirect_uri missing from request")
+	}
+
+	if acc.authCode == "" {
+		return errors.New("code is missing from request")
+	}
+
+	return nil
+}
+
+func (acc *authCodeContext) validatePasswordGrantType() error {
+	return errors.New("password not implemented")
 }
 
 type accessTokenResponse struct {
@@ -46,37 +85,18 @@ type accessTokenResponse struct {
 }
 
 func validateAndExtractFormParams(r *http.Request) (*authCodeContext, error) {
-	grantType := r.FormValue("grant_type")
-	if grantType != "authorization_code" {
-		return nil, errors.New("Invalid grant_type")
+
+	acc := &authCodeContext{
+		grantType:    r.FormValue("grant_type"),
+		clientID:     r.FormValue("client_id"),
+		clientSecret: r.FormValue("client_secret"),
+		redirectURI:  r.FormValue("redirect_uri"),
+		authCode:     r.FormValue("code"),
+		username:     r.FormValue("username"),
+		password:     r.FormValue("password"),
 	}
 
-	clientID := r.FormValue("client_id")
-	if clientID == "" {
-		return nil, errors.New("client_id missing from request")
-	}
-
-	clientSecret := r.FormValue("client_secret")
-	if clientSecret == "" {
-		return nil, errors.New("client_secret missing from request")
-	}
-
-	redirectURI := r.FormValue("redirect_uri")
-	if redirectURI == "" {
-		return nil, errors.New("redirect_uri missing from request")
-	}
-
-	authCode := r.FormValue("code")
-	if authCode == "" {
-		return nil, errors.New("code is missing from request")
-	}
-
-	return &authCodeContext{
-		clientID:     clientID,
-		clientSecret: clientSecret,
-		redirectURI:  redirectURI,
-		authCode:     authCode,
-	}, nil
+	return acc, acc.validate()
 
 }
 
@@ -128,6 +148,18 @@ func handleTokenPost(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//The grant type was validated above, so at this point we have two grant types to
+	//handle: authorization_code and password
+	switch codeContext.grantType {
+	case "authorization_code":
+		handleAuthCodeGrantType(core, w, r, codeContext)
+	default:
+		//Never say never...
+		respondError(w, http.StatusBadRequest, err)
+	}
+}
+
+func handleAuthCodeGrantType(core *roll.Core, w http.ResponseWriter, r *http.Request, codeContext *authCodeContext) {
 	//Verify the client id and secret, plus the redirect_uri by doing a lookup
 	//of the app by client id as api key value
 	app, err := validateClientDetails(core, codeContext)
@@ -152,6 +184,7 @@ func handleTokenPost(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 	token, err := generateJWT(core, app)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, err)
+		return
 	}
 
 	//Respond with a JSON document included the access_token and a token type of
@@ -169,5 +202,4 @@ func handleTokenPost(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Add("Content-Type", "application/json")
 	w.Write(atBytes)
-
 }

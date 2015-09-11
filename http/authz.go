@@ -282,7 +282,6 @@ func handleAuthZValidate(core *roll.Core, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-
 	//Authenticate the user
 	authenticated, err := authenticateUser(r.FormValue("username"), r.FormValue("password"), app)
 	if err != nil {

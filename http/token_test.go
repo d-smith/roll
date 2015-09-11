@@ -1,18 +1,17 @@
 package http
 
 import (
-	"testing"
+	"encoding/json"
+	"errors"
 	"github.com/stretchr/testify/assert"
-	"net/http"
-	"net/url"
-	"strings"
 	"github.com/xtraclabs/roll/roll"
 	"github.com/xtraclabs/roll/roll/mocks"
 	"github.com/xtraclabs/roll/secrets"
-	"encoding/json"
-	"errors"
+	"net/http"
+	"net/url"
+	"strings"
+	"testing"
 )
-
 
 func TestTokenMissingGrantType(t *testing.T) {
 	core, _ := NewTestCore()
@@ -24,7 +23,7 @@ func TestTokenMissingGrantType(t *testing.T) {
 
 	assert.Nil(t, err)
 	body := responseAsString(t, resp)
-	assert.True(t, strings.Contains(body,"Invalid grant_type"))
+	assert.True(t, strings.Contains(body, "Invalid grant_type"))
 }
 
 func TestTokenInvalidGrantType(t *testing.T) {
@@ -33,14 +32,12 @@ func TestTokenInvalidGrantType(t *testing.T) {
 	defer ln.Close()
 
 	resp, err := http.PostForm(addr+OAuth2TokenBaseURI,
-		url.Values{"grant_type":{"foo grant"}})
+		url.Values{"grant_type": {"foo grant"}})
 
 	assert.Nil(t, err)
 	body := responseAsString(t, resp)
-	assert.True(t, strings.Contains(body,"Invalid grant_type"))
+	assert.True(t, strings.Contains(body, "Invalid grant_type"))
 }
-
-
 
 func TestTokenMissingClientID(t *testing.T) {
 	core, _ := NewTestCore()
@@ -48,11 +45,11 @@ func TestTokenMissingClientID(t *testing.T) {
 	defer ln.Close()
 
 	resp, err := http.PostForm(addr+OAuth2TokenBaseURI,
-		url.Values{"grant_type":{"authorization_code"}})
+		url.Values{"grant_type": {"authorization_code"}})
 
 	assert.Nil(t, err)
 	body := responseAsString(t, resp)
-	assert.True(t, strings.Contains(body,"client_id missing from request"))
+	assert.True(t, strings.Contains(body, "client_id missing from request"))
 }
 
 func TestTokenMissingClientSecretX(t *testing.T) {
@@ -61,12 +58,12 @@ func TestTokenMissingClientSecretX(t *testing.T) {
 	defer ln.Close()
 
 	resp, err := http.PostForm(addr+OAuth2TokenBaseURI,
-		url.Values{"grant_type":{"authorization_code"},
-			"client_id":{"1"}})
+		url.Values{"grant_type": {"authorization_code"},
+			"client_id": {"1"}})
 
 	assert.Nil(t, err)
 	body := responseAsString(t, resp)
-	assert.True(t, strings.Contains(body,"client_secret missing from request"))
+	assert.True(t, strings.Contains(body, "client_secret missing from request"))
 }
 
 func TestTokenMissingRedirectUri(t *testing.T) {
@@ -75,13 +72,13 @@ func TestTokenMissingRedirectUri(t *testing.T) {
 	defer ln.Close()
 
 	resp, err := http.PostForm(addr+OAuth2TokenBaseURI,
-		url.Values{"grant_type":{"authorization_code"},
-			"client_id":{"1"},
-			"client_secret":{"xxx"}})
+		url.Values{"grant_type": {"authorization_code"},
+			"client_id":     {"1"},
+			"client_secret": {"xxx"}})
 
 	assert.Nil(t, err)
 	body := responseAsString(t, resp)
-	assert.True(t, strings.Contains(body,"redirect_uri missing from request"))
+	assert.True(t, strings.Contains(body, "redirect_uri missing from request"))
 }
 
 func TestTokenMissingCode(t *testing.T) {
@@ -90,14 +87,14 @@ func TestTokenMissingCode(t *testing.T) {
 	defer ln.Close()
 
 	resp, err := http.PostForm(addr+OAuth2TokenBaseURI,
-		url.Values{"grant_type":{"authorization_code"},
-			"client_id":{"1"},
-			"client_secret":{"xxx"},
-			"redirect_uri":{"http://foo:1000"}})
+		url.Values{"grant_type": {"authorization_code"},
+			"client_id":     {"1"},
+			"client_secret": {"xxx"},
+			"redirect_uri":  {"http://foo:1000"}})
 
 	assert.Nil(t, err)
 	body := responseAsString(t, resp)
-	assert.True(t, strings.Contains(body,"code is missing from request"))
+	assert.True(t, strings.Contains(body, "code is missing from request"))
 }
 
 func TestTokenAppLookupErr(t *testing.T) {
@@ -105,16 +102,15 @@ func TestTokenAppLookupErr(t *testing.T) {
 	ln, addr := TestServer(t, core)
 	defer ln.Close()
 
-
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
 	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(nil, errors.New("Drat"))
 
 	resp, err := http.PostForm(addr+OAuth2TokenBaseURI,
-		url.Values{"grant_type":{"authorization_code"},
-			"client_id":{"1111-2222-3333333-4444444"},
-			"client_secret":{"not for browser clients"},
-			"redirect_uri":{"http://localhost:3000/ab"},
-			"code":{"xxxxxxxx"}})
+		url.Values{"grant_type": {"authorization_code"},
+			"client_id":     {"1111-2222-3333333-4444444"},
+			"client_secret": {"not for browser clients"},
+			"redirect_uri":  {"http://localhost:3000/ab"},
+			"code":          {"xxxxxxxx"}})
 
 	assert.Nil(t, err)
 	body := responseAsString(t, resp)
@@ -127,16 +123,15 @@ func TestTokenAppLookupNil(t *testing.T) {
 	ln, addr := TestServer(t, core)
 	defer ln.Close()
 
-
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
 	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(nil, nil)
 
 	resp, err := http.PostForm(addr+OAuth2TokenBaseURI,
-		url.Values{"grant_type":{"authorization_code"},
-			"client_id":{"1111-2222-3333333-4444444"},
-			"client_secret":{"not for browser clients"},
-			"redirect_uri":{"http://localhost:3000/ab"},
-			"code":{"xxxxxxxx"}})
+		url.Values{"grant_type": {"authorization_code"},
+			"client_id":     {"1111-2222-3333333-4444444"},
+			"client_secret": {"not for browser clients"},
+			"redirect_uri":  {"http://localhost:3000/ab"},
+			"code":          {"xxxxxxxx"}})
 
 	assert.Nil(t, err)
 	body := responseAsString(t, resp)
@@ -162,15 +157,15 @@ func TestTokenUnparsableAuthCode(t *testing.T) {
 	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
 	resp, err := http.PostForm(addr+OAuth2TokenBaseURI,
-		url.Values{"grant_type":{"authorization_code"},
-			"client_id":{"1111-2222-3333333-4444444"},
-			"client_secret":{"not for browser clients"},
-			"redirect_uri":{"http://localhost:3000/ab"},
-			"code":{"xxxxxxxx"}})
+		url.Values{"grant_type": {"authorization_code"},
+			"client_id":     {"1111-2222-3333333-4444444"},
+			"client_secret": {"not for browser clients"},
+			"redirect_uri":  {"http://localhost:3000/ab"},
+			"code":          {"xxxxxxxx"}})
 
 	assert.Nil(t, err)
 	body := responseAsString(t, resp)
-	assert.True(t, strings.Contains(body,"token contains an invalid number of segments"))
+	assert.True(t, strings.Contains(body, "token contains an invalid number of segments"))
 	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 }
 
@@ -192,15 +187,15 @@ func TestTokenInvalidClientSecret(t *testing.T) {
 	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
 	resp, err := http.PostForm(addr+OAuth2TokenBaseURI,
-		url.Values{"grant_type":{"authorization_code"},
-			"client_id":{"1111-2222-3333333-4444444"},
-			"client_secret":{"not for browser clients"},
-			"redirect_uri":{"http://localhost:3000/ab"},
-			"code":{"xxxxxxxx"}})
+		url.Values{"grant_type": {"authorization_code"},
+			"client_id":     {"1111-2222-3333333-4444444"},
+			"client_secret": {"not for browser clients"},
+			"redirect_uri":  {"http://localhost:3000/ab"},
+			"code":          {"xxxxxxxx"}})
 
 	assert.Nil(t, err)
 	body := responseAsString(t, resp)
-	assert.True(t, strings.Contains(body,"Invalid application details"))
+	assert.True(t, strings.Contains(body, "Invalid application details"))
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 }
 
@@ -222,18 +217,17 @@ func TestTokenInvalidRedirect(t *testing.T) {
 	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
 	resp, err := http.PostForm(addr+OAuth2TokenBaseURI,
-		url.Values{"grant_type":{"authorization_code"},
-			"client_id":{"1111-2222-3333333-4444444"},
-			"client_secret":{"not for browser clients"},
-			"redirect_uri":{"xxxx"},
-			"code":{"xxxxxxxx"}})
+		url.Values{"grant_type": {"authorization_code"},
+			"client_id":     {"1111-2222-3333333-4444444"},
+			"client_secret": {"not for browser clients"},
+			"redirect_uri":  {"xxxx"},
+			"code":          {"xxxxxxxx"}})
 
 	assert.Nil(t, err)
 	body := responseAsString(t, resp)
-	assert.True(t, strings.Contains(body,"Invalid application details"))
+	assert.True(t, strings.Contains(body, "Invalid application details"))
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 }
-
 
 func TestTokenSignedWithWrongKey(t *testing.T) {
 	core, coreConfig := NewTestCore()
@@ -256,8 +250,8 @@ func TestTokenSignedWithWrongKey(t *testing.T) {
 	assert.Nil(t, err)
 
 	secretsMock := coreConfig.SecretsRepo.(*mocks.SecretsRepo)
-	secretsMock.On("RetrievePrivateKeyForApp","1111-2222-3333333-4444444").Return(privateKey, nil)
-	secretsMock.On("RetrievePublicKeyForApp", "1111-2222-3333333-4444444").Return(publicKey,nil)
+	secretsMock.On("RetrievePrivateKeyForApp", "1111-2222-3333333-4444444").Return(privateKey, nil)
+	secretsMock.On("RetrievePublicKeyForApp", "1111-2222-3333333-4444444").Return(publicKey, nil)
 
 	otherKey, _, err := secrets.GenerateKeyPair()
 	assert.Nil(t, err)
@@ -266,15 +260,15 @@ func TestTokenSignedWithWrongKey(t *testing.T) {
 	assert.Nil(t, err)
 
 	resp, err := http.PostForm(addr+OAuth2TokenBaseURI,
-		url.Values{"grant_type":{"authorization_code"},
-			"client_id":{"1111-2222-3333333-4444444"},
-			"client_secret":{"not for browser clients"},
-			"redirect_uri":{"http://localhost:3000/ab"},
-			"code":{code}})
+		url.Values{"grant_type": {"authorization_code"},
+			"client_id":     {"1111-2222-3333333-4444444"},
+			"client_secret": {"not for browser clients"},
+			"redirect_uri":  {"http://localhost:3000/ab"},
+			"code":          {code}})
 
 	assert.Nil(t, err)
 	body := responseAsString(t, resp)
-	assert.True(t, strings.Contains(body,"verification error"))
+	assert.True(t, strings.Contains(body, "verification error"))
 	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 }
 
@@ -299,26 +293,26 @@ func TestTokenValidCode(t *testing.T) {
 	assert.Nil(t, err)
 
 	secretsMock := coreConfig.SecretsRepo.(*mocks.SecretsRepo)
-	secretsMock.On("RetrievePrivateKeyForApp","1111-2222-3333333-4444444").Return(privateKey, nil)
-	secretsMock.On("RetrievePublicKeyForApp", "1111-2222-3333333-4444444").Return(publicKey,nil)
+	secretsMock.On("RetrievePrivateKeyForApp", "1111-2222-3333333-4444444").Return(privateKey, nil)
+	secretsMock.On("RetrievePublicKeyForApp", "1111-2222-3333333-4444444").Return(publicKey, nil)
 
 	code, err := roll.GenerateCode(&returnVal, privateKey)
 	assert.Nil(t, err)
 
 	resp, err := http.PostForm(addr+OAuth2TokenBaseURI,
-		url.Values{"grant_type":{"authorization_code"},
-			"client_id":{"1111-2222-3333333-4444444"},
-			"client_secret":{"not for browser clients"},
-			"redirect_uri":{"http://localhost:3000/ab"},
-			"code":{code}})
+		url.Values{"grant_type": {"authorization_code"},
+			"client_id":     {"1111-2222-3333333-4444444"},
+			"client_secret": {"not for browser clients"},
+			"redirect_uri":  {"http://localhost:3000/ab"},
+			"code":          {code}})
 
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 	body := responseAsString(t, resp)
 
 	var jsonResponse accessTokenResponse
-	err = json.Unmarshal([]byte(body),&jsonResponse)
-	assert.Nil(t,err)
+	err = json.Unmarshal([]byte(body), &jsonResponse)
+	assert.Nil(t, err)
 	assert.True(t, jsonResponse.AccessToken != "")
 	assert.True(t, jsonResponse.TokenType == "Bearer")
 

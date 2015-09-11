@@ -1,15 +1,16 @@
 package http
+
 import (
-	"testing"
+	"errors"
 	"github.com/stretchr/testify/assert"
-	"net/http"
 	"github.com/xtraclabs/roll/roll"
 	"github.com/xtraclabs/roll/roll/mocks"
-	"errors"
-	"net/http/httptest"
-	"strings"
-	"net/url"
 	"github.com/xtraclabs/roll/secrets"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
+	"strings"
+	"testing"
 )
 
 func TestRequiredQueryParamsPresent(t *testing.T) {
@@ -17,19 +18,19 @@ func TestRequiredQueryParamsPresent(t *testing.T) {
 	t.Log("when requiredQueryParamsPresent is called")
 	t.Log("then false is returned")
 
-	req, _ := http.NewRequest("GET","/", nil)
+	req, _ := http.NewRequest("GET", "/", nil)
 	assert.False(t, requiredQueryParamsPresent(req))
 
 	t.Log("given a request with some but not all of the required query params")
 	t.Log("when requiredQueryParamsPresent is called")
 	t.Log("then false is returned")
-	req, _ = http.NewRequest("GET","/?client_id=123", nil)
+	req, _ = http.NewRequest("GET", "/?client_id=123", nil)
 	assert.False(t, requiredQueryParamsPresent(req))
 
 	t.Log("given a request with all of the required query params")
 	t.Log("when requiredQueryParamsPresent is called")
 	t.Log("then true is returned")
-	req, _ = http.NewRequest("POST","/?client_id=123&redirect_uri=x&response_type=X", nil)
+	req, _ = http.NewRequest("POST", "/?client_id=123&redirect_uri=x&response_type=X", nil)
 	assert.True(t, requiredQueryParamsPresent(req))
 }
 
@@ -48,8 +49,7 @@ func TestInputParamsValid(t *testing.T) {
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
 	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
-
-	req, _ := http.NewRequest("POST","/?client_id=1111-2222-3333333-4444444&redirect_uri=http://localhost:3000/ab&response_type=token", nil)
+	req, _ := http.NewRequest("POST", "/?client_id=1111-2222-3333333-4444444&redirect_uri=http://localhost:3000/ab&response_type=token", nil)
 
 	app, err := validateInputParams(core, req)
 	assert.Nil(t, err)
@@ -57,17 +57,17 @@ func TestInputParamsValid(t *testing.T) {
 }
 
 func TestInputParamsInvalidResponseType(t *testing.T) {
-	req, _ := http.NewRequest("POST","/?client_id=1111-2222-3333333-4444444&redirect_uri=http://localhost:3000/ab&response_type=bad", nil)
+	req, _ := http.NewRequest("POST", "/?client_id=1111-2222-3333333-4444444&redirect_uri=http://localhost:3000/ab&response_type=bad", nil)
 	app, err := validateInputParams(nil, req)
-	assert.Nil(t,app)
-	assert.NotNil(t,err)
+	assert.Nil(t, app)
+	assert.NotNil(t, err)
 }
 
 func TestInputParamsMissingResponseType(t *testing.T) {
-	req, _ := http.NewRequest("POST","/?client_id=1111-2222-3333333-4444444&redirect_uri=http://localhost:3000/ab", nil)
+	req, _ := http.NewRequest("POST", "/?client_id=1111-2222-3333333-4444444&redirect_uri=http://localhost:3000/ab", nil)
 	app, err := validateInputParams(nil, req)
-	assert.Nil(t,app)
-	assert.NotNil(t,err)
+	assert.Nil(t, app)
+	assert.NotNil(t, err)
 }
 
 func TestInputParamsMissingClientID(t *testing.T) {
@@ -75,10 +75,10 @@ func TestInputParamsMissingClientID(t *testing.T) {
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
 	appRepoMock.On("RetrieveApplication", "").Return(nil, nil)
 
-	req, _ := http.NewRequest("POST","/?redirect_uri=http://localhost:3000/ab&response_type=code", nil)
+	req, _ := http.NewRequest("POST", "/?redirect_uri=http://localhost:3000/ab&response_type=code", nil)
 	app, err := validateInputParams(core, req)
-	assert.Nil(t,app)
-	assert.NotNil(t,err)
+	assert.Nil(t, app)
+	assert.NotNil(t, err)
 	println(err.Error())
 }
 
@@ -88,7 +88,7 @@ func TestInputParamsNoSuchClientId(t *testing.T) {
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
 	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(nil, errors.New("whoops"))
 
-	req, _ := http.NewRequest("POST","/?client_id=1111-2222-3333333-4444444&redirect_uri=http://localhost:3000/ab&response_type=token", nil)
+	req, _ := http.NewRequest("POST", "/?client_id=1111-2222-3333333-4444444&redirect_uri=http://localhost:3000/ab&response_type=token", nil)
 
 	app, err := validateInputParams(core, req)
 	assert.NotNil(t, err)
@@ -110,8 +110,7 @@ func TestInputParamsInvalidRedirectURI(t *testing.T) {
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
 	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
-
-	req, _ := http.NewRequest("POST","/?client_id=1111-2222-3333333-4444444&redirect_uri=bogus&response_type=token", nil)
+	req, _ := http.NewRequest("POST", "/?client_id=1111-2222-3333333-4444444&redirect_uri=bogus&response_type=token", nil)
 	app, err := validateInputParams(core, req)
 	assert.NotNil(t, err)
 	assert.Nil(t, app)
@@ -125,12 +124,12 @@ func TestExecuteAuthTemplateForCode(t *testing.T) {
 		ClientID: "test-application-key",
 	}
 
-	req, _ := http.NewRequest("POST","/?client_id=1111-2222-3333333-4444444&redirect_uri=bogus&response_type=code", nil)
+	req, _ := http.NewRequest("POST", "/?client_id=1111-2222-3333333-4444444&redirect_uri=bogus&response_type=code", nil)
 
-	err := executeAuthTemplate(w,req,pageCtx)
+	err := executeAuthTemplate(w, req, pageCtx)
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusOK, w.Code)
-	body :=  w.Body.String()
+	body := w.Body.String()
 	assert.True(t, strings.Contains(body, `name="client_id" value="test-application-key"`))
 	assert.True(t, strings.Contains(body, ` <h2>test-application-name`))
 	assert.True(t, strings.Contains(body, `name="response_type" value="code"`))
@@ -143,12 +142,12 @@ func TestExecuteAuthTemplateForToken(t *testing.T) {
 		ClientID: "test-application-key",
 	}
 
-	req, _ := http.NewRequest("POST","/?client_id=1111-2222-3333333-4444444&redirect_uri=bogus&response_type=token", nil)
+	req, _ := http.NewRequest("POST", "/?client_id=1111-2222-3333333-4444444&redirect_uri=bogus&response_type=token", nil)
 
-	err := executeAuthTemplate(w,req,pageCtx)
+	err := executeAuthTemplate(w, req, pageCtx)
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusOK, w.Code)
-	body :=  w.Body.String()
+	body := w.Body.String()
 	assert.True(t, strings.Contains(body, `name="client_id" value="test-application-key"`))
 	assert.True(t, strings.Contains(body, ` <h2>test-application-name`))
 	assert.True(t, strings.Contains(body, `name="response_type" value="token"`))
@@ -161,9 +160,9 @@ func TestExecuteAuthTemplateMissingResponseType(t *testing.T) {
 		ClientID: "test-application-key",
 	}
 
-	req, _ := http.NewRequest("POST","/?client_id=1111-2222-3333333-4444444&redirect_uri=bogus", nil)
+	req, _ := http.NewRequest("POST", "/?client_id=1111-2222-3333333-4444444&redirect_uri=bogus", nil)
 
-	err := executeAuthTemplate(w,req,pageCtx)
+	err := executeAuthTemplate(w, req, pageCtx)
 	assert.NotNil(t, err)
 
 }
@@ -175,9 +174,9 @@ func TestExecuteAuthTemplateBogusResponseType(t *testing.T) {
 		ClientID: "test-application-key",
 	}
 
-	req, _ := http.NewRequest("POST","/?client_id=1111-2222-3333333-4444444&redirect_uri=bogus&response_type=bogus", nil)
+	req, _ := http.NewRequest("POST", "/?client_id=1111-2222-3333333-4444444&redirect_uri=bogus&response_type=bogus", nil)
 
-	err := executeAuthTemplate(w,req,pageCtx)
+	err := executeAuthTemplate(w, req, pageCtx)
 	assert.NotNil(t, err)
 
 }
@@ -199,8 +198,6 @@ func TestHandleAuthorize(t *testing.T) {
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
 	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
-
-
 	resp := testHTTPGet(t, addr+"/oauth2/authorize?client_id=1111-2222-3333333-4444444&redirect_uri=http://localhost:3000/ab&response_type=token", nil)
 	appRepoMock.AssertCalled(t, "RetrieveApplication", "1111-2222-3333333-4444444")
 
@@ -217,8 +214,8 @@ func TestHandleAuthorizeUnsupportedMethod(t *testing.T) {
 	ln, addr := TestServer(t, core)
 	defer ln.Close()
 
-	resp, err := http.Post(addr+"/oauth2/authorize","",nil)
-	assert.Nil(t,err)
+	resp, err := http.Post(addr+"/oauth2/authorize", "", nil)
+	assert.Nil(t, err)
 	assert.Equal(t, http.StatusMethodNotAllowed, resp.StatusCode)
 }
 
@@ -227,7 +224,7 @@ func TestHandleAuthorizeMissingParams(t *testing.T) {
 	ln, addr := TestServer(t, core)
 	defer ln.Close()
 
-	resp := testHTTPGet(t, addr+"/oauth2/authorize",nil)
+	resp := testHTTPGet(t, addr+"/oauth2/authorize", nil)
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 }
 
@@ -248,13 +245,10 @@ func TestHandleAuthorizeBadRedirectParam(t *testing.T) {
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
 	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
-
-
 	resp := testHTTPGet(t, addr+"/oauth2/authorize?client_id=1111-2222-3333333-4444444&redirect_uri=not-in-the-face&response_type=token", nil)
 	appRepoMock.AssertCalled(t, "RetrieveApplication", "1111-2222-3333333-4444444")
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 }
-
 
 func TestAuthValidateMissingParams(t *testing.T) {
 	core, coreConfig := NewTestCore()
@@ -274,9 +268,9 @@ func TestAuthValidateMissingParams(t *testing.T) {
 	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
 	resp, err := http.PostForm(addr+"/oauth2/validate",
-		url.Values{"username":{},
-		"password":{}})
-	assert.Nil(t,err)
+		url.Values{"username": {},
+			"password": {}})
+	assert.Nil(t, err)
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	body := responseAsString(t, resp)
 	assert.True(t, strings.Contains(body, "Expected single response_type param as part of query params"))
@@ -300,12 +294,12 @@ func TestAuthValidateBadResponseType(t *testing.T) {
 	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
 	resp, err := http.PostForm(addr+"/oauth2/validate",
-		url.Values{"username":{"x"},
-			"password":{"y"},
-			"authorize" : {"allow"},
+		url.Values{"username": {"x"},
+			"password":      {"y"},
+			"authorize":     {"allow"},
 			"response_type": {"bad"},
-			"client_id":{"111-22-33"}})
-	assert.Nil(t,err)
+			"client_id":     {"111-22-33"}})
+	assert.Nil(t, err)
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	body := responseAsString(t, resp)
 	assert.True(t, strings.Contains(body, "valid values for response_type are token and code"))
@@ -320,17 +314,16 @@ func TestAuthValidateBadClientId(t *testing.T) {
 	appRepoMock.On("RetrieveApplication", "111-22-33").Return(nil, nil)
 
 	resp, err := http.PostForm(addr+"/oauth2/validate",
-		url.Values{"username":{"x"},
-			"password":{"y"},
-			"authorize" : {"allow"},
+		url.Values{"username": {"x"},
+			"password":      {"y"},
+			"authorize":     {"allow"},
 			"response_type": {"token"},
-			"client_id":{"111-22-33"}})
-	assert.Nil(t,err)
+			"client_id":     {"111-22-33"}})
+	assert.Nil(t, err)
 	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 	body := responseAsString(t, resp)
 	assert.True(t, strings.Contains(body, "Invalid client id"))
 }
-
 
 func TestAuthValidateDenied(t *testing.T) {
 	//TODO - use a second callback where we serve up a script to extract the page details sent
@@ -341,7 +334,6 @@ func TestAuthValidateDenied(t *testing.T) {
 		callbackInvoked = true
 	}))
 	defer ts.Close()
-
 
 	core, coreConfig := NewTestCore()
 	ln, addr := TestServer(t, core)
@@ -360,11 +352,11 @@ func TestAuthValidateDenied(t *testing.T) {
 	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
 	_, err := http.PostForm(addr+"/oauth2/validate",
-		url.Values{"username":{"x"},
-			"password":{"y"},
-			"authorize" : {"deny"},
+		url.Values{"username": {"x"},
+			"password":      {"y"},
+			"authorize":     {"deny"},
 			"response_type": {"token"},
-			"client_id":{"1111-2222-3333333-4444444"}})
+			"client_id":     {"1111-2222-3333333-4444444"}})
 	assert.Nil(t, err)
 	assert.True(t, callbackInvoked)
 }
@@ -387,12 +379,11 @@ func TestAuthValidateAuthenticateFail(t *testing.T) {
 	}))
 	defer ts.Close()
 
-
 	core, coreConfig := NewTestCore()
 	ln, addr := TestServer(t, core)
 	defer ln.Close()
 
-	lsUrl,_ := url.Parse(ls.URL)
+	lsUrl, _ := url.Parse(ls.URL)
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
@@ -407,14 +398,14 @@ func TestAuthValidateAuthenticateFail(t *testing.T) {
 	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
 	_, err := http.PostForm(addr+"/oauth2/validate",
-		url.Values{"username":{"x"},
-			"password":{"y"},
-			"authorize" : {"allow"},
+		url.Values{"username": {"x"},
+			"password":      {"y"},
+			"authorize":     {"allow"},
 			"response_type": {"token"},
-			"client_id":{"1111-2222-3333333-4444444"}})
+			"client_id":     {"1111-2222-3333333-4444444"}})
 	assert.Nil(t, err)
 	assert.True(t, callbackInvoked)
-	assert.True(t,loginCalled)
+	assert.True(t, loginCalled)
 }
 
 func TestAuthValidateAuthenticateOkSecretsFail(t *testing.T) {
@@ -435,12 +426,11 @@ func TestAuthValidateAuthenticateOkSecretsFail(t *testing.T) {
 	}))
 	defer ts.Close()
 
-
 	core, coreConfig := NewTestCore()
 	ln, addr := TestServer(t, core)
 	defer ln.Close()
 
-	lsUrl,_ := url.Parse(ls.URL)
+	lsUrl, _ := url.Parse(ls.URL)
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
@@ -455,17 +445,17 @@ func TestAuthValidateAuthenticateOkSecretsFail(t *testing.T) {
 	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
 	secretsMock := coreConfig.SecretsRepo.(*mocks.SecretsRepo)
-	secretsMock.On("RetrievePrivateKeyForApp","1111-2222-3333333-4444444").Return("", errors.New("Drat"))
+	secretsMock.On("RetrievePrivateKeyForApp", "1111-2222-3333333-4444444").Return("", errors.New("Drat"))
 
 	_, err := http.PostForm(addr+"/oauth2/validate",
-		url.Values{"username":{"x"},
-			"password":{"y"},
-			"authorize" : {"allow"},
+		url.Values{"username": {"x"},
+			"password":      {"y"},
+			"authorize":     {"allow"},
 			"response_type": {"token"},
-			"client_id":{"1111-2222-3333333-4444444"}})
+			"client_id":     {"1111-2222-3333333-4444444"}})
 	assert.Nil(t, err)
 	assert.False(t, callbackInvoked)
-	assert.True(t,loginCalled)
+	assert.True(t, loginCalled)
 }
 
 func TestAuthValidateAuthenticateOk(t *testing.T) {
@@ -486,12 +476,11 @@ func TestAuthValidateAuthenticateOk(t *testing.T) {
 	}))
 	defer ts.Close()
 
-
 	core, coreConfig := NewTestCore()
 	ln, addr := TestServer(t, core)
 	defer ln.Close()
 
-	lsUrl,_ := url.Parse(ls.URL)
+	lsUrl, _ := url.Parse(ls.URL)
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
@@ -505,22 +494,21 @@ func TestAuthValidateAuthenticateOk(t *testing.T) {
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
 	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
-
 	privateKey, _, err := secrets.GenerateKeyPair()
 	assert.Nil(t, err)
 
 	secretsMock := coreConfig.SecretsRepo.(*mocks.SecretsRepo)
-	secretsMock.On("RetrievePrivateKeyForApp","1111-2222-3333333-4444444").Return(privateKey, nil)
+	secretsMock.On("RetrievePrivateKeyForApp", "1111-2222-3333333-4444444").Return(privateKey, nil)
 
 	_, err = http.PostForm(addr+"/oauth2/validate",
-		url.Values{"username":{"x"},
-			"password":{"y"},
-			"authorize" : {"allow"},
+		url.Values{"username": {"x"},
+			"password":      {"y"},
+			"authorize":     {"allow"},
 			"response_type": {"token"},
-			"client_id":{"1111-2222-3333333-4444444"}})
+			"client_id":     {"1111-2222-3333333-4444444"}})
 	assert.Nil(t, err)
 	assert.True(t, callbackInvoked)
-	assert.True(t,loginCalled)
+	assert.True(t, loginCalled)
 }
 
 func TestAuthValidateCodeResponseAuthenticateOk(t *testing.T) {
@@ -541,12 +529,11 @@ func TestAuthValidateCodeResponseAuthenticateOk(t *testing.T) {
 	}))
 	defer ts.Close()
 
-
 	core, coreConfig := NewTestCore()
 	ln, addr := TestServer(t, core)
 	defer ln.Close()
 
-	lsUrl,_ := url.Parse(ls.URL)
+	lsUrl, _ := url.Parse(ls.URL)
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
@@ -560,20 +547,19 @@ func TestAuthValidateCodeResponseAuthenticateOk(t *testing.T) {
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
 	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
-
 	privateKey, _, err := secrets.GenerateKeyPair()
 	assert.Nil(t, err)
 
 	secretsMock := coreConfig.SecretsRepo.(*mocks.SecretsRepo)
-	secretsMock.On("RetrievePrivateKeyForApp","1111-2222-3333333-4444444").Return(privateKey, nil)
+	secretsMock.On("RetrievePrivateKeyForApp", "1111-2222-3333333-4444444").Return(privateKey, nil)
 
 	_, err = http.PostForm(addr+"/oauth2/validate",
-		url.Values{"username":{"x"},
-			"password":{"y"},
-			"authorize" : {"allow"},
+		url.Values{"username": {"x"},
+			"password":      {"y"},
+			"authorize":     {"allow"},
 			"response_type": {"code"},
-			"client_id":{"1111-2222-3333333-4444444"}})
+			"client_id":     {"1111-2222-3333333-4444444"}})
 	assert.Nil(t, err)
 	assert.True(t, callbackInvoked)
-	assert.True(t,loginCalled)
+	assert.True(t, loginCalled)
 }

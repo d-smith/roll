@@ -3,14 +3,14 @@ package http
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/stretchr/testify/assert"
 	"github.com/xtraclabs/roll/roll"
 	"github.com/xtraclabs/roll/roll/mocks"
 	"io"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"testing"
-	"io/ioutil"
-	"github.com/stretchr/testify/assert"
 )
 
 //These functions inspired by/adopted from github.com/hashicorp/vault testing and http_test files in the vault
