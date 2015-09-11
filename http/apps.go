@@ -34,18 +34,18 @@ func handleApplicationGet(core *roll.Core, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	dev, err := core.RetrieveApplication(apiKey)
+	app, err := core.RetrieveApplication(apiKey)
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, err) //TODO - more helpful error messages and better status codes
+		respondError(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	if dev == nil {
+	if app == nil {
 		respondNotFound(w)
 		return
 	}
 
-	respondOk(w, dev)
+	respondOk(w, app)
 }
 
 func handleApplicationPut(core *roll.Core, w http.ResponseWriter, r *http.Request) {
@@ -75,7 +75,11 @@ func handleApplicationPut(core *roll.Core, w http.ResponseWriter, r *http.Reques
 
 	//Store the application definition
 	log.Println("storing app def ", req)
-	core.StoreApplication(&req)
+	err = core.StoreApplication(&req)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err)
+		return
+	}
 
 	respondOk(w, nil)
 }
