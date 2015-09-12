@@ -177,6 +177,25 @@ The browser will be redirected to your registered callback - if you use the supp
 access token or the access denied error. You might also get an error if the client if can't be found, it it's not
 a valid client id, etc.
 
+Note in ths implementation of the flow, the credentials are sent back to the authorization server, which looks up
+the authentication (login) endpoint associated with the application, which is embedded in a URL, e.g.
+
+<pre>
+xtrac://localhost:2000
+</pre>
+
+Using the URL scheme, we can accomodate different login providers, currently we know how to authenticate
+against XTRAC.
+
+### Authorization Code Flow
+
+This can be be done with the above setup by modifying the above URL to use `code`
+as the grant type:
+
+<pre>
+http://localhost:3000/oauth2/authorize?client_id=111-222-3333&response_type=code&redirect_uri=http://localhost:2000/oauth2_callback
+</pre>
+
 ### Username Password Flow
 
 This can be executed directly via curl, e.g.
