@@ -81,6 +81,11 @@ func validateClientSecret(core *roll.Core, r *http.Request, clientSecret string)
 }
 
 func extractPublicKeyFromCert(certPEM string) (string, error) {
+	log.Println("extract public key from:")
+	log.Println(certPEM)
+	log.Println("certPEM len: ", len(certPEM))
+
+
 	block, _ := pem.Decode([]byte(certPEM))
 	if block == nil {
 		return "", errors.New("Unable to decode certificate PEM")

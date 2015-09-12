@@ -204,6 +204,19 @@ This can be executed directly via curl, e.g.
 curl --data "client_id=111-222-3333" --data "grant_type=password" --data "client_secret=2vwTI2FMKeokuXZrgzmrUXR0DFmaFvcjnM/KBoRoxaU=" --data "username=foo" --data "password=passw0rd" localhost:3000/oauth2/token
 </pre>
 
+### JWT Flow
+
+The JWT flow allows a security token created in a different fiefdom to be exchanged for an XTRAC token. To enable
+this flow for an application, a certificate that can be used to validate the foreign JWT is uploaded to the roll server 
+for the application. When the external token is posted to the token endpoint, the application key (client_id)
+associated with the application is assumed to be carried in the token's iss claim: the public key extracted from the
+uploaded certificate is used to validate the token signature, and if it checks out a access token is returned.
+
+#### Trying it out
+
+To try it out, we need to upload a cert, create and sign a JWT with the private key assocaited with the cert, and
+post the JWT flow payload to the token endpoint -- jwt-sample/jwtflow-sample.go shows how to execute this flow.
+
 
 ### Protected Resource
 

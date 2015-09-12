@@ -6,5 +6,5 @@
 
 export AZ_SERVER=localhost:3000
 export CLIENT_ID=111-222-3333
-export CLIENT_SECRET=2vwTI2FMKeokuXZrgzmrUXR0DFmaFvcjnM/KBoRoxaU=
+export CLIENT_SECRET=uLv8ntD8epEG8sY88CmAu0MDrPSGtSgNp6VbxMqbljk=
 export REDIRECT_URI=http://localhost:2000/oauth2_callback

@@ -24,12 +24,13 @@ func NewDynamoAppRepo() *DynamoAppRepo {
 
 //StoreApplication stores an application definition in DynamoDB
 func (dar *DynamoAppRepo) StoreApplication(app *roll.Application) error {
-	//TODO - do we generate a secret everytime this is called? Probably need a POST to
-	//create and a put to update - refactor later after talking this through with others
 
-	apiSecret, err := secrets.GenerateAPISecret()
-	if err != nil {
-		return err
+	if app.APISecret == "" {
+		apiSecret, err := secrets.GenerateAPISecret()
+		if err != nil {
+			return err
+		}
+		app.APISecret = apiSecret
 	}
 
 	params := &dynamodb.PutItemInput{
@@ -37,13 +38,14 @@ func (dar *DynamoAppRepo) StoreApplication(app *roll.Application) error {
 		Item: map[string]*dynamodb.AttributeValue{
 			"APIKey":          {S: aws.String(app.APIKey)},
 			"ApplicationName": {S: aws.String(app.ApplicationName)},
-			"APISecret":       {S: aws.String(apiSecret)},
+			"APISecret":       {S: aws.String(app.APISecret)},
 			"DeveloperEmail":  {S: aws.String(app.DeveloperEmail)},
 			"RedirectUri":     {S: aws.String(app.RedirectURI)},
 			"LoginProvider":   {S: aws.String(app.LoginProvider)},
+			"JWTFlowPublicKey": {S: aws.String(app.JWTFlowPublicKey)},
 		},
 	}
-	_, err = dar.client.PutItem(params)
+	_, err := dar.client.PutItem(params)
 
 	return err
 }
@@ -75,5 +77,6 @@ func (dar *DynamoAppRepo) RetrieveApplication(apiKey string) (*roll.Application,
 		DeveloperEmail:  extractString(out.Item["DeveloperEmail"]),
 		RedirectURI:     extractString(out.Item["RedirectUri"]),
 		LoginProvider:   extractString(out.Item["LoginProvider"]),
+		JWTFlowPublicKey: extractString(out.Item["JWTFlowPublicKey"]),
 	}, nil
 }
