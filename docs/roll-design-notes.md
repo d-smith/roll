@@ -108,6 +108,15 @@ The following mechanisms are currently supported for obtaining access tokens.
 
 ### OAuth2 Authorization Code Grant
 
+There are 4 players in the authorization code grant:
+
+1. The user agent
+2. The auth server (Roll)
+3. The login provider
+4. The web server
+
+This flow begins with the user agent loading a login page from the authz server
+
 ### OAuth2 Implicit Grant
 
 ### OAuth2 Resource Owner Password Credentials Grant

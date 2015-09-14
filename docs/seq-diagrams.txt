@@ -1,0 +1,35 @@
+title Authorization Code Flow
+User-Agent->+AuthZ: GET /oauth2/authorize?response_type=code
+AuthZ->AuthZ: Execute login page template
+AuthZ-->-User-Agent:
+User-Agent->+AuthZ: POST /oauth2/validate
+AuthZ->AuthZ: Lookup login provider by client_id
+AuthZ->AuthZ: Form login request
+AuthZ->+Login Provider: POST login request
+Login Provider-->-AuthZ:
+AuthZ->AuthZ: Lookup redirect uri
+AuthZ-->-User-Agent: redirect to registered uri
+User-Agent->+Web-Server: redirect with auth code in uri
+Web-Server->AuthZ: POST /oauth2/token
+AuthZ->AuthZ: Make token for code
+AuthZ-->-Web-Server: access_token
+Web-Server-->-User-Agent: access_token
+
+
+title Implicit Grant
+User-Agent->+AuthZ:GET /oauth2/authorize?response_type=token
+AuthZ->AuthZ: Execute login page template
+AuthZ-->-User-Agent:
+
+User-Agent->+AuthZ: POST /oauth2/validate
+AuthZ->AuthZ: Lookup login provider by client_id
+AuthZ->AuthZ: Form login request
+AuthZ->+Login Provider: POST login request
+Login Provider-->-AuthZ:
+AuthZ->AuthZ: Lookup redirect uri
+AuthZ-->-User-Agent: redirect to registered uri with token in uri fragment
+User-Agent->+Web-Server: Get token extraction script
+Web-Server-->-User-Agent:
+User-Agent->User-Agent: Extract token using script
+
+
