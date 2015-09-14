@@ -1,35 +1,56 @@
 title Authorization Code Flow
-User-Agent->+AuthZ: GET /oauth2/authorize?response_type=code
-AuthZ->AuthZ: Execute login page template
-AuthZ-->-User-Agent:
-User-Agent->+AuthZ: POST /oauth2/validate
-AuthZ->AuthZ: Lookup login provider by client_id
-AuthZ->AuthZ: Form login request
-AuthZ->+Login Provider: POST login request
-Login Provider-->-AuthZ:
-AuthZ->AuthZ: Lookup redirect uri
-AuthZ-->-User-Agent: redirect to registered uri
+User-Agent->+Roll: GET /oauth2/authorize?response_type=code
+Roll->Roll: Execute login page template
+Roll-->-User-Agent:
+User-Agent->+Roll: POST /oauth2/validate
+Roll->Roll: Lookup login provider by client_id
+Roll->Roll: Form login request
+Roll->+Login Provider: POST login request
+Login Provider-->-Roll:
+Roll->Roll: Lookup redirect uri
+Roll-->-User-Agent: redirect to registered uri
 User-Agent->+Web-Server: redirect with auth code in uri
-Web-Server->AuthZ: POST /oauth2/token
-AuthZ->AuthZ: Make token for code
-AuthZ-->-Web-Server: access_token
+Web-Server->Roll: POST /oauth2/token
+Roll->Roll: Make token for code
+Roll-->-Web-Server: access_token
 Web-Server-->-User-Agent: access_token
 
 
 title Implicit Grant
-User-Agent->+AuthZ:GET /oauth2/authorize?response_type=token
-AuthZ->AuthZ: Execute login page template
-AuthZ-->-User-Agent:
+User-Agent->+Roll:GET /oauth2/authorize?response_type=token
+Roll->Roll: Execute login page template
+Roll-->-User-Agent:
 
-User-Agent->+AuthZ: POST /oauth2/validate
-AuthZ->AuthZ: Lookup login provider by client_id
-AuthZ->AuthZ: Form login request
-AuthZ->+Login Provider: POST login request
-Login Provider-->-AuthZ:
-AuthZ->AuthZ: Lookup redirect uri
-AuthZ-->-User-Agent: redirect to registered uri with token in uri fragment
+User-Agent->+Roll: POST /oauth2/validate
+Roll->Roll: Lookup login provider by client_id
+Roll->Roll: Form login request
+Roll->+Login Provider: POST login request
+Login Provider-->-Roll:
+Roll->Roll: Lookup redirect uri
+Roll-->-User-Agent: redirect to registered uri with token in uri fragment
 User-Agent->+Web-Server: Get token extraction script
 Web-Server-->-User-Agent:
 User-Agent->User-Agent: Extract token using script
+
+title JWT Grant Flow
+User-Agent->+SomeDomain: get signed token
+SomeDomain-->-User-Agent:
+note over User-Agent, SomeDomain: client_id is JWT iss claim, identity (subject) is in sub claim
+User-Agent->+Roll: POST /oauth2/token
+Roll->Roll: look up public key and validate signature
+Roll->Roll: look up app secret based on iss, compare with secret posted to token endpoint
+Roll->Roll: Create access token
+Rool-->-User-Agent: access_token
+
+
+title Resource Owner Password Credentials Grant
+SomeApp->+Roll: POST /oauth2/token
+Roll->Roll: look up app info based on client_id
+Roll->Roll: validate client secret
+Roll->+Login Provider: Authenticate
+Login Provider-->-Roll:
+Roll->Roll: form access token
+Roll-->-SomeApp: access_token
+
 
 
