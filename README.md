@@ -148,7 +148,7 @@ Register an app:
 <pre>
 curl -X PUT -d '{
 "APIKey":"111-222-3333",
-"ApplicationName":"Hangry Birdz",
+"ApplicationName":"App No. 4",
 "DeveloperEmail":"doug@dev.com",
 "RedirectURI":"http://localhost:2000/oauth2_callback",
 "LoginProvider":"xtrac://localhost:2000"
@@ -201,7 +201,7 @@ http://localhost:3000/oauth2/authorize?client_id=111-222-3333&response_type=code
 This can be executed directly via curl, e.g.
 
 <pre>
-curl --data "client_id=111-222-3333" --data "grant_type=password" --data "client_secret=2vwTI2FMKeokuXZrgzmrUXR0DFmaFvcjnM/KBoRoxaU=" --data "username=foo" --data "password=passw0rd" localhost:3000/oauth2/token
+curl --data "client_id=111-222-3333" --data "grant_type=password" --data-urlencode "client_secret=EVNIFUt3hMFYb9aHy1N8LyEmTsLS3y+XK6xDvVbU+E0=" --data "username=foo" --data "password=passw0rd" localhost:3000/oauth2/token
 </pre>
 
 ### JWT Flow

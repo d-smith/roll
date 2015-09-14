@@ -33,17 +33,25 @@ func (dar *DynamoAppRepo) StoreApplication(app *roll.Application) error {
 		app.APISecret = apiSecret
 	}
 
+	appAttrs := map[string]*dynamodb.AttributeValue{
+		"APIKey":          {S: aws.String(app.APIKey)},
+		"ApplicationName": {S: aws.String(app.ApplicationName)},
+		"APISecret":       {S: aws.String(app.APISecret)},
+		"DeveloperEmail":  {S: aws.String(app.DeveloperEmail)},
+		"RedirectUri":     {S: aws.String(app.RedirectURI)},
+		"LoginProvider":   {S: aws.String(app.LoginProvider)},
+	}
+
+
+	if app.JWTFlowPublicKey != "" {
+		appAttrs["JWTFlowPublicKey"] = &dynamodb.AttributeValue {
+			S: aws.String(app.JWTFlowPublicKey),
+		}
+	}
+
 	params := &dynamodb.PutItemInput{
 		TableName: aws.String("Application"),
-		Item: map[string]*dynamodb.AttributeValue{
-			"APIKey":          {S: aws.String(app.APIKey)},
-			"ApplicationName": {S: aws.String(app.ApplicationName)},
-			"APISecret":       {S: aws.String(app.APISecret)},
-			"DeveloperEmail":  {S: aws.String(app.DeveloperEmail)},
-			"RedirectUri":     {S: aws.String(app.RedirectURI)},
-			"LoginProvider":   {S: aws.String(app.LoginProvider)},
-			"JWTFlowPublicKey": {S: aws.String(app.JWTFlowPublicKey)},
-		},
+		Item: appAttrs,
 	}
 	_, err := dar.client.PutItem(params)
 

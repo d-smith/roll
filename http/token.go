@@ -136,6 +136,7 @@ func lookupApplication(core *roll.Core, clientID string) (*roll.Application, err
 	}
 
 	if app == nil {
+		log.Println("invalid client id")
 		return nil, errors.New("Invalid client id")
 	}
 
@@ -145,14 +146,20 @@ func lookupApplication(core *roll.Core, clientID string) (*roll.Application, err
 func validateClientDetails(core *roll.Core, ctx *authCodeContext) (*roll.Application, error) {
 	app, err := lookupApplication(core, ctx.clientID)
 	if err != nil {
+		log.Println("error looking up application")
 		return nil, err
 	}
 
 	if app.APISecret != ctx.clientSecret {
+		log.Println("error validating client secret")
+		log.Println("secret from db: ", app.APISecret)
+		log.Println("secret from context: ", ctx.clientSecret)
+
 		return nil, ErrInvalidClientDetails
 	}
 
 	if ctx.grantType == "authorization_code" && app.RedirectURI != ctx.redirectURI {
+		log.Println("error validating registered redirect URI")
 		return nil, ErrInvalidClientDetails
 	}
 
@@ -250,8 +257,11 @@ func handleAuthCodeGrantType(core *roll.Core, w http.ResponseWriter, r *http.Req
 
 func handlePasswordGrantType(core *roll.Core, w http.ResponseWriter, r *http.Request, codeContext *authCodeContext) {
 	//Validate client details
+	log.Println("Handle password grant type")
+	log.Println("validate client details")
 	app, err := validateClientDetails(core, codeContext)
 	if err != nil {
+		log.Println(err.Error())
 		switch err {
 		case ErrInvalidClientDetails:
 			respondError(w, http.StatusBadRequest, ErrInvalidClientDetails)
@@ -263,6 +273,7 @@ func handlePasswordGrantType(core *roll.Core, w http.ResponseWriter, r *http.Req
 	}
 
 	//If the client details checkout, authenticate the user credentials
+	log.Println("authenticate user credentials")
 	authenticated, err := authenticateUser(codeContext.username, codeContext.password, app)
 	if err != nil {
 		log.Println("Error authenticating user: ", err.Error())
