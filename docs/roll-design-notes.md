@@ -123,7 +123,8 @@ There are 4 players in the authorization code grant:
 This flow begins with the user agent loading a login page from the authz server via a GET 
 on the `/oauth2/authorize` endpoint. The page is currently a template where the application name
 and client_id are plugged in when the page is rendered from the template. Future enhancements might
-include loading a page customized for the application that is looked up at render time.
+include loading a page customized for the application that is looked up at render time. The response_type
+for this flow is code.
 
 The login form allows user credentials to be entered, and provides allow and deny buttons on a page that
 asks for access to the users's data. If the allow button is pressed, when the form data is submitted
@@ -151,7 +152,33 @@ the web server.
 
 ### OAuth2 Implicit Grant
 
+The implicit grant flow is used by browser and mobile applications that cannot keep secrets. These are the 
+types of appications where it would not be appropriate to store and use the client secret assocaited with the 
+application.
+
+This flow begins with the user agent loading a login page from the authz server via a GET 
+on the `/oauth2/authorize` endpoint. The page is currently a template where the application name
+and client_id are plugged in when the page is rendered from the template. The response_type for
+this flow is token.
+
+The login form allows user credentials to be entered, and provides allow and deny buttons on a page that
+asks for access to the users's data. If the allow button is pressed, when the form data is submitted
+to the `/oauth2/validate` endpoint, Roll looks up the application information assocaited with the 
+client_id, which includes the login provider URL and the redirect URI.
+
+The Roll framework uses URL schemes to determine how to process a login request. If the login method indicates success, 
+Roll creates a JWT access token signed with the private key assocaited with the application, and embeds it in
+a fragment appended to the redirect URI that was obtained for the application as part of the application lookup by
+client_id.
+
+The redirect URI should go to a web server to load a script that runs in the user agent to extract the access
+token from the fragment in the redirect URI.
+
+<img src="./implicit.png" width="100%" height="100%"/>
+
 ### OAuth2 Resource Owner Password Credentials Grant
+
+
 
 ### JSON Web Token (JWT) Grant
 
