@@ -106,6 +106,11 @@ The following mechanisms are currently supported for obtaining access tokens.
 * OAuth2 Resource Owner Password Credentials Grant
 * JSON Web Token (JWT) Grant
 
+### A Note on Terminology
+
+Currently, among other things we store an API Key and API Secret for each application. These are are
+synonymous with Client ID and Client Secret in OAuth2 nomenclature. 
+
 ### OAuth2 Authorization Code Grant
 
 There are 4 players in the authorization code grant:
@@ -115,7 +120,34 @@ There are 4 players in the authorization code grant:
 3. The login provider
 4. The web server
 
-This flow begins with the user agent loading a login page from the authz server
+This flow begins with the user agent loading a login page from the authz server via a GET 
+on the `/oauth2/authorize` endpoint. The page is currently a template where the application name
+and client_id are plugged in when the page is rendered from the template. Future enhancements might
+include loading a page customized for the application that is looked up at render time.
+
+The login form allows user credentials to be entered, and provides allow and deny buttons on a page that
+asks for access to the users's data. If the allow button is pressed, when the form data is submitted
+to the `/oauth2/validate` endpoint, Roll looks up the application information assocaited with the 
+client_id, which includes the login provider URL and the redirect URI.
+
+The Roll framework uses URL schemes to determine how to process a login request. Currently, an xtrac method is
+provided, with the form being xtrac://host:port. For this login method, we form a login soap request with the
+username and password, and POST it to the login service URI on the host indicated in the login provider URL.
+
+If the login method indicates success, Roll creates an authorization code and includes it in the redirect to the 
+redirect URI obtained from the application lookup. The authorization code is encoded as a JWT, with a nonce to
+prevent replay attacks and a short expiration time to limit the duration in which the code can be used to 
+obtain an access token.
+
+When the user agent redirects to the web server registered via the redirect URI assocaited with the application, the 
+server the request was redirected to POSTs to the `/oauth2/token`. The POST includes the client secret: Roll validates 
+the access code was signed with the application's private key (known only to Roll) and checks that the 
+secret submitted in the POST matches that registered for the application.
+ 
+If the validation checks out, and access token is formed, and returned in the body of the response to the POST from
+the web server.
+
+<img src="./authcode.png" width="100%" height="100%"/>
 
 ### OAuth2 Implicit Grant
 

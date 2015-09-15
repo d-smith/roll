@@ -10,10 +10,9 @@ Login Provider-->-Roll:
 Roll->Roll: Lookup redirect uri
 Roll-->-User-Agent: redirect to registered uri
 User-Agent->+Web-Server: redirect with auth code in uri
-Web-Server->Roll: POST /oauth2/token
+Web-Server->+Roll: POST /oauth2/token
 Roll->Roll: Make token for code
 Roll-->-Web-Server: access_token
-Web-Server-->-User-Agent: access_token
 
 
 title Implicit Grant
