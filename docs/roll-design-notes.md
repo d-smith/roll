@@ -96,6 +96,7 @@ Additionally, in Vault we store:
 
 * GET and PUT on /v1/applications/{api key}
 * GET and PUT on /v1/developers/{dev email}
+* POST on /v1/jwtflowcerts/{api-key}
 
 ## Obtaining Access Tokens
 
@@ -178,20 +179,87 @@ token from the fragment in the redirect URI.
 
 ### OAuth2 Resource Owner Password Credentials Grant
 
+The resource owner password credentials grant can be used by trusted applications that can keep
+secrets and obtain user credentials.
+
+In this flow, the clients POSTs user and applications credentials to the `/oauth2/token` endpoint. Roll validates the
+application credentials, then executes the login method assocaited with the application using the supplied
+user credentials. If the login succeeds, Roll creates a JWT for the application, and signs it with the application's 
+private key, returning the token in the response.
+
+<img src="./resourceowner.png" width="100%" height="100%"/>
 
 
 ### JSON Web Token (JWT) Grant
+
+The JWT grant is used where authentication can be delegated to another realm, and a JWT produced in the trusted
+realm can be used to obtain a token from Roll.
+
+An additional set up requirement for this flow is loading the cert used to validate the token from the external
+realm for the application that will used the JWT flow. Roll extracts the public key from the cert for use in 
+validating the token signature before issuing a JWT from Roll's realm.
+
+Assuming the above set up, the flow starts with the user agent POSTing to the `/oauth2/token` endpoint. The POSTed
+request includes the JWT to use in obtaining an access token.
+
+Roll assumes the API key is stored in the JWT in the iss claim field. The public key for validating the signature
+is looked up using the API key.
+
+If the signature checks out, the client secret sent in the POST request is compared against the client secret 
+stored for the application. If all checks out, an access token is created by Roll and signed with the private key
+associated with the application, then returned to the called.
+
+<img src="./jwtflow.png" width="100%" height="100%"/>
+
+### Endpoint Protection
+
+The authzwrapper package includes a golang http handler decorator that extract the JWT bearer token from the
+request and validates the signature before allowing the access to go through. 
+
+The echo package includes an example server protected by the authzwrapper. Wrapping the handler is simple:
+
+<pre>
+
+import az "github.com/xtraclabs/roll/authzwrapper"
+
+mux := http.NewServeMux()
+mux.Handle("/echo", az.Wrap(echoHandler()))
+
+</pre>
+
+
 
 
 ## Quality Attribute Considerations
 
 ### Security
 
+* Given the use of secrets in this application (private keys, client secrets), secure storage of secrets is 
+a major concern. Towards this end, Vault is used for secrets management; additional details like what backend
+to use and other concerns will be addressed as the design work progresses.
+* Currently, non-secured endpoints are using used. This is an application where TLS should be used everywhere; the
+project should be update accordingly
+* A token validation service will be added to avoid the [confused deputy](https://en.wikipedia.org/wiki/Confused_deputy_problem) problem.
+* Access codes and tokens will embed expiration times.
+* Given there's no central storage of in use tokens to track which are active and valid, a 
+[token blacklisting service](https://auth0.com/blog/2015/03/10/blacklist-json-web-token-api-keys/)
+is needed to revoke token if they are stolen.
+* More design is needed around ACLs for the various components that access the secrets vault.
+
 ### Performance and Scale
+
+Using digital signatures and JWT allows us to provide a secure token management solution that is decentralized,
+which will help scale up access checks. Additionally, using expiration times for tokens will limit the amount
+of data that might need to be cached for token blacklisting.
 
 ### Portability
 
+This software is intended to be released as open source. Technology choices will be made to favor technologies
+likely to be adopted by open source developers, as opposed to biasing the technology selection towards legacy
+vendor stacks.
+
 ### Standards Compliance
 
+This software should adhere as closely as possible to the OAuth2 specification.
 
  
