@@ -61,5 +61,13 @@ func (ah *AuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//Make sure it's no an authcode token
+	if roll.IsAuthCode(token) {
+		log.Println("Auth code used as access token - access denied")
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte("Unauthorized\n"))
+		return
+	}
+
 	ah.handler.ServeHTTP(w, r)
 }

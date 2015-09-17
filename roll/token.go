@@ -9,6 +9,10 @@ import (
 	"time"
 )
 
+//XtAuthCodeScope defines a constant to use as a scope claim to limit use of auth code for the 3 legged
+//OAuth2 flow
+const XtAuthCodeScope = "xtAuthCode"
+
 //GenerateToken generates a signed JWT for an application using the
 //provided private key which is assocaited with the application.
 func GenerateToken(app *Application, privateKey string) (string, error) {
@@ -51,6 +55,7 @@ func GenerateCode(app *Application, privateKey string) (string, error) {
 	t.Claims["aud"] = app.APIKey
 	t.Claims["jti"] = u.String()
 	t.Claims["exp"] = time.Now().Add(30 * time.Second).Unix()
+	t.Claims["scope"] = XtAuthCodeScope
 
 	signKey, err := jwt.ParseRSAPrivateKeyFromPEM([]byte(privateKey))
 	if err != nil {
@@ -123,4 +128,12 @@ func GenerateKeyExtractionFunctionForJTWFlow(applicationRepo ApplicationRepo) jw
 		//Parse the keystring
 		return jwt.ParseRSAPublicKeyFromPEM([]byte(keystring))
 	}
+}
+
+func IsAuthCode(token *jwt.Token) bool {
+	if !token.Valid {
+		panic(errors.New("Attempting to test invalid token for auth code claim"))
+	}
+
+	return token.Claims["scope"] ==  XtAuthCodeScope
 }
