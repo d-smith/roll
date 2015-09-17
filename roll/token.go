@@ -21,6 +21,7 @@ func GenerateToken(app *Application, privateKey string) (string, error) {
 
 	t.Claims["aud"] = app.APIKey
 	t.Claims["iat"] = int64(time.Now().Unix())
+	t.Claims["exp"] = time.Now().Add(24 * time.Hour).Unix()
 	t.Claims["jti"] = u.String()
 	t.Claims["application"] = app.ApplicationName
 
@@ -49,7 +50,7 @@ func GenerateCode(app *Application, privateKey string) (string, error) {
 
 	t.Claims["aud"] = app.APIKey
 	t.Claims["jti"] = u.String()
-	t.Claims["exp"] = time.Now().Add(5 * time.Minute).Unix()
+	t.Claims["exp"] = time.Now().Add(30 * time.Second).Unix()
 
 	signKey, err := jwt.ParseRSAPrivateKeyFromPEM([]byte(privateKey))
 	if err != nil {
