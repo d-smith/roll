@@ -328,7 +328,7 @@ func TestAuthValidateBadClientId(t *testing.T) {
 func TestAuthValidateDenied(t *testing.T) {
 	//TODO - use a second callback where we serve up a script to extract the page details sent
 	//on deny and post those details to another test server.
-	var callbackInvoked bool = false
+	var callbackInvoked = false
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		callbackInvoked = true
@@ -363,7 +363,7 @@ func TestAuthValidateDenied(t *testing.T) {
 
 func TestAuthValidateAuthenticateFail(t *testing.T) {
 
-	var loginCalled bool = false
+	var loginCalled = false
 	ls := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		loginCalled = true
 		w.WriteHeader(http.StatusInternalServerError)
@@ -372,7 +372,7 @@ func TestAuthValidateAuthenticateFail(t *testing.T) {
 
 	//TODO - use a second callback where we serve up a script to extract the page details sent
 	//on deny and post those details to another test server.
-	var callbackInvoked bool = false
+	var callbackInvoked = false
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		callbackInvoked = true
@@ -383,7 +383,7 @@ func TestAuthValidateAuthenticateFail(t *testing.T) {
 	ln, addr := TestServer(t, core)
 	defer ln.Close()
 
-	lsUrl, _ := url.Parse(ls.URL)
+	lsURL, _ := url.Parse(ls.URL)
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
@@ -391,7 +391,7 @@ func TestAuthValidateAuthenticateFail(t *testing.T) {
 		ApplicationName: "fight club",
 		APISecret:       "not for browser clients",
 		RedirectURI:     ts.URL,
-		LoginProvider:   "xtrac://" + lsUrl.Host,
+		LoginProvider:   "xtrac://" + lsURL.Host,
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
@@ -410,7 +410,7 @@ func TestAuthValidateAuthenticateFail(t *testing.T) {
 
 func TestAuthValidateAuthenticateOkSecretsFail(t *testing.T) {
 
-	var loginCalled bool = false
+	var loginCalled = false
 	ls := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		loginCalled = true
 		w.WriteHeader(http.StatusOK)
@@ -419,7 +419,7 @@ func TestAuthValidateAuthenticateOkSecretsFail(t *testing.T) {
 
 	//TODO - use a second callback where we serve up a script to extract the page details sent
 	//on deny and post those details to another test server.
-	var callbackInvoked bool = false
+	var callbackInvoked = false
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		callbackInvoked = true
@@ -430,7 +430,7 @@ func TestAuthValidateAuthenticateOkSecretsFail(t *testing.T) {
 	ln, addr := TestServer(t, core)
 	defer ln.Close()
 
-	lsUrl, _ := url.Parse(ls.URL)
+	lsURL, _ := url.Parse(ls.URL)
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
@@ -438,7 +438,7 @@ func TestAuthValidateAuthenticateOkSecretsFail(t *testing.T) {
 		ApplicationName: "fight club",
 		APISecret:       "not for browser clients",
 		RedirectURI:     ts.URL,
-		LoginProvider:   "xtrac://" + lsUrl.Host,
+		LoginProvider:   "xtrac://" + lsURL.Host,
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
@@ -460,7 +460,7 @@ func TestAuthValidateAuthenticateOkSecretsFail(t *testing.T) {
 
 func TestAuthValidateAuthenticateOk(t *testing.T) {
 
-	var loginCalled bool = false
+	var loginCalled = false
 	ls := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		loginCalled = true
 		w.WriteHeader(http.StatusOK)
@@ -469,7 +469,7 @@ func TestAuthValidateAuthenticateOk(t *testing.T) {
 
 	//TODO - use a second callback where we serve up a script to extract the page details sent
 	//on deny and post those details to another test server.
-	var callbackInvoked bool = false
+	var callbackInvoked = false
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		callbackInvoked = true
@@ -480,7 +480,7 @@ func TestAuthValidateAuthenticateOk(t *testing.T) {
 	ln, addr := TestServer(t, core)
 	defer ln.Close()
 
-	lsUrl, _ := url.Parse(ls.URL)
+	lsURL, _ := url.Parse(ls.URL)
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
@@ -488,7 +488,7 @@ func TestAuthValidateAuthenticateOk(t *testing.T) {
 		ApplicationName: "fight club",
 		APISecret:       "not for browser clients",
 		RedirectURI:     ts.URL,
-		LoginProvider:   "xtrac://" + lsUrl.Host,
+		LoginProvider:   "xtrac://" + lsURL.Host,
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
@@ -513,7 +513,7 @@ func TestAuthValidateAuthenticateOk(t *testing.T) {
 
 func TestAuthValidateCodeResponseAuthenticateOk(t *testing.T) {
 
-	var loginCalled bool = false
+	var loginCalled = false
 	ls := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		loginCalled = true
 		w.WriteHeader(http.StatusOK)
@@ -522,7 +522,7 @@ func TestAuthValidateCodeResponseAuthenticateOk(t *testing.T) {
 
 	//TODO - use a second callback where we serve up a script to extract the page details sent
 	//on deny and post those details to another test server.
-	var callbackInvoked bool = false
+	var callbackInvoked = false
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		callbackInvoked = true
@@ -533,7 +533,7 @@ func TestAuthValidateCodeResponseAuthenticateOk(t *testing.T) {
 	ln, addr := TestServer(t, core)
 	defer ln.Close()
 
-	lsUrl, _ := url.Parse(ls.URL)
+	lsURL, _ := url.Parse(ls.URL)
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
@@ -541,7 +541,7 @@ func TestAuthValidateCodeResponseAuthenticateOk(t *testing.T) {
 		ApplicationName: "fight club",
 		APISecret:       "not for browser clients",
 		RedirectURI:     ts.URL,
-		LoginProvider:   "xtrac://" + lsUrl.Host,
+		LoginProvider:   "xtrac://" + lsURL.Host,
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)

@@ -87,14 +87,14 @@ func TestPWGrantLoginFailure(t *testing.T) {
 	ln, addr := TestServer(t, core)
 	defer ln.Close()
 
-	var loginCalled bool = false
+	var loginCalled = false
 	ls := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		loginCalled = true
 		w.WriteHeader(http.StatusInternalServerError)
 	}))
 	defer ls.Close()
 
-	lsUrl, _ := url.Parse(ls.URL)
+	lsURL, _ := url.Parse(ls.URL)
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
@@ -102,7 +102,7 @@ func TestPWGrantLoginFailure(t *testing.T) {
 		ApplicationName: "fight club",
 		APISecret:       "not for browser clients",
 		RedirectURI:     "http://localhost:3000/ab",
-		LoginProvider:   "xtrac://" + lsUrl.Host,
+		LoginProvider:   "xtrac://" + lsURL.Host,
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
@@ -153,14 +153,14 @@ func TestPWGrantLoginOk(t *testing.T) {
 	ln, addr := TestServer(t, core)
 	defer ln.Close()
 
-	var loginCalled bool = false
+	var loginCalled = false
 	ls := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		loginCalled = true
 		w.WriteHeader(http.StatusOK)
 	}))
 	defer ls.Close()
 
-	lsUrl, _ := url.Parse(ls.URL)
+	lsURL, _ := url.Parse(ls.URL)
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
@@ -168,7 +168,7 @@ func TestPWGrantLoginOk(t *testing.T) {
 		ApplicationName: "fight club",
 		APISecret:       "not for browser clients",
 		RedirectURI:     "http://localhost:3000/ab",
-		LoginProvider:   "xtrac://" + lsUrl.Host,
+		LoginProvider:   "xtrac://" + lsURL.Host,
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)

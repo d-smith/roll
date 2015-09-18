@@ -11,16 +11,16 @@ import (
 )
 
 const (
-	//JWTCertsURI is the base uri for the service.
+	//JWTFlowCertsURI is the base uri for the service.
 	JWTFlowCertsURI = "/v1/jwtflowcerts/"
 )
 
 var (
-	ErrApplicationNotFound = errors.New("No application found for application key")
+	errApplicationNotFound = errors.New("No application found for application key")
 
-	ErrReadingApplicationRecord = errors.New("Error reading application data for application key")
+	errReadingApplicationRecord = errors.New("Error reading application data for application key")
 
-	ErrInvalidClientSecret = errors.New("")
+	errInvalidClientSecret = errors.New("")
 )
 
 type certPostCtx struct {
@@ -61,20 +61,20 @@ func extractFormParams(r *http.Request) (*certPostCtx, error) {
 func validateClientSecret(core *roll.Core, r *http.Request, clientSecret string) (*roll.Application, error) {
 	apiKey := strings.TrimPrefix(r.RequestURI, JWTFlowCertsURI)
 	if apiKey == "" {
-		return nil, ErrApplicationNotFound
+		return nil, errApplicationNotFound
 	}
 
 	app, err := core.RetrieveApplication(apiKey)
 	if err != nil {
-		return nil, ErrReadingApplicationRecord
+		return nil, errReadingApplicationRecord
 	}
 
 	if app == nil {
-		return nil, ErrApplicationNotFound
+		return nil, errApplicationNotFound
 	}
 
 	if clientSecret != app.APISecret {
-		return nil, ErrInvalidClientSecret
+		return nil, errInvalidClientSecret
 	}
 
 	return app, nil
@@ -84,7 +84,6 @@ func extractPublicKeyFromCert(certPEM string) (string, error) {
 	log.Println("extract public key from:")
 	log.Println(certPEM)
 	log.Println("certPEM len: ", len(certPEM))
-
 
 	block, _ := pem.Decode([]byte(certPEM))
 	if block == nil {
@@ -126,9 +125,9 @@ func handleCertPost(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 	app, err := validateClientSecret(core, r, certCtx.clientSecret)
 	if err != nil {
 		switch err {
-		case ErrApplicationNotFound:
+		case errApplicationNotFound:
 			respondNotFound(w)
-		case ErrInvalidClientSecret:
+		case errInvalidClientSecret:
 			respondError(w, http.StatusUnauthorized, nil)
 		default:
 			respondError(w, http.StatusInternalServerError, err)
