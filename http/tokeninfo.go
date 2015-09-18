@@ -5,7 +5,7 @@ import (
 "errors"
 	"log"
 jwt "github.com/dgrijalva/jwt-go"
-	"fmt"
+	"encoding/json"
 )
 
 
@@ -13,6 +13,10 @@ const (
 	//TokenInfoURI is the base uri for the token validation service.
 	TokenInfoURI = "/oauth2/tokeninfo"
 )
+
+type TokenInfo struct {
+	Audience string `json:"audience"`
+}
 
 func handleTokenInfo(core *roll.Core) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -49,6 +53,15 @@ func handleTokenInfoGet(core *roll.Core, w http.ResponseWriter, r *http.Request)
 	}
 
 	//Return the token info
-	tokenInfo := fmt.Sprintf(`{"audience":"%s"}`, audience)
-	w.Write([]byte(tokenInfo))
+	tokenInfo := &TokenInfo{
+		Audience: audience.(string),
+	}
+
+	bytes, err := json.Marshal(&tokenInfo)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError,err)
+		return
+	}
+
+	w.Write(bytes)
 }
