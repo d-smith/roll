@@ -2,12 +2,12 @@ package http
 
 import (
 	"encoding/json"
-	"github.com/xtracdev/xavi/Godeps/_workspace/src/github.com/stretchr/testify/assert"
 	"github.com/xtraclabs/roll/roll"
 	"github.com/xtraclabs/roll/roll/mocks"
 	"github.com/xtraclabs/roll/secrets"
 	"net/http"
 	"testing"
+"github.com/stretchr/testify/assert"
 )
 
 func TestMissingAccessToken(t *testing.T) {
