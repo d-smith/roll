@@ -2,12 +2,12 @@ package http
 
 import (
 	"encoding/json"
+	"github.com/stretchr/testify/assert"
 	"github.com/xtraclabs/roll/roll"
 	"github.com/xtraclabs/roll/roll/mocks"
 	"github.com/xtraclabs/roll/secrets"
 	"net/http"
 	"testing"
-"github.com/stretchr/testify/assert"
 )
 
 func TestMissingAccessToken(t *testing.T) {
@@ -28,6 +28,16 @@ func TestInvalidAccessToken(t *testing.T) {
 	resp, err := http.Get(addr + TokenInfoURI + "?access_token=xxx.xxx.xxx")
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+}
+
+func TestUnsupportedMethod(t *testing.T) {
+	core, _ := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	resp, err := http.PostForm(addr+TokenInfoURI+"?access_token=xxx.xxx.xxx", nil)
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusMethodNotAllowed, resp.StatusCode)
 }
 
 func TestValidAccessToken(t *testing.T) {
