@@ -1,12 +1,13 @@
 package http
+
 import (
-	"testing"
-	"net/http"
+	"encoding/json"
 	"github.com/xtracdev/xavi/Godeps/_workspace/src/github.com/stretchr/testify/assert"
 	"github.com/xtraclabs/roll/roll"
 	"github.com/xtraclabs/roll/roll/mocks"
 	"github.com/xtraclabs/roll/secrets"
-	"encoding/json"
+	"net/http"
+	"testing"
 )
 
 func TestMissingAccessToken(t *testing.T) {
@@ -18,7 +19,6 @@ func TestMissingAccessToken(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 }
-
 
 func TestInvalidAccessToken(t *testing.T) {
 	core, _ := NewTestCore()
@@ -62,11 +62,10 @@ func TestValidAccessToken(t *testing.T) {
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 	body := responseAsString(t, resp)
-	var ti TokenInfo
+	var ti tokenInfo
 
 	err = json.Unmarshal([]byte(body), &ti)
-	assert.Nil(t,err)
+	assert.Nil(t, err)
 	assert.Equal(t, "1111-2222-3333333-4444444", ti.Audience)
 
 }
-

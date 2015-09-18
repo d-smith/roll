@@ -1,20 +1,20 @@
 package http
-import (
-"github.com/xtraclabs/roll/roll"
-"net/http"
-"errors"
-	"log"
-jwt "github.com/dgrijalva/jwt-go"
-	"encoding/json"
-)
 
+import (
+	"encoding/json"
+	"errors"
+	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/xtraclabs/roll/roll"
+	"log"
+	"net/http"
+)
 
 const (
 	//TokenInfoURI is the base uri for the token validation service.
 	TokenInfoURI = "/oauth2/tokeninfo"
 )
 
-type TokenInfo struct {
+type tokenInfo struct {
 	Audience string `json:"audience"`
 }
 
@@ -53,13 +53,13 @@ func handleTokenInfoGet(core *roll.Core, w http.ResponseWriter, r *http.Request)
 	}
 
 	//Return the token info
-	tokenInfo := &TokenInfo{
+	tokenInfo := &tokenInfo{
 		Audience: audience.(string),
 	}
 
 	bytes, err := json.Marshal(&tokenInfo)
 	if err != nil {
-		respondError(w, http.StatusInternalServerError,err)
+		respondError(w, http.StatusInternalServerError, err)
 		return
 	}
 
