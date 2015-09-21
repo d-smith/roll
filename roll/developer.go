@@ -10,10 +10,11 @@ type Developer struct {
 	ID        string
 }
 
+var validEmail = regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
+
 //ValidateEmail validates a string that is to be treated as an email address
 func ValidateEmail(email string) bool {
-	Re := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
-	return Re.MatchString(email)
+	return validEmail.MatchString(email)
 }
 
 //DeveloperRepo represents a repository abstraction for dealing with persistent Developer instances.
