@@ -41,28 +41,28 @@ func NewVaultSecretsRepo() *VaultSecretsRepo {
 	}
 }
 
-func pathForKey(apikey string) string {
-	return "secret/" + apikey
+func pathForKey(clientID string) string {
+	return "secret/" + clientID
 }
 
 //StoreKeysForApp stores the private and public keys associated with an app in Vault
-func (v *VaultSecretsRepo) StoreKeysForApp(apikey string, privateKey string, publicKey string) error {
+func (v *VaultSecretsRepo) StoreKeysForApp(clientID string, privateKey string, publicKey string) error {
 	logical := v.vaultClient.Logical()
 	data := make(map[string]interface{})
 	data["privateKey"] = privateKey
 	data["publicKey"] = publicKey
-	path := pathForKey(apikey)
+	path := pathForKey(clientID)
 	s, err := logical.Write(path, data)
 	if s == nil {
-		log.Println("Keys for "+apikey+" written to ", path)
+		log.Println("Keys for "+clientID+" written to ", path)
 	}
 	log.Println(fmt.Sprintf("%v", s))
 	return err
 }
 
-func (v *VaultSecretsRepo) retrieveKeyFromVault(apikey string, whichKey string) (string, error) {
+func (v *VaultSecretsRepo) retrieveKeyFromVault(clientID string, whichKey string) (string, error) {
 	logical := v.vaultClient.Logical()
-	path := pathForKey(apikey)
+	path := pathForKey(clientID)
 	log.Println("Load secret from path ", path)
 	secret, err := logical.Read(path)
 	if err != nil {
@@ -71,7 +71,7 @@ func (v *VaultSecretsRepo) retrieveKeyFromVault(apikey string, whichKey string) 
 
 	if secret == nil {
 		log.Println("return error - nil secret")
-		return "", errors.New("No keys stored for apikey " + apikey)
+		return "", errors.New("No keys stored for clientID " + clientID)
 	}
 
 	var key interface{}
@@ -87,11 +87,11 @@ func (v *VaultSecretsRepo) retrieveKeyFromVault(apikey string, whichKey string) 
 }
 
 //RetrievePrivateKeyForApp retrieves the private key associated with an application  from the Vault
-func (v *VaultSecretsRepo) RetrievePrivateKeyForApp(apikey string) (string, error) {
-	return v.retrieveKeyFromVault(apikey, "private")
+func (v *VaultSecretsRepo) RetrievePrivateKeyForApp(clientID string) (string, error) {
+	return v.retrieveKeyFromVault(clientID, "private")
 }
 
 //RetrievePublicKeyForApp retrieves the public key associated with an application from the vault
-func (v *VaultSecretsRepo) RetrievePublicKeyForApp(apikey string) (string, error) {
-	return v.retrieveKeyFromVault(apikey, "public")
+func (v *VaultSecretsRepo) RetrievePublicKeyForApp(clientID string) (string, error) {
+	return v.retrieveKeyFromVault(clientID, "public")
 }

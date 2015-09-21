@@ -25,33 +25,32 @@ func NewDynamoAppRepo() *DynamoAppRepo {
 //StoreApplication stores an application definition in DynamoDB
 func (dar *DynamoAppRepo) StoreApplication(app *roll.Application) error {
 
-	if app.APISecret == "" {
-		apiSecret, err := secrets.GenerateAPISecret()
+	if app.ClientSecret == "" {
+		clientSecret, err := secrets.GenerateClientSecret()
 		if err != nil {
 			return err
 		}
-		app.APISecret = apiSecret
+		app.ClientSecret = clientSecret
 	}
 
 	appAttrs := map[string]*dynamodb.AttributeValue{
-		"APIKey":          {S: aws.String(app.APIKey)},
+		"ClientID":        {S: aws.String(app.CLientID)},
 		"ApplicationName": {S: aws.String(app.ApplicationName)},
-		"APISecret":       {S: aws.String(app.APISecret)},
+		"ClientSecret":    {S: aws.String(app.ClientSecret)},
 		"DeveloperEmail":  {S: aws.String(app.DeveloperEmail)},
 		"RedirectUri":     {S: aws.String(app.RedirectURI)},
 		"LoginProvider":   {S: aws.String(app.LoginProvider)},
 	}
 
-
 	if app.JWTFlowPublicKey != "" {
-		appAttrs["JWTFlowPublicKey"] = &dynamodb.AttributeValue {
+		appAttrs["JWTFlowPublicKey"] = &dynamodb.AttributeValue{
 			S: aws.String(app.JWTFlowPublicKey),
 		}
 	}
 
 	params := &dynamodb.PutItemInput{
 		TableName: aws.String("Application"),
-		Item: appAttrs,
+		Item:      appAttrs,
 	}
 	_, err := dar.client.PutItem(params)
 
@@ -59,11 +58,11 @@ func (dar *DynamoAppRepo) StoreApplication(app *roll.Application) error {
 }
 
 //RetrieveApplication retrieves an application definition from DynamoDB
-func (dar *DynamoAppRepo) RetrieveApplication(apiKey string) (*roll.Application, error) {
+func (dar *DynamoAppRepo) RetrieveApplication(clientID string) (*roll.Application, error) {
 	params := &dynamodb.GetItemInput{
 		TableName: aws.String("Application"),
 		Key: map[string]*dynamodb.AttributeValue{
-			"APIKey": {S: aws.String(apiKey)},
+			"ClientID": {S: aws.String(clientID)},
 		},
 	}
 
@@ -79,12 +78,12 @@ func (dar *DynamoAppRepo) RetrieveApplication(apiKey string) (*roll.Application,
 
 	log.Println("Load struct with data returned from dynamo")
 	return &roll.Application{
-		APIKey:          extractString(out.Item["APIKey"]),
-		ApplicationName: extractString(out.Item["ApplicationName"]),
-		APISecret:       extractString(out.Item["APISecret"]),
-		DeveloperEmail:  extractString(out.Item["DeveloperEmail"]),
-		RedirectURI:     extractString(out.Item["RedirectUri"]),
-		LoginProvider:   extractString(out.Item["LoginProvider"]),
+		CLientID:         extractString(out.Item["ClientID"]),
+		ApplicationName:  extractString(out.Item["ApplicationName"]),
+		ClientSecret:     extractString(out.Item["ClientSecret"]),
+		DeveloperEmail:   extractString(out.Item["DeveloperEmail"]),
+		RedirectURI:      extractString(out.Item["RedirectUri"]),
+		LoginProvider:    extractString(out.Item["LoginProvider"]),
 		JWTFlowPublicKey: extractString(out.Item["JWTFlowPublicKey"]),
 	}, nil
 }

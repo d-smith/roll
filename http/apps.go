@@ -28,13 +28,13 @@ func handleApplications(core *roll.Core) http.Handler {
 }
 
 func handleApplicationGet(core *roll.Core, w http.ResponseWriter, r *http.Request) {
-	apiKey := strings.TrimPrefix(r.RequestURI, ApplicationsBaseURI)
-	if apiKey == "" {
+	clientID := strings.TrimPrefix(r.RequestURI, ApplicationsBaseURI)
+	if clientID == "" {
 		respondNotFound(w)
 		return
 	}
 
-	app, err := core.RetrieveApplication(apiKey)
+	app, err := core.RetrieveApplication(clientID)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, err)
 		return
@@ -55,9 +55,9 @@ func handleApplicationPut(core *roll.Core, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	//Make sure we use the apikey in the resource not any apikey sent in the JSON.
-	apiKey := strings.TrimPrefix(r.RequestURI, ApplicationsBaseURI)
-	req.APIKey = apiKey
+	//Make sure we use the clientID in the resource not any clientID sent in the JSON.
+	clientID := strings.TrimPrefix(r.RequestURI, ApplicationsBaseURI)
+	req.CLientID = clientID
 
 	//Generate a private/public key pair
 	private, public, err := secrets.GenerateKeyPair()
@@ -67,7 +67,7 @@ func handleApplicationPut(core *roll.Core, w http.ResponseWriter, r *http.Reques
 	}
 
 	//Store keys in secrets vault
-	err = core.StoreKeysForApp(apiKey, private, public)
+	err = core.StoreKeysForApp(clientID, private, public)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, err)
 		return

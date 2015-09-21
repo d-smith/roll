@@ -8,8 +8,8 @@ import (
 	"encoding/pem"
 )
 
-//GenerateAPISecret generates a string to be used as an API secret
-func GenerateAPISecret() (string, error) {
+//GenerateClientSecret generates a string to be used as an API secret
+func GenerateClientSecret() (string, error) {
 	randbuf := make([]byte, 32)
 
 	_, err := rand.Read(randbuf)

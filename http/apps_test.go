@@ -17,7 +17,7 @@ func TestStoreApp(t *testing.T) {
 	app := roll.Application{
 		ApplicationName: "ambivilant birds",
 		DeveloperEmail:  "doug@dev.com",
-		APIKey:          "1111-2222-3333333-4444444",
+		CLientID:        "1111-2222-3333333-4444444",
 		RedirectURI:     "http://localhost:3000/ab",
 		LoginProvider:   "xtrac://localhost:9000",
 	}
@@ -43,9 +43,9 @@ func TestGetApplication(t *testing.T) {
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
-		APIKey:          "1111-2222-3333333-4444444",
+		CLientID:        "1111-2222-3333333-4444444",
 		ApplicationName: "fight club",
-		APISecret:       "not for browser clients",
+		ClientSecret:    "not for browser clients",
 		RedirectURI:     "http://localhost:3000/ab",
 		LoginProvider:   "xtrac://localhost:9000",
 	}
@@ -60,9 +60,9 @@ func TestGetApplication(t *testing.T) {
 
 	checkResponseBody(t, resp, &actual)
 	assert.Equal(t, "doug@dev.com", actual.DeveloperEmail)
-	assert.Equal(t, "1111-2222-3333333-4444444", actual.APIKey)
+	assert.Equal(t, "1111-2222-3333333-4444444", actual.CLientID)
 	assert.Equal(t, "fight club", actual.ApplicationName)
-	assert.Equal(t, "not for browser clients", actual.APISecret)
+	assert.Equal(t, "not for browser clients", actual.ClientSecret)
 	assert.Equal(t, "http://localhost:3000/ab", actual.RedirectURI)
 	assert.Equal(t, "xtrac://localhost:9000", actual.LoginProvider)
 

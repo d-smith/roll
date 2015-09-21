@@ -150,9 +150,9 @@ func validateClientDetails(core *roll.Core, ctx *authCodeContext) (*roll.Applica
 		return nil, err
 	}
 
-	if app.APISecret != ctx.clientSecret {
+	if app.ClientSecret != ctx.clientSecret {
 		log.Println("error validating client secret")
-		log.Println("secret from db: ", app.APISecret)
+		log.Println("secret from db: ", app.ClientSecret)
 		log.Println("secret from context: ", ctx.clientSecret)
 
 		return nil, ErrInvalidClientDetails

@@ -146,9 +146,9 @@ func TestTokenUnparsableAuthCode(t *testing.T) {
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
-		APIKey:          "1111-2222-3333333-4444444",
+		CLientID:        "1111-2222-3333333-4444444",
 		ApplicationName: "fight club",
-		APISecret:       "not for browser clients",
+		ClientSecret:    "not for browser clients",
 		RedirectURI:     "http://localhost:3000/ab",
 		LoginProvider:   "xtrac://localhost:9000",
 	}
@@ -176,9 +176,9 @@ func TestTokenInvalidClientSecret(t *testing.T) {
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
-		APIKey:          "1111-2222-3333333-4444444",
+		CLientID:        "1111-2222-3333333-4444444",
 		ApplicationName: "fight club",
-		APISecret:       "hax0r",
+		ClientSecret:    "hax0r",
 		RedirectURI:     "http://localhost:3000/ab",
 		LoginProvider:   "xtrac://localhost:9000",
 	}
@@ -206,9 +206,9 @@ func TestTokenInvalidRedirect(t *testing.T) {
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
-		APIKey:          "1111-2222-3333333-4444444",
+		CLientID:        "1111-2222-3333333-4444444",
 		ApplicationName: "fight club",
-		APISecret:       "not for browser clients",
+		ClientSecret:    "not for browser clients",
 		RedirectURI:     "http://localhost:3000/ab",
 		LoginProvider:   "xtrac://localhost:9000",
 	}
@@ -236,9 +236,9 @@ func TestTokenSignedWithWrongKey(t *testing.T) {
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
-		APIKey:          "1111-2222-3333333-4444444",
+		CLientID:        "1111-2222-3333333-4444444",
 		ApplicationName: "fight club",
-		APISecret:       "not for browser clients",
+		ClientSecret:    "not for browser clients",
 		RedirectURI:     "http://localhost:3000/ab",
 		LoginProvider:   "xtrac://localhost:9000",
 	}
@@ -279,9 +279,9 @@ func TestTokenValidCode(t *testing.T) {
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
-		APIKey:          "1111-2222-3333333-4444444",
+		CLientID:        "1111-2222-3333333-4444444",
 		ApplicationName: "fight club",
-		APISecret:       "not for browser clients",
+		ClientSecret:    "not for browser clients",
 		RedirectURI:     "http://localhost:3000/ab",
 		LoginProvider:   "xtrac://localhost:9000",
 	}

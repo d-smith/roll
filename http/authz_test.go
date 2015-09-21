@@ -39,9 +39,9 @@ func TestInputParamsValid(t *testing.T) {
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
-		APIKey:          "1111-2222-3333333-4444444",
+		CLientID:        "1111-2222-3333333-4444444",
 		ApplicationName: "fight club",
-		APISecret:       "not for browser clients",
+		ClientSecret:    "not for browser clients",
 		RedirectURI:     "http://localhost:3000/ab",
 		LoginProvider:   "xtrac://localhost:9000",
 	}
@@ -100,9 +100,9 @@ func TestInputParamsInvalidRedirectURI(t *testing.T) {
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
-		APIKey:          "1111-2222-3333333-4444444",
+		CLientID:        "1111-2222-3333333-4444444",
 		ApplicationName: "fight club",
-		APISecret:       "not for browser clients",
+		ClientSecret:    "not for browser clients",
 		RedirectURI:     "http://localhost:3000/ab",
 		LoginProvider:   "xtrac://localhost:9000",
 	}
@@ -188,9 +188,9 @@ func TestHandleAuthorize(t *testing.T) {
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
-		APIKey:          "1111-2222-3333333-4444444",
+		CLientID:        "1111-2222-3333333-4444444",
 		ApplicationName: "fight club",
-		APISecret:       "not for browser clients",
+		ClientSecret:    "not for browser clients",
 		RedirectURI:     "http://localhost:3000/ab",
 		LoginProvider:   "xtrac://localhost:9000",
 	}
@@ -235,9 +235,9 @@ func TestHandleAuthorizeBadRedirectParam(t *testing.T) {
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
-		APIKey:          "1111-2222-3333333-4444444",
+		CLientID:        "1111-2222-3333333-4444444",
 		ApplicationName: "fight club",
-		APISecret:       "not for browser clients",
+		ClientSecret:    "not for browser clients",
 		RedirectURI:     "http://localhost:3000/ab",
 		LoginProvider:   "xtrac://localhost:9000",
 	}
@@ -257,9 +257,9 @@ func TestAuthValidateMissingParams(t *testing.T) {
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
-		APIKey:          "1111-2222-3333333-4444444",
+		CLientID:        "1111-2222-3333333-4444444",
 		ApplicationName: "fight club",
-		APISecret:       "not for browser clients",
+		ClientSecret:    "not for browser clients",
 		RedirectURI:     "http://localhost:3000/ab",
 		LoginProvider:   "xtrac://localhost:9000",
 	}
@@ -283,9 +283,9 @@ func TestAuthValidateBadResponseType(t *testing.T) {
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
-		APIKey:          "1111-2222-3333333-4444444",
+		CLientID:        "1111-2222-3333333-4444444",
 		ApplicationName: "fight club",
-		APISecret:       "not for browser clients",
+		ClientSecret:    "not for browser clients",
 		RedirectURI:     "http://localhost:3000/ab",
 		LoginProvider:   "xtrac://localhost:9000",
 	}
@@ -341,9 +341,9 @@ func TestAuthValidateDenied(t *testing.T) {
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
-		APIKey:          "1111-2222-3333333-4444444",
+		CLientID:        "1111-2222-3333333-4444444",
 		ApplicationName: "fight club",
-		APISecret:       "not for browser clients",
+		ClientSecret:    "not for browser clients",
 		RedirectURI:     ts.URL,
 		LoginProvider:   "xtrac://localhost:9000",
 	}
@@ -387,9 +387,9 @@ func TestAuthValidateAuthenticateFail(t *testing.T) {
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
-		APIKey:          "1111-2222-3333333-4444444",
+		CLientID:        "1111-2222-3333333-4444444",
 		ApplicationName: "fight club",
-		APISecret:       "not for browser clients",
+		ClientSecret:    "not for browser clients",
 		RedirectURI:     ts.URL,
 		LoginProvider:   "xtrac://" + lsURL.Host,
 	}
@@ -434,9 +434,9 @@ func TestAuthValidateAuthenticateOkSecretsFail(t *testing.T) {
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
-		APIKey:          "1111-2222-3333333-4444444",
+		CLientID:        "1111-2222-3333333-4444444",
 		ApplicationName: "fight club",
-		APISecret:       "not for browser clients",
+		ClientSecret:    "not for browser clients",
 		RedirectURI:     ts.URL,
 		LoginProvider:   "xtrac://" + lsURL.Host,
 	}
@@ -484,9 +484,9 @@ func TestAuthValidateAuthenticateOk(t *testing.T) {
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
-		APIKey:          "1111-2222-3333333-4444444",
+		CLientID:        "1111-2222-3333333-4444444",
 		ApplicationName: "fight club",
-		APISecret:       "not for browser clients",
+		ClientSecret:    "not for browser clients",
 		RedirectURI:     ts.URL,
 		LoginProvider:   "xtrac://" + lsURL.Host,
 	}
@@ -537,9 +537,9 @@ func TestAuthValidateCodeResponseAuthenticateOk(t *testing.T) {
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
-		APIKey:          "1111-2222-3333333-4444444",
+		CLientID:        "1111-2222-3333333-4444444",
 		ApplicationName: "fight club",
-		APISecret:       "not for browser clients",
+		ClientSecret:    "not for browser clients",
 		RedirectURI:     ts.URL,
 		LoginProvider:   "xtrac://" + lsURL.Host,
 	}

@@ -1,12 +1,12 @@
 package main
 
 import (
-	"net/url"
-	"net/http"
-	"log"
-	jwt "github.com/dgrijalva/jwt-go"
 	"fmt"
+	jwt "github.com/dgrijalva/jwt-go"
 	"io/ioutil"
+	"log"
+	"net/http"
+	"net/url"
 )
 
 const certPEM = `
@@ -64,7 +64,7 @@ func uploadCert() {
 	fmt.Println(certPEM)
 
 	resp, err := http.PostForm("http://localhost:3000/v1/jwtflowcerts/111-222-3333",
-		url.Values{"client_secret": {"EVNIFUt3hMFYb9aHy1N8LyEmTsLS3y+XK6xDvVbU+E0="},
+		url.Values{"client_secret": {"J/28R6dj1x49GsjgvYk5gTcqWb+zy6GhQX5DsPD0pkg="},
 			"cert_pem": {certPEM}})
 	if err != nil {
 		log.Fatal(err)
@@ -116,7 +116,5 @@ func main() {
 	tokenString := generateJTW()
 	fmt.Println("\nUse ", tokenString, " to obtain access token")
 	jwtResponse := tradeTokenForToken(tokenString)
-	fmt.Println("\n",jwtResponse)
+	fmt.Println("\n", jwtResponse)
 }
-
-

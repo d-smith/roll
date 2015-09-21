@@ -70,12 +70,8 @@ You will need to set up AWS credentials for a user associated with the following
 }
 </pre>
 
-The code assumes two tables have been created in DynamoDB:
-
-* Developer with a string hash key named EMail
-* Application with a string hash key named APIKey
-
-A script to create these tables will be added to the project code eventually.
+The code uses two tables in DynamoDB: Application and Developer. Refer to the go
+code under the repos/ddl package that can be used to create the tables.
 
 ### Build dependencies
 
@@ -147,7 +143,7 @@ Register an app:
 
 <pre>
 curl -X PUT -d '{
-"APIKey":"111-222-3333",
+"ClientID":"111-222-3333",
 "ApplicationName":"App No. 4",
 "DeveloperEmail":"doug@dev.com",
 "RedirectURI":"http://localhost:2000/oauth2_callback",
@@ -170,7 +166,7 @@ Open the following in your browser. Note I use chrome for this - I assume it wil
 http://localhost:3000/oauth2/authorize?client_id=111-222-3333&response_type=token&redirect_uri=http://localhost:2000/oauth2_callback
 </pre>
 
-Note that you need to use the APIKey as the client_id parameter, and the redirect_uri registered for the application.
+Note that you need to use the ClientID as the client_id parameter, and the redirect_uri registered for the application.
 
 The url will present you with an authorization page. Fill in some credentials and click approve, or go straight to deny.
 The browser will be redirected to your registered callback - if you use the supplied callback server it will display your
@@ -201,7 +197,7 @@ http://localhost:3000/oauth2/authorize?client_id=111-222-3333&response_type=code
 This can be executed directly via curl, e.g.
 
 <pre>
-curl --data "client_id=111-222-3333" --data "grant_type=password" --data-urlencode "client_secret=EVNIFUt3hMFYb9aHy1N8LyEmTsLS3y+XK6xDvVbU+E0=" --data "username=foo" --data "password=passw0rd" localhost:3000/oauth2/token
+curl --data "client_id=111-222-3333" --data "grant_type=password" --data-urlencode "client_secret=J/28R6dj1x49GsjgvYk5gTcqWb+zy6GhQX5DsPD0pkg=" --data "username=foo" --data "password=passw0rd" localhost:3000/oauth2/token
 </pre>
 
 ### JWT Flow

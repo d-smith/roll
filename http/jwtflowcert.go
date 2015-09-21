@@ -59,12 +59,12 @@ func extractFormParams(r *http.Request) (*certPostCtx, error) {
 }
 
 func validateClientSecret(core *roll.Core, r *http.Request, clientSecret string) (*roll.Application, error) {
-	apiKey := strings.TrimPrefix(r.RequestURI, JWTFlowCertsURI)
-	if apiKey == "" {
+	clientID := strings.TrimPrefix(r.RequestURI, JWTFlowCertsURI)
+	if clientID == "" {
 		return nil, errApplicationNotFound
 	}
 
-	app, err := core.RetrieveApplication(apiKey)
+	app, err := core.RetrieveApplication(clientID)
 	if err != nil {
 		return nil, errReadingApplicationRecord
 	}
@@ -73,7 +73,7 @@ func validateClientSecret(core *roll.Core, r *http.Request, clientSecret string)
 		return nil, errApplicationNotFound
 	}
 
-	if clientSecret != app.APISecret {
+	if clientSecret != app.ClientSecret {
 		return nil, errInvalidClientSecret
 	}
 

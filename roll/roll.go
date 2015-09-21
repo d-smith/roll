@@ -57,24 +57,24 @@ func (core *Core) StoreApplication(app *Application) error {
 }
 
 //RetrieveApplication retrieves an application using the embedded Application repository
-func (core *Core) RetrieveApplication(apikey string) (*Application, error) {
-	return core.ApplicationRepo.RetrieveApplication(apikey)
+func (core *Core) RetrieveApplication(clientID string) (*Application, error) {
+	return core.ApplicationRepo.RetrieveApplication(clientID)
 }
 
 //StoreKeysForApp stores the private and public keys associated with an application
 //using the embedded secrets store
-func (core *Core) StoreKeysForApp(apikey, privateKey, publicKey string) error {
-	return core.SecretsRepo.StoreKeysForApp(apikey, privateKey, publicKey)
+func (core *Core) StoreKeysForApp(clientID, privateKey, publicKey string) error {
+	return core.SecretsRepo.StoreKeysForApp(clientID, privateKey, publicKey)
 }
 
 //RetrievePrivateKeyForApp retrieves the private and public keys associated with an application
 //using the embedded secrets store
-func (core *Core) RetrievePrivateKeyForApp(apikey string) (string, error) {
-	return core.SecretsRepo.RetrievePrivateKeyForApp(apikey)
+func (core *Core) RetrievePrivateKeyForApp(clientID string) (string, error) {
+	return core.SecretsRepo.RetrievePrivateKeyForApp(clientID)
 }
 
 //RetrievePublicKeyForApp retrieves the private and public keys associated with an application
 //using the embedded secrets store
-func (core *Core) RetrievePublicKeyForApp(apikey string) (string, error) {
-	return core.SecretsRepo.RetrievePublicKeyForApp(apikey)
+func (core *Core) RetrievePublicKeyForApp(clientID string) (string, error) {
+	return core.SecretsRepo.RetrievePublicKeyForApp(clientID)
 }

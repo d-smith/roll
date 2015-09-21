@@ -23,7 +23,7 @@ func GenerateToken(app *Application, privateKey string) (string, error) {
 		return "", err
 	}
 
-	t.Claims["aud"] = app.APIKey
+	t.Claims["aud"] = app.CLientID
 	t.Claims["iat"] = int64(time.Now().Unix())
 	t.Claims["exp"] = time.Now().Add(24 * time.Hour).Unix()
 	t.Claims["jti"] = u.String()
@@ -52,7 +52,7 @@ func GenerateCode(app *Application, privateKey string) (string, error) {
 		return "", err
 	}
 
-	t.Claims["aud"] = app.APIKey
+	t.Claims["aud"] = app.CLientID
 	t.Claims["jti"] = u.String()
 	t.Claims["exp"] = time.Now().Add(30 * time.Second).Unix()
 	t.Claims["scope"] = XtAuthCodeScope
@@ -81,13 +81,13 @@ func GenerateKeyExtractionFunction(secretsRepo SecretsRepo) jwt.Keyfunc {
 		}
 
 		//The api key is carried in aud
-		apiKey := token.Claims["aud"]
-		if apiKey == "" {
+		clientID := token.Claims["aud"]
+		if clientID == "" {
 			return nil, errors.New("api key not found in aud claim")
 		}
 
 		//get the public key from the vault
-		keystring, err := secretsRepo.RetrievePublicKeyForApp(apiKey.(string))
+		keystring, err := secretsRepo.RetrievePublicKeyForApp(clientID.(string))
 		if err != nil {
 			return nil, err
 		}
@@ -105,13 +105,13 @@ func GenerateKeyExtractionFunctionForJTWFlow(applicationRepo ApplicationRepo) jw
 		}
 
 		//The api key is carried in iss
-		apiKey := token.Claims["iss"]
-		if apiKey == "" {
+		clientID := token.Claims["iss"]
+		if clientID == "" {
 			return nil, errors.New("api key not found in iss claim")
 		}
 
 		//Look up the application
-		app, err := applicationRepo.RetrieveApplication(apiKey.(string))
+		app, err := applicationRepo.RetrieveApplication(clientID.(string))
 		if err != nil {
 			return nil, err
 		}
@@ -135,5 +135,5 @@ func IsAuthCode(token *jwt.Token) bool {
 		panic(errors.New("Attempting to test invalid token for auth code claim"))
 	}
 
-	return token.Claims["scope"] ==  XtAuthCodeScope
+	return token.Claims["scope"] == XtAuthCodeScope
 }
