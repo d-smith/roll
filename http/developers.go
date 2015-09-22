@@ -48,13 +48,13 @@ func handleDeveloperGet(core *roll.Core, w http.ResponseWriter, r *http.Request)
 }
 
 func handleDeveloperPut(core *roll.Core, w http.ResponseWriter, r *http.Request) {
-	var req roll.Developer
-	if err := parseRequest(r, &req); err != nil {
+	var dev roll.Developer
+	if err := parseRequest(r, &dev); err != nil {
 		respondError(w, http.StatusBadRequest, err)
 		return
 	}
 
-	if err := req.Validate(); err != nil {
+	if err := dev.Validate(); err != nil {
 		respondError(w, http.StatusBadRequest, err)
 		return
 	}
@@ -62,12 +62,12 @@ func handleDeveloperPut(core *roll.Core, w http.ResponseWriter, r *http.Request)
 	email := strings.TrimPrefix(r.RequestURI, DevelopersBaseURI)
 
 	//Ensure the email in the payload is the same as in the resource
-	if req.Email != email {
+	if dev.Email != email {
 		respondError(w, http.StatusBadRequest, errors.New("email in body does not match email in request uri"))
 		return
 	}
 
-	if err := core.StoreDeveloper(&req); err != nil {
+	if err := core.StoreDeveloper(&dev); err != nil {
 		respondError(w, http.StatusInternalServerError, err)
 		return
 	}

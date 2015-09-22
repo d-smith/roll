@@ -36,6 +36,23 @@ func TestStoreApp(t *testing.T) {
 	checkResponseStatus(t, resp, http.StatusNoContent)
 }
 
+func TestStoreAppInvalidContent(t *testing.T) {
+	core, _ := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	app := roll.Application{
+		ApplicationName: "ambivilant birds<script>",
+		DeveloperEmail:  "doug@dev.com",
+		CLientID:        "1111-2222-3333333-4444444",
+		RedirectURI:     "http://localhost:3000/ab",
+		LoginProvider:   "xtrac://localhost:9000",
+	}
+
+	resp := testHTTPPut(t, addr+"/v1/applications/1111-2222-3333333-4444444", app)
+	checkResponseStatus(t, resp, http.StatusBadRequest)
+}
+
 func TestGetApplication(t *testing.T) {
 	core, coreConfig := NewTestCore()
 	ln, addr := TestServer(t, core)

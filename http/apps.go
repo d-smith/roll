@@ -49,15 +49,21 @@ func handleApplicationGet(core *roll.Core, w http.ResponseWriter, r *http.Reques
 }
 
 func handleApplicationPut(core *roll.Core, w http.ResponseWriter, r *http.Request) {
-	var req roll.Application
-	if err := parseRequest(r, &req); err != nil {
+	var app roll.Application
+	if err := parseRequest(r, &app); err != nil {
 		respondError(w, http.StatusBadRequest, err)
 		return
 	}
 
 	//Make sure we use the clientID in the resource not any clientID sent in the JSON.
 	clientID := strings.TrimPrefix(r.RequestURI, ApplicationsBaseURI)
-	req.CLientID = clientID
+	app.CLientID = clientID
+
+	//Validate the content
+	if err := app.Validate(); err != nil {
+		respondError(w, http.StatusBadRequest, err)
+		return
+	}
 
 	//Generate a private/public key pair
 	private, public, err := secrets.GenerateKeyPair()
@@ -74,8 +80,8 @@ func handleApplicationPut(core *roll.Core, w http.ResponseWriter, r *http.Reques
 	}
 
 	//Store the application definition
-	log.Println("storing app def ", req)
-	err = core.StoreApplication(&req)
+	log.Println("storing app def ", app)
+	err = core.StoreApplication(&app)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, err)
 		return

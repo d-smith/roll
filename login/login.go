@@ -42,3 +42,9 @@ func (xt *XtracLoginKit) EndpointBuilder(hostportSpec string) string {
 func GetLoginKit(provider string) LoginKit {
 	return loginKits[provider]
 }
+
+//SupportedProvider returns true is the given provider is supported.
+func SupportedProvider(provider string) bool {
+	kit := loginKits[provider]
+	return kit != nil
+}
