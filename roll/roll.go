@@ -42,8 +42,8 @@ func NewCore(config *CoreConfig) *Core {
 }
 
 //StoreDeveloper stores a developer using the embedded Developer repository
-func (core *Core) StoreDeveloper(dev *Developer) {
-	core.developerRepo.StoreDeveloper(dev)
+func (core *Core) StoreDeveloper(dev *Developer) error {
+	return core.developerRepo.StoreDeveloper(dev)
 }
 
 //RetrieveDeveloper retrieves a developer using the embedded Developer repository

@@ -30,11 +30,12 @@ func handleDeveloperGet(core *roll.Core, w http.ResponseWriter, r *http.Request)
 	email := strings.TrimPrefix(r.RequestURI, DevelopersBaseURI)
 	if !roll.ValidateEmail(email) {
 		respondError(w, http.StatusBadRequest, fmt.Errorf("Invalid email: %s", email))
+		return
 	}
 
 	dev, err := core.RetrieveDeveloper(email)
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, err) //TODO - more helpful error messages and better status codes
+		respondError(w, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -66,7 +67,10 @@ func handleDeveloperPut(core *roll.Core, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	core.StoreDeveloper(&req)
+	if err := core.StoreDeveloper(&req); err != nil {
+		respondError(w, http.StatusInternalServerError, err)
+		return
+	}
 
 	respondOk(w, nil)
 }
