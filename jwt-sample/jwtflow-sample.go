@@ -64,7 +64,7 @@ func uploadCert() {
 	fmt.Println(certPEM)
 
 	resp, err := http.PostForm("http://localhost:3000/v1/jwtflowcerts/111-222-3333",
-		url.Values{"client_secret": {"J/28R6dj1x49GsjgvYk5gTcqWb+zy6GhQX5DsPD0pkg="},
+		url.Values{"client_secret": {"HorC76CqX7qxf6AZmKsPwurEYEhRPrXDDUsHHe0Vnkk="},
 			"cert_pem": {certPEM}})
 	if err != nil {
 		log.Fatal(err)
