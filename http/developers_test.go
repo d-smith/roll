@@ -16,6 +16,7 @@ func TestStoreDeveloper(t *testing.T) {
 	dev := roll.Developer{
 		FirstName: "Joe",
 		LastName:  "Developer",
+		Email:     "foo@gmail.com",
 	}
 
 	devRepoMock := coreConfig.DeveloperRepo.(*mocks.DeveloperRepo)

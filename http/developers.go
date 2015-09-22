@@ -53,9 +53,17 @@ func handleDeveloperPut(core *roll.Core, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	if err := req.Validate(); err != nil {
+		respondError(w, http.StatusBadRequest, err)
+		return
+	}
+
 	email := strings.TrimPrefix(r.RequestURI, DevelopersBaseURI)
-	if !roll.ValidateEmail(email) {
-		respondError(w, http.StatusBadRequest, fmt.Errorf("Invalid email: %s", email))
+
+	//Ensure the email in the payload is the same as in the resource
+	if req.Email != email {
+		respondError(w, http.StatusBadRequest, errors.New("email in body does not match email in request uri"))
+		return
 	}
 
 	core.StoreDeveloper(&req)
