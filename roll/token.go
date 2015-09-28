@@ -23,7 +23,7 @@ func GenerateToken(app *Application, privateKey string) (string, error) {
 		return "", err
 	}
 
-	t.Claims["aud"] = app.CLientID
+	t.Claims["aud"] = app.ClientID
 	t.Claims["iat"] = int64(time.Now().Unix())
 	t.Claims["exp"] = time.Now().Add(24 * time.Hour).Unix()
 	t.Claims["jti"] = u.String()
@@ -52,7 +52,7 @@ func GenerateCode(app *Application, privateKey string) (string, error) {
 		return "", err
 	}
 
-	t.Claims["aud"] = app.CLientID
+	t.Claims["aud"] = app.ClientID
 	t.Claims["jti"] = u.String()
 	t.Claims["exp"] = time.Now().Add(30 * time.Second).Unix()
 	t.Claims["scope"] = XtAuthCodeScope

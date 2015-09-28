@@ -39,7 +39,7 @@ func TestInputParamsValid(t *testing.T) {
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
-		CLientID:        "1111-2222-3333333-4444444",
+		ClientID:        "1111-2222-3333333-4444444",
 		ApplicationName: "fight club",
 		ClientSecret:    "not for browser clients",
 		RedirectURI:     "http://localhost:3000/ab",
@@ -100,7 +100,7 @@ func TestInputParamsInvalidRedirectURI(t *testing.T) {
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
-		CLientID:        "1111-2222-3333333-4444444",
+		ClientID:        "1111-2222-3333333-4444444",
 		ApplicationName: "fight club",
 		ClientSecret:    "not for browser clients",
 		RedirectURI:     "http://localhost:3000/ab",
@@ -188,7 +188,7 @@ func TestHandleAuthorize(t *testing.T) {
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
-		CLientID:        "1111-2222-3333333-4444444",
+		ClientID:        "1111-2222-3333333-4444444",
 		ApplicationName: "fight club",
 		ClientSecret:    "not for browser clients",
 		RedirectURI:     "http://localhost:3000/ab",
@@ -235,7 +235,7 @@ func TestHandleAuthorizeBadRedirectParam(t *testing.T) {
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
-		CLientID:        "1111-2222-3333333-4444444",
+		ClientID:        "1111-2222-3333333-4444444",
 		ApplicationName: "fight club",
 		ClientSecret:    "not for browser clients",
 		RedirectURI:     "http://localhost:3000/ab",
@@ -257,7 +257,7 @@ func TestAuthValidateMissingParams(t *testing.T) {
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
-		CLientID:        "1111-2222-3333333-4444444",
+		ClientID:        "1111-2222-3333333-4444444",
 		ApplicationName: "fight club",
 		ClientSecret:    "not for browser clients",
 		RedirectURI:     "http://localhost:3000/ab",
@@ -283,7 +283,7 @@ func TestAuthValidateBadResponseType(t *testing.T) {
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
-		CLientID:        "1111-2222-3333333-4444444",
+		ClientID:        "1111-2222-3333333-4444444",
 		ApplicationName: "fight club",
 		ClientSecret:    "not for browser clients",
 		RedirectURI:     "http://localhost:3000/ab",
@@ -341,7 +341,7 @@ func TestAuthValidateDenied(t *testing.T) {
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
-		CLientID:        "1111-2222-3333333-4444444",
+		ClientID:        "1111-2222-3333333-4444444",
 		ApplicationName: "fight club",
 		ClientSecret:    "not for browser clients",
 		RedirectURI:     ts.URL,
@@ -387,7 +387,7 @@ func TestAuthValidateAuthenticateFail(t *testing.T) {
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
-		CLientID:        "1111-2222-3333333-4444444",
+		ClientID:        "1111-2222-3333333-4444444",
 		ApplicationName: "fight club",
 		ClientSecret:    "not for browser clients",
 		RedirectURI:     ts.URL,
@@ -434,7 +434,7 @@ func TestAuthValidateAuthenticateOkSecretsFail(t *testing.T) {
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
-		CLientID:        "1111-2222-3333333-4444444",
+		ClientID:        "1111-2222-3333333-4444444",
 		ApplicationName: "fight club",
 		ClientSecret:    "not for browser clients",
 		RedirectURI:     ts.URL,
@@ -484,7 +484,7 @@ func TestAuthValidateAuthenticateOk(t *testing.T) {
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
-		CLientID:        "1111-2222-3333333-4444444",
+		ClientID:        "1111-2222-3333333-4444444",
 		ApplicationName: "fight club",
 		ClientSecret:    "not for browser clients",
 		RedirectURI:     ts.URL,
@@ -537,7 +537,7 @@ func TestAuthValidateCodeResponseAuthenticateOk(t *testing.T) {
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
-		CLientID:        "1111-2222-3333333-4444444",
+		ClientID:        "1111-2222-3333333-4444444",
 		ApplicationName: "fight club",
 		ClientSecret:    "not for browser clients",
 		RedirectURI:     ts.URL,

@@ -146,7 +146,7 @@ func TestTokenUnparsableAuthCode(t *testing.T) {
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
-		CLientID:        "1111-2222-3333333-4444444",
+		ClientID:        "1111-2222-3333333-4444444",
 		ApplicationName: "fight club",
 		ClientSecret:    "not for browser clients",
 		RedirectURI:     "http://localhost:3000/ab",
@@ -176,7 +176,7 @@ func TestTokenInvalidClientSecret(t *testing.T) {
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
-		CLientID:        "1111-2222-3333333-4444444",
+		ClientID:        "1111-2222-3333333-4444444",
 		ApplicationName: "fight club",
 		ClientSecret:    "hax0r",
 		RedirectURI:     "http://localhost:3000/ab",
@@ -206,7 +206,7 @@ func TestTokenInvalidRedirect(t *testing.T) {
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
-		CLientID:        "1111-2222-3333333-4444444",
+		ClientID:        "1111-2222-3333333-4444444",
 		ApplicationName: "fight club",
 		ClientSecret:    "not for browser clients",
 		RedirectURI:     "http://localhost:3000/ab",
@@ -236,7 +236,7 @@ func TestTokenSignedWithWrongKey(t *testing.T) {
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
-		CLientID:        "1111-2222-3333333-4444444",
+		ClientID:        "1111-2222-3333333-4444444",
 		ApplicationName: "fight club",
 		ClientSecret:    "not for browser clients",
 		RedirectURI:     "http://localhost:3000/ab",
@@ -279,7 +279,7 @@ func TestTokenValidCode(t *testing.T) {
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
-		CLientID:        "1111-2222-3333333-4444444",
+		ClientID:        "1111-2222-3333333-4444444",
 		ApplicationName: "fight club",
 		ClientSecret:    "not for browser clients",
 		RedirectURI:     "http://localhost:3000/ab",

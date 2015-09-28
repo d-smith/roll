@@ -57,7 +57,7 @@ func handleApplicationPut(core *roll.Core, w http.ResponseWriter, r *http.Reques
 
 	//Make sure we use the clientID in the resource not any clientID sent in the JSON.
 	clientID := strings.TrimPrefix(r.RequestURI, ApplicationsBaseURI)
-	app.CLientID = clientID
+	app.ClientID = clientID
 
 	//Validate the content
 	if err := app.Validate(); err != nil {

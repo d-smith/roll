@@ -116,7 +116,7 @@ func TestJWTFlowSetupInvalidClientSecret(t *testing.T) {
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
-		CLientID:        "1111-2222-3333333-4444444",
+		ClientID:        "1111-2222-3333333-4444444",
 		ApplicationName: "fight club",
 		ClientSecret:    "not for browser clients",
 		RedirectURI:     "http://localhost:3000/ab",
@@ -141,7 +141,7 @@ func TestJWTFlowSetupInvalidCertPEM(t *testing.T) {
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
-		CLientID:        "1111-2222-3333333-4444444",
+		ClientID:        "1111-2222-3333333-4444444",
 		ApplicationName: "fight club",
 		ClientSecret:    "foo",
 		RedirectURI:     "http://localhost:3000/ab",
@@ -166,7 +166,7 @@ func TestJWTFlowSetupAppUpdateError(t *testing.T) {
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
-		CLientID:        "1111-2222-3333333-4444444",
+		ClientID:        "1111-2222-3333333-4444444",
 		ApplicationName: "fight club",
 		ClientSecret:    "foo",
 		RedirectURI:     "http://localhost:3000/ab",
@@ -175,7 +175,7 @@ func TestJWTFlowSetupAppUpdateError(t *testing.T) {
 
 	storeVal := roll.Application{
 		DeveloperEmail:   "doug@dev.com",
-		CLientID:         "1111-2222-3333333-4444444",
+		ClientID:         "1111-2222-3333333-4444444",
 		ApplicationName:  "fight club",
 		ClientSecret:     "foo",
 		RedirectURI:      "http://localhost:3000/ab",
@@ -202,7 +202,7 @@ func TestJWTFlowSetupAppUpdateOk(t *testing.T) {
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
-		CLientID:        "1111-2222-3333333-4444444",
+		ClientID:        "1111-2222-3333333-4444444",
 		ApplicationName: "fight club",
 		ClientSecret:    "foo",
 		RedirectURI:     "http://localhost:3000/ab",
@@ -211,7 +211,7 @@ func TestJWTFlowSetupAppUpdateOk(t *testing.T) {
 
 	storeVal := roll.Application{
 		DeveloperEmail:   "doug@dev.com",
-		CLientID:         "1111-2222-3333333-4444444",
+		ClientID:         "1111-2222-3333333-4444444",
 		ApplicationName:  "fight club",
 		ClientSecret:     "foo",
 		RedirectURI:      "http://localhost:3000/ab",
@@ -296,7 +296,7 @@ func TestJWTFlowValidAssertionOkYeah(t *testing.T) {
 
 	returnVal := roll.Application{
 		DeveloperEmail:   "doug@dev.com",
-		CLientID:         "1111-2222-3333333-4444444",
+		ClientID:         "1111-2222-3333333-4444444",
 		ApplicationName:  "fight club",
 		ClientSecret:     "not for browser clients",
 		RedirectURI:      "http://localhost:3000/ab",

@@ -34,7 +34,7 @@ func (dar *DynamoAppRepo) StoreApplication(app *roll.Application) error {
 	}
 
 	appAttrs := map[string]*dynamodb.AttributeValue{
-		"ClientID":        {S: aws.String(app.CLientID)},
+		"ClientID":        {S: aws.String(app.ClientID)},
 		"ApplicationName": {S: aws.String(app.ApplicationName)},
 		"ClientSecret":    {S: aws.String(app.ClientSecret)},
 		"DeveloperEmail":  {S: aws.String(app.DeveloperEmail)},
@@ -78,7 +78,7 @@ func (dar *DynamoAppRepo) RetrieveApplication(clientID string) (*roll.Applicatio
 
 	log.Println("Load struct with data returned from dynamo")
 	return &roll.Application{
-		CLientID:         extractString(out.Item["ClientID"]),
+		ClientID:         extractString(out.Item["ClientID"]),
 		ApplicationName:  extractString(out.Item["ApplicationName"]),
 		ClientSecret:     extractString(out.Item["ClientSecret"]),
 		DeveloperEmail:   extractString(out.Item["DeveloperEmail"]),

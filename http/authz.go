@@ -115,7 +115,7 @@ func handleAuthZGet(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 	//Build and return the login page
 	pageCtx := &authPageContext{
 		AppName:  app.ApplicationName,
-		ClientID: app.CLientID,
+		ClientID: app.ClientID,
 	}
 
 	err = executeAuthTemplate(w, r, pageCtx)
@@ -186,7 +186,7 @@ func buildRedirectURL(core *roll.Core, w http.ResponseWriter, responseType strin
 }
 
 func generateJWT(core *roll.Core, app *roll.Application) (string, error) {
-	privateKey, err := core.RetrievePrivateKeyForApp(app.CLientID)
+	privateKey, err := core.RetrievePrivateKeyForApp(app.ClientID)
 	if err != nil {
 		return "", err
 	}
@@ -196,7 +196,7 @@ func generateJWT(core *roll.Core, app *roll.Application) (string, error) {
 }
 
 func generateSignedCode(core *roll.Core, app *roll.Application) (string, error) {
-	privateKey, err := core.RetrievePrivateKeyForApp(app.CLientID)
+	privateKey, err := core.RetrievePrivateKeyForApp(app.ClientID)
 	if err != nil {
 		return "", err
 	}

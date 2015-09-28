@@ -17,7 +17,7 @@ func TestStoreApp(t *testing.T) {
 	app := roll.Application{
 		ApplicationName: "ambivilant birds",
 		DeveloperEmail:  "doug@dev.com",
-		CLientID:        "1111-2222-3333333-4444444",
+		ClientID:        "1111-2222-3333333-4444444",
 		RedirectURI:     "http://localhost:3000/ab",
 		LoginProvider:   "xtrac://localhost:9000",
 	}
@@ -44,7 +44,7 @@ func TestStoreAppInvalidContent(t *testing.T) {
 	app := roll.Application{
 		ApplicationName: "ambivilant birds<script>",
 		DeveloperEmail:  "doug@dev.com",
-		CLientID:        "1111-2222-3333333-4444444",
+		ClientID:        "1111-2222-3333333-4444444",
 		RedirectURI:     "http://localhost:3000/ab",
 		LoginProvider:   "xtrac://localhost:9000",
 	}
@@ -60,7 +60,7 @@ func TestGetApplication(t *testing.T) {
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
-		CLientID:        "1111-2222-3333333-4444444",
+		ClientID:        "1111-2222-3333333-4444444",
 		ApplicationName: "fight club",
 		ClientSecret:    "not for browser clients",
 		RedirectURI:     "http://localhost:3000/ab",
@@ -77,7 +77,7 @@ func TestGetApplication(t *testing.T) {
 
 	checkResponseBody(t, resp, &actual)
 	assert.Equal(t, "doug@dev.com", actual.DeveloperEmail)
-	assert.Equal(t, "1111-2222-3333333-4444444", actual.CLientID)
+	assert.Equal(t, "1111-2222-3333333-4444444", actual.ClientID)
 	assert.Equal(t, "fight club", actual.ApplicationName)
 	assert.Equal(t, "not for browser clients", actual.ClientSecret)
 	assert.Equal(t, "http://localhost:3000/ab", actual.RedirectURI)

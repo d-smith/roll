@@ -12,7 +12,7 @@ import (
 //Application represents the data associated with an application that is exposed via the REST API
 type Application struct {
 	DeveloperEmail   string
-	CLientID         string
+	ClientID         string
 	ApplicationName  string
 	ClientSecret     string
 	RedirectURI      string

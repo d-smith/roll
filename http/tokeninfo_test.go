@@ -47,7 +47,7 @@ func TestValidAccessToken(t *testing.T) {
 
 	returnVal := roll.Application{
 		DeveloperEmail:  "doug@dev.com",
-		CLientID:        "1111-2222-3333333-4444444",
+		ClientID:        "1111-2222-3333333-4444444",
 		ApplicationName: "fight club",
 		ClientSecret:    "not for browser clients",
 		RedirectURI:     "http://localhost:3000/ab",
