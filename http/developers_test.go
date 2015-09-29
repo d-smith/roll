@@ -1,6 +1,8 @@
 package http
 
 import (
+	"bytes"
+	"errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/xtraclabs/roll/roll"
 	"github.com/xtraclabs/roll/roll/mocks"
@@ -28,12 +30,67 @@ func TestStoreDeveloper(t *testing.T) {
 	checkResponseStatus(t, resp, http.StatusNoContent)
 }
 
+func TestStoreDeveloperStorageFault(t *testing.T) {
+	core, coreConfig := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	dev := roll.Developer{
+		FirstName: "Joe",
+		LastName:  "Developer",
+		Email:     "foo@gmail.com",
+	}
+
+	devRepoMock := coreConfig.DeveloperRepo.(*mocks.DeveloperRepo)
+	devRepoMock.On("StoreDeveloper", &dev).Return(errors.New("can't store"))
+
+	resp := testHTTPPut(t, addr+"/v1/developers/foo@gmail.com", dev)
+	devRepoMock.AssertCalled(t, "StoreDeveloper", &dev)
+
+	checkResponseStatus(t, resp, http.StatusInternalServerError)
+}
+
 func TestStoreDeveloperInvalidEmailResource(t *testing.T) {
 	core, _ := NewTestCore()
 	ln, addr := TestServer(t, core)
 	defer ln.Close()
 
 	resp := testHTTPPut(t, addr+"/v1/developers/<script/>", nil)
+	checkResponseStatus(t, resp, http.StatusBadRequest)
+}
+
+func TestStoreDevBodyParseError(t *testing.T) {
+	core, _ := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	buf := new(bytes.Buffer)
+	buf.WriteString(`{"this won't parse`)
+
+	req, err := http.NewRequest("PUT", addr+"/v1/developers/foo@dev.com", buf)
+	checkFatal(t, err)
+
+	client := http.DefaultClient
+	resp, err := client.Do(req)
+	assert.Nil(t, err)
+
+	checkResponseStatus(t, resp, http.StatusBadRequest)
+
+}
+
+func TestStoreDeveloperInvalidContent(t *testing.T) {
+	core, _ := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	dev := roll.Developer{
+		FirstName: "Joe<script>",
+		LastName:  "Developer",
+		Email:     "foo@gmail.com",
+	}
+
+	resp := testHTTPPut(t, addr+"/v1/developers/foo@gmail.com", dev)
+
 	checkResponseStatus(t, resp, http.StatusBadRequest)
 }
 
@@ -53,7 +110,7 @@ func TestDeveloperUnsupportedMethod(t *testing.T) {
 
 	resp, err := http.Post(addr+"/v1/developers/1111-2222-3333333-4444444", "application/json", nil)
 	assert.Nil(t, err)
-	assert.Equal(t, http.StatusMethodNotAllowed, resp.StatusCode)
+	checkResponseStatus(t, resp, http.StatusMethodNotAllowed)
 }
 
 func TestGetDeveloper(t *testing.T) {
@@ -76,6 +133,20 @@ func TestGetDeveloper(t *testing.T) {
 
 }
 
+func TestGetDeveloperRetrieveError(t *testing.T) {
+	core, coreConfig := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	devRepoMock := coreConfig.DeveloperRepo.(*mocks.DeveloperRepo)
+	devRepoMock.On("RetrieveDeveloper", "joe@dev.com").Return(nil, errors.New("retrieve error"))
+
+	resp := testHTTPGet(t, addr+"/v1/developers/joe@dev.com", nil)
+	devRepoMock.AssertCalled(t, "RetrieveDeveloper", "joe@dev.com")
+
+	checkResponseStatus(t, resp, http.StatusInternalServerError)
+}
+
 func TestGetNonExistentDeveloper(t *testing.T) {
 	core, coreConfig := NewTestCore()
 	ln, addr := TestServer(t, core)
@@ -87,6 +158,21 @@ func TestGetNonExistentDeveloper(t *testing.T) {
 	resp := testHTTPGet(t, addr+"/v1/developers/joe@dev.com", nil)
 	devRepoMock.AssertCalled(t, "RetrieveDeveloper", "joe@dev.com")
 
-	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
+	checkResponseStatus(t, resp, http.StatusNotFound)
 
+}
+
+func TestCheckResponseStatus(t *testing.T) {
+	core, coreConfig := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	devRepoMock := coreConfig.DeveloperRepo.(*mocks.DeveloperRepo)
+	devRepoMock.On("RetrieveDeveloper", "joe@dev.com").Return(nil, nil)
+
+	resp := testHTTPGet(t, addr+"/v1/developers/joe@dev.com", nil)
+	devRepoMock.AssertCalled(t, "RetrieveDeveloper", "joe@dev.com")
+
+	ok := checkResponseStatus(nil, resp, http.StatusOK)
+	assert.False(t, ok)
 }

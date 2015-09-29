@@ -8,6 +8,7 @@ import (
 	"github.com/xtraclabs/roll/roll/mocks"
 	"io"
 	"io/ioutil"
+	"log"
 	"net"
 	"net/http"
 	"testing"
@@ -92,14 +93,22 @@ func testHTTPData(t *testing.T, method string, addr string, body interface{}) *h
 	return resp
 }
 
-func checkResponseStatus(t *testing.T, resp *http.Response, code int) {
+func checkResponseStatus(t *testing.T, resp *http.Response, code int) bool {
+	var ok = true
 	if resp.StatusCode != code {
+		ok = false
 		body := new(bytes.Buffer)
 		io.Copy(body, resp.Body)
 		resp.Body.Close()
 
-		t.Fatalf("Expected status %d got %d with body \n%s\n", code, resp.StatusCode, body)
+		if t != nil {
+			t.Errorf("Expected status %d got %d with body \n%s\n", code, resp.StatusCode, body)
+		} else {
+			log.Printf("Expected status %d got %d with body \n%s\n", code, resp.StatusCode, body)
+		}
 	}
+
+	return ok
 }
 
 func checkResponseBody(t *testing.T, resp *http.Response, out interface{}) {
@@ -112,16 +121,6 @@ func checkResponseBody(t *testing.T, resp *http.Response, out interface{}) {
 }
 
 func responseAsString(t *testing.T, r *http.Response) string {
-	defer r.Body.Close()
-	body, err := ioutil.ReadAll(r.Body)
-	if assert.Nil(t, err) {
-		return string(body)
-	}
-
-	return ""
-}
-
-func requestAsString(t *testing.T, r *http.Request) string {
 	defer r.Body.Close()
 	body, err := ioutil.ReadAll(r.Body)
 	if assert.Nil(t, err) {
