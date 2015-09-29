@@ -114,7 +114,7 @@ func TestStoreAppNoResource(t *testing.T) {
 	resp, err := client.Do(req)
 	assert.Nil(t, err)
 
-	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	checkResponseStatus(t, resp, http.StatusBadRequest)
 
 }
 
@@ -133,7 +133,7 @@ func TestStoreAppBodyParseError(t *testing.T) {
 	resp, err := client.Do(req)
 	assert.Nil(t, err)
 
-	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	checkResponseStatus(t, resp, http.StatusBadRequest)
 
 }
 
@@ -144,7 +144,7 @@ func TestAppUnsupportedMethod(t *testing.T) {
 
 	resp, err := http.Post(addr+"/v1/applications/1111-2222-3333333-4444444", "application/json", nil)
 	assert.Nil(t, err)
-	assert.Equal(t, http.StatusMethodNotAllowed, resp.StatusCode)
+	checkResponseStatus(t, resp, http.StatusMethodNotAllowed)
 }
 
 func TestStoreAppInvalidContent(t *testing.T) {
@@ -207,7 +207,7 @@ func TestRetrieveOfNonexistantApp(t *testing.T) {
 	resp := testHTTPGet(t, addr+"/v1/applications/1111-2222-3333333-4444444", nil)
 	appRepoMock.AssertCalled(t, "RetrieveApplication", "1111-2222-3333333-4444444")
 
-	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
+	checkResponseStatus(t, resp, http.StatusNotFound)
 }
 
 func TestRetrieveWithNoResource(t *testing.T) {
@@ -231,5 +231,5 @@ func TestErrorOnAppRetrieve(t *testing.T) {
 	resp := testHTTPGet(t, addr+"/v1/applications/1111-2222-3333333-4444444", nil)
 	appRepoMock.AssertCalled(t, "RetrieveApplication", "1111-2222-3333333-4444444")
 
-	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+	checkResponseStatus(t, resp, http.StatusInternalServerError)
 }
