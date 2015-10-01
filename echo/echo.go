@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	az "github.com/xtraclabs/roll/authzwrapper"
+	"github.com/xtraclabs/roll/repos"
 	"io/ioutil"
 	"net/http"
 )
@@ -35,6 +36,6 @@ func main() {
 	}
 
 	mux := http.NewServeMux()
-	mux.Handle("/echo", az.Wrap(echoHandler()))
+	mux.Handle("/echo", az.Wrap(repos.NewVaultSecretsRepo(), echoHandler()))
 	http.ListenAndServe(fmt.Sprintf(":%d", *port), mux)
 }

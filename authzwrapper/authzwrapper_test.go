@@ -31,7 +31,7 @@ func echoHandler() http.HandlerFunc {
 
 func TestNoToken(t *testing.T) {
 	secretsRepo := new(mocks.SecretsRepo)
-	testServer := httptest.NewServer(Wrap(echoHandler(), secretsRepo))
+	testServer := httptest.NewServer(Wrap(secretsRepo, echoHandler()))
 	defer testServer.Close()
 
 	resp, err := http.Post(testServer.URL, "text/plain", nil)
@@ -63,7 +63,7 @@ func TestGoodToken(t *testing.T) {
 	token, err := roll.GenerateToken(&app, privateKey)
 	assert.Nil(t, err)
 
-	testServer := httptest.NewServer(Wrap(echoHandler(), secretsMock))
+	testServer := httptest.NewServer(Wrap(secretsMock, echoHandler()))
 	defer testServer.Close()
 
 	client := http.Client{}
@@ -79,7 +79,7 @@ func TestGoodToken(t *testing.T) {
 
 func TestMalformedToken(t *testing.T) {
 	secretsRepo := new(mocks.SecretsRepo)
-	testServer := httptest.NewServer(Wrap(echoHandler(), secretsRepo))
+	testServer := httptest.NewServer(Wrap(secretsRepo, echoHandler()))
 	defer testServer.Close()
 
 	client := http.Client{}
@@ -94,7 +94,7 @@ func TestMalformedToken(t *testing.T) {
 
 func TestNonBearerToken(t *testing.T) {
 	secretsRepo := new(mocks.SecretsRepo)
-	testServer := httptest.NewServer(Wrap(echoHandler(), secretsRepo))
+	testServer := httptest.NewServer(Wrap(secretsRepo, echoHandler()))
 	defer testServer.Close()
 
 	client := http.Client{}
@@ -133,7 +133,7 @@ func TestInvalidSignature(t *testing.T) {
 	token, err := roll.GenerateToken(&app, private2)
 	assert.Nil(t, err)
 
-	testServer := httptest.NewServer(Wrap(echoHandler(), secretsMock))
+	testServer := httptest.NewServer(Wrap(secretsMock, echoHandler()))
 	defer testServer.Close()
 
 	client := http.Client{}
@@ -169,7 +169,7 @@ func TestAuthCodeUsedForAccess(t *testing.T) {
 	token, err := roll.GenerateCode(&app, privateKey)
 	assert.Nil(t, err)
 
-	testServer := httptest.NewServer(Wrap(echoHandler(), secretsMock))
+	testServer := httptest.NewServer(Wrap(secretsMock, echoHandler()))
 	defer testServer.Close()
 
 	client := http.Client{}

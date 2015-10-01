@@ -8,22 +8,20 @@ import (
 	"strings"
 )
 
-//AuthHandler is a wrapper type, embedding the wrapped handler and the secrets repo needed to
-//look up the key for validating JWT bearer tokens
-type AuthHandler struct {
+type authHandler struct {
 	handler     http.Handler
 	secretsRepo roll.SecretsRepo
 }
 
 //Wrap takes a handler and decorates it with JWT bearer token validation.
-func Wrap(h http.Handler, secretsRepo roll.SecretsRepo) *AuthHandler {
-	return &AuthHandler{
+func Wrap(secretsRepo roll.SecretsRepo, h http.Handler) http.Handler {
+	return &authHandler{
 		handler:     h,
 		secretsRepo: secretsRepo,
 	}
 }
 
-func (ah *AuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (ah authHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	//Check for header presence
 	authzHeader := r.Header.Get("Authorization")
 	if authzHeader == "" {
