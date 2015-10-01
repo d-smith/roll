@@ -77,7 +77,7 @@ func TestGoodToken(t *testing.T) {
 
 }
 
-func TestInvalidToken(t *testing.T) {
+func TestMalformedToken(t *testing.T) {
 	secretsRepo := new(mocks.SecretsRepo)
 	testServer := httptest.NewServer(Wrap(echoHandler(), secretsRepo))
 	defer testServer.Close()
@@ -92,10 +92,92 @@ func TestInvalidToken(t *testing.T) {
 	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 }
 
-func TestExpiredToken(t *testing.T) {
+func TestNonBearerToken(t *testing.T) {
+	secretsRepo := new(mocks.SecretsRepo)
+	testServer := httptest.NewServer(Wrap(echoHandler(), secretsRepo))
+	defer testServer.Close()
 
+	client := http.Client{}
+	req, err := http.NewRequest("POST", testServer.URL, nil)
+	assert.Nil(t, err)
+	req.Header.Add("Authorization", "nonsense-and-not-a-JWT")
+
+	resp, err := client.Do(req)
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 }
 
-func TestInvalidTokenSignature(t *testing.T) {
+func TestInvalidSignature(t *testing.T) {
+	app := roll.Application{
+		DeveloperEmail:  "doug@dev.com",
+		ClientID:        "1111-2222-3333333-4444444",
+		ApplicationName: "fight club",
+		ClientSecret:    "not for browser clients",
+		RedirectURI:     "http://localhost:3000/ab",
+		LoginProvider:   "xtrac://localhost:9000",
+	}
 
+	appRepoMock := new(mocks.ApplicationRepo)
+	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&app, nil)
+
+	privateKey, publicKey, err := secrets.GenerateKeyPair()
+	assert.Nil(t, err)
+
+	private2, _, err := secrets.GenerateKeyPair()
+	assert.Nil(t, err)
+
+	secretsMock := new(mocks.SecretsRepo)
+	secretsMock.On("RetrievePrivateKeyForApp", "1111-2222-3333333-4444444").Return(privateKey, nil)
+	secretsMock.On("RetrievePublicKeyForApp", "1111-2222-3333333-4444444").Return(publicKey, nil)
+
+	token, err := roll.GenerateToken(&app, private2)
+	assert.Nil(t, err)
+
+	testServer := httptest.NewServer(Wrap(echoHandler(), secretsMock))
+	defer testServer.Close()
+
+	client := http.Client{}
+	req, err := http.NewRequest("POST", testServer.URL, nil)
+	assert.Nil(t, err)
+	req.Header.Add("Authorization", "Bearer "+token)
+
+	resp, err := client.Do(req)
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+}
+
+func TestAuthCodeUsedForAccess(t *testing.T) {
+	app := roll.Application{
+		DeveloperEmail:  "doug@dev.com",
+		ClientID:        "1111-2222-3333333-4444444",
+		ApplicationName: "fight club",
+		ClientSecret:    "not for browser clients",
+		RedirectURI:     "http://localhost:3000/ab",
+		LoginProvider:   "xtrac://localhost:9000",
+	}
+
+	appRepoMock := new(mocks.ApplicationRepo)
+	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&app, nil)
+
+	privateKey, publicKey, err := secrets.GenerateKeyPair()
+	assert.Nil(t, err)
+
+	secretsMock := new(mocks.SecretsRepo)
+	secretsMock.On("RetrievePrivateKeyForApp", "1111-2222-3333333-4444444").Return(privateKey, nil)
+	secretsMock.On("RetrievePublicKeyForApp", "1111-2222-3333333-4444444").Return(publicKey, nil)
+
+	token, err := roll.GenerateCode(&app, privateKey)
+	assert.Nil(t, err)
+
+	testServer := httptest.NewServer(Wrap(echoHandler(), secretsMock))
+	defer testServer.Close()
+
+	client := http.Client{}
+	req, err := http.NewRequest("POST", testServer.URL, nil)
+	assert.Nil(t, err)
+	req.Header.Add("Authorization", "Bearer "+token)
+
+	resp, err := client.Do(req)
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 }
