@@ -2,7 +2,6 @@ package authzwrapper
 
 import (
 	jwt "github.com/dgrijalva/jwt-go"
-	"github.com/xtraclabs/roll/repos"
 	"github.com/xtraclabs/roll/roll"
 	"log"
 	"net/http"
@@ -17,10 +16,10 @@ type AuthHandler struct {
 }
 
 //Wrap takes a handler and decorates it with JWT bearer token validation.
-func Wrap(h http.Handler) *AuthHandler {
+func Wrap(h http.Handler, secretsRepo roll.SecretsRepo) *AuthHandler {
 	return &AuthHandler{
 		handler:     h,
-		secretsRepo: repos.NewVaultSecretsRepo(),
+		secretsRepo: secretsRepo,
 	}
 }
 
