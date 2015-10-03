@@ -98,4 +98,5 @@ func (a *Application) Validate() error {
 type ApplicationRepo interface {
 	StoreApplication(app *Application) error
 	RetrieveApplication(clientID string) (*Application, error)
+	ListApplications() ([]Application, error)
 }

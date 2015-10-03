@@ -27,8 +27,40 @@ func handleApplications(core *roll.Core) http.Handler {
 	})
 }
 
+func retrieveApplication(clientID string, core *roll.Core, w http.ResponseWriter, r *http.Request) {
+	app, err := core.RetrieveApplication(clientID)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	if app == nil {
+		respondNotFound(w)
+		return
+	}
+
+	respondOk(w, app)
+}
+
+func listApplications(core *roll.Core, w http.ResponseWriter, r *http.Request) {
+	apps, err := core.ListApplications()
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	respondOk(w, apps)
+}
+
 func handleApplicationGet(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 	clientID := strings.TrimPrefix(r.RequestURI, ApplicationsBaseURI)
+	switch clientID {
+	case "":
+		listApplications(core, w, r)
+	default:
+		retrieveApplication(clientID, core, w, r)
+	}
+
 	if clientID == "" {
 		respondNotFound(w)
 		return

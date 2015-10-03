@@ -87,3 +87,40 @@ func (dar *DynamoAppRepo) RetrieveApplication(clientID string) (*roll.Applicatio
 		JWTFlowPublicKey: extractString(out.Item["JWTFlowPublicKey"]),
 	}, nil
 }
+
+func (dar *DynamoAppRepo) ListApplications() ([]roll.Application, error) {
+	params := &dynamodb.ScanInput{
+		TableName: aws.String("Application"),
+		AttributesToGet: []*string{
+			aws.String("ClientID"),
+			aws.String("ApplicationName"),
+			aws.String("ClientSecret"),
+			aws.String("DeveloperEmail"),
+			aws.String("RedirectUri"),
+			aws.String("LoginProvider"),
+			aws.String("JWTFlowPublicKey"),
+		},
+	}
+
+	resp, err := dar.client.Scan(params)
+	if err != nil {
+		return nil, err
+	}
+
+	var apps []roll.Application
+
+	for _, item := range resp.Items {
+		application := roll.Application{
+			ClientID:         extractString(item["ClientID"]),
+			ApplicationName:  extractString(item["ApplicationName"]),
+			ClientSecret:     extractString(item["ClientSecret"]),
+			DeveloperEmail:   extractString(item["DeveloperEmail"]),
+			RedirectURI:      extractString(item["RedirectUri"]),
+			LoginProvider:    extractString(item["LoginProvider"]),
+			JWTFlowPublicKey: extractString(item["JWTFlowPublicKey"]),
+		}
+
+		apps = append(apps, application)
+	}
+	return apps, nil
+}

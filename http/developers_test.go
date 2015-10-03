@@ -167,6 +167,20 @@ func TestGetDevelopers(t *testing.T) {
 
 }
 
+func TestGetDevelopersDBError(t *testing.T) {
+	core, coreConfig := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	devRepoMock := coreConfig.DeveloperRepo.(*mocks.DeveloperRepo)
+	devRepoMock.On("ListDevelopers").Return(nil, errors.New("db error"))
+
+	resp := testHTTPGet(t, addr+"/v1/developers/", nil)
+	devRepoMock.AssertCalled(t, "ListDevelopers")
+
+	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+}
+
 func TestGetDeveloperRetrieveError(t *testing.T) {
 	core, coreConfig := NewTestCore()
 	ln, addr := TestServer(t, core)

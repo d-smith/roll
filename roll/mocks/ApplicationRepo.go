@@ -40,3 +40,24 @@ func (_m *ApplicationRepo) RetrieveApplication(clientID string) (*roll.Applicati
 
 	return r0, r1
 }
+func (_m *ApplicationRepo) ListApplications() ([]roll.Application, error) {
+	ret := _m.Called()
+
+	var r0 []roll.Application
+	if rf, ok := ret.Get(0).(func() []roll.Application); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]roll.Application)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}

@@ -196,6 +196,64 @@ func TestGetApplication(t *testing.T) {
 
 }
 
+func TestGetApplications(t *testing.T) {
+	core, coreConfig := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	returnVal := []roll.Application{
+		roll.Application{
+			DeveloperEmail:  "doug@dev.com",
+			ClientID:        "1111-2222-3333333-4444444",
+			ApplicationName: "fight club",
+			ClientSecret:    "not for browser clients",
+			RedirectURI:     "http://localhost:3000/ab",
+			LoginProvider:   "xtrac://localhost:9000",
+		},
+		roll.Application{
+			DeveloperEmail:  "doug@dev.com",
+			ClientID:        "1111-2222-3333333-4444444",
+			ApplicationName: "fight club",
+			ClientSecret:    "not for browser clients",
+			RedirectURI:     "http://localhost:3000/ab",
+			LoginProvider:   "xtrac://localhost:9000",
+		}}
+
+	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
+	appRepoMock.On("ListApplications").Return(returnVal, nil)
+
+	resp := testHTTPGet(t, addr+"/v1/applications/", nil)
+	appRepoMock.AssertCalled(t, "ListApplications")
+
+	var actual []roll.Application
+
+	checkResponseBody(t, resp, &actual)
+	for _, app := range actual {
+		assert.Equal(t, "doug@dev.com", app.DeveloperEmail)
+		assert.Equal(t, "1111-2222-3333333-4444444", app.ClientID)
+		assert.Equal(t, "fight club", app.ApplicationName)
+		assert.Equal(t, "not for browser clients", app.ClientSecret)
+		assert.Equal(t, "http://localhost:3000/ab", app.RedirectURI)
+		assert.Equal(t, "xtrac://localhost:9000", app.LoginProvider)
+	}
+
+}
+
+func TestGetApplicationsReposError(t *testing.T) {
+	core, coreConfig := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
+	appRepoMock.On("ListApplications").Return(nil, errors.New("db error"))
+
+	resp := testHTTPGet(t, addr+"/v1/applications/", nil)
+	appRepoMock.AssertCalled(t, "ListApplications")
+
+	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+
+}
+
 func TestRetrieveOfNonexistantApp(t *testing.T) {
 	core, coreConfig := NewTestCore()
 	ln, addr := TestServer(t, core)
@@ -208,16 +266,6 @@ func TestRetrieveOfNonexistantApp(t *testing.T) {
 	appRepoMock.AssertCalled(t, "RetrieveApplication", "1111-2222-3333333-4444444")
 
 	checkResponseStatus(t, resp, http.StatusNotFound)
-}
-
-func TestRetrieveWithNoResource(t *testing.T) {
-	core, _ := NewTestCore()
-	ln, addr := TestServer(t, core)
-	defer ln.Close()
-
-	resp := testHTTPGet(t, addr+"/v1/applications/", nil)
-
-	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
 }
 
 func TestErrorOnAppRetrieve(t *testing.T) {
