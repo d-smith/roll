@@ -69,4 +69,5 @@ func (d *Developer) Validate() error {
 type DeveloperRepo interface {
 	RetrieveDeveloper(email string) (*Developer, error)
 	StoreDeveloper(*Developer) error
+	ListDevelopers() ([]Developer, error)
 }

@@ -133,6 +133,40 @@ func TestGetDeveloper(t *testing.T) {
 
 }
 
+func TestGetDevelopers(t *testing.T) {
+	core, coreConfig := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	devRepoMock := coreConfig.DeveloperRepo.(*mocks.DeveloperRepo)
+	devs := []roll.Developer{
+		roll.Developer{FirstName: "Joe", LastName: "Dev", Email: "joe@dev.com"},
+		roll.Developer{FirstName: "Jill", LastName: "Dev", Email: "jill@dev.com"},
+	}
+	devRepoMock.On("ListDevelopers").Return(devs, nil)
+
+	resp := testHTTPGet(t, addr+"/v1/developers/", nil)
+	devRepoMock.AssertCalled(t, "ListDevelopers")
+
+	var actual []roll.Developer
+	checkResponseBody(t, resp, &actual)
+	assert.Equal(t, 2, len(actual))
+
+	for _, d := range actual {
+		switch d.Email {
+		case "joe@dev.com":
+			assert.Equal(t, "Joe", d.FirstName)
+			assert.Equal(t, "Dev", d.LastName)
+		case "jill@dev.com":
+			assert.Equal(t, "Jill", d.FirstName)
+			assert.Equal(t, "Dev", d.LastName)
+		default:
+			assert.Error(t, errors.New("Unexpected dev email"))
+		}
+	}
+
+}
+
 func TestGetDeveloperRetrieveError(t *testing.T) {
 	core, coreConfig := NewTestCore()
 	ln, addr := TestServer(t, core)

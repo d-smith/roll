@@ -26,8 +26,18 @@ func handleDevelopers(core *roll.Core) http.Handler {
 	})
 }
 
-func handleDeveloperGet(core *roll.Core, w http.ResponseWriter, r *http.Request) {
-	email := strings.TrimPrefix(r.RequestURI, DevelopersBaseURI)
+func listDevelopers(core *roll.Core, w http.ResponseWriter, r *http.Request) {
+	devs, err := core.ListDevelopers()
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	respondOk(w, devs)
+
+}
+
+func retrieveDeveloper(email string, core *roll.Core, w http.ResponseWriter, r *http.Request) {
 	if !roll.ValidateEmail(email) {
 		respondError(w, http.StatusBadRequest, fmt.Errorf("Invalid email: %s", email))
 		return
@@ -45,6 +55,17 @@ func handleDeveloperGet(core *roll.Core, w http.ResponseWriter, r *http.Request)
 	}
 
 	respondOk(w, dev)
+}
+
+func handleDeveloperGet(core *roll.Core, w http.ResponseWriter, r *http.Request) {
+	email := strings.TrimPrefix(r.RequestURI, DevelopersBaseURI)
+	switch email {
+	case "":
+		listDevelopers(core, w, r)
+	default:
+		retrieveDeveloper(email, core, w, r)
+	}
+
 }
 
 func handleDeveloperPut(core *roll.Core, w http.ResponseWriter, r *http.Request) {

@@ -78,3 +78,7 @@ func (core *Core) RetrievePrivateKeyForApp(clientID string) (string, error) {
 func (core *Core) RetrievePublicKeyForApp(clientID string) (string, error) {
 	return core.SecretsRepo.RetrievePublicKeyForApp(clientID)
 }
+
+func (core *Core) ListDevelopers() ([]Developer, error) {
+	return core.developerRepo.ListDevelopers()
+}

@@ -69,3 +69,32 @@ func (dddr DynamoDevRepo) StoreDeveloper(dev *roll.Developer) error {
 
 	return err
 }
+
+func (dddr DynamoDevRepo) ListDevelopers() ([]roll.Developer, error) {
+	params := &dynamodb.ScanInput{
+		TableName: aws.String("Developer"),
+		AttributesToGet: []*string{
+			aws.String("EMail"),
+			aws.String("FirstName"),
+			aws.String("LastName"),
+		},
+	}
+
+	resp, err := dddr.client.Scan(params)
+	if err != nil {
+		return nil, err
+	}
+
+	var devs []roll.Developer
+
+	for _, item := range resp.Items {
+		developer := roll.Developer{
+			Email:     extractString(item["EMail"]),
+			FirstName: extractString(item["FirstName"]),
+			LastName:  extractString(item["LastName"]),
+		}
+
+		devs = append(devs, developer)
+	}
+	return devs, nil
+}
