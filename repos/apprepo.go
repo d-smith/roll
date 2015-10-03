@@ -16,9 +16,8 @@ type DynamoAppRepo struct {
 
 //NewDynamoAppRepo returns a new instance of type DynamoAppRepo
 func NewDynamoAppRepo() *DynamoAppRepo {
-	//TODO - pick up region from config?
 	return &DynamoAppRepo{
-		client: dynamodb.New(&aws.Config{Region: aws.String("us-east-1")}),
+		client: CreateDynamoDBClient(),
 	}
 }
 

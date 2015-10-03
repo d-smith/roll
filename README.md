@@ -73,6 +73,14 @@ You will need to set up AWS credentials for a user associated with the following
 The code uses two tables in DynamoDB: Application and Developer. Refer to the go
 code under the repos/ddl package that can be used to create the tables.
 
+Note that you can use DynamoDB Local as well with this code. To do set, specify local use via
+an environment variable named LOCAL_DYNAMO_ADDR, and set your local address using this 
+variable, e.g.
+
+<pre>
+export LOCAL_DYNAMO_ADDR=http://localhost:8000
+</pre>
+
 ### Build dependencies
 
 Still need to vendor my dependencies, but they are:
@@ -197,7 +205,7 @@ http://localhost:3000/oauth2/authorize?client_id=111-222-3333&response_type=code
 This can be executed directly via curl, e.g.
 
 <pre>
-curl --data "client_id=111-222-3333" --data "grant_type=password" --data-urlencode "client_secret=HorC76CqX7qxf6AZmKsPwurEYEhRPrXDDUsHHe0Vnkk=" --data "username=foo" --data "password=passw0rd" localhost:3000/oauth2/token
+curl --data "client_id=111-222-3333" --data "grant_type=password" --data-urlencode "client_secret=ssYqvl6UNJv8u7OMtzhjBvKJ13tEBkV6+dsBraJwRC4=" --data "username=foo" --data "password=passw0rd" localhost:3000/oauth2/token
 </pre>
 
 ### JWT Flow

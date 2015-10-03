@@ -22,9 +22,8 @@ func extractString(attrval *dynamodb.AttributeValue) string {
 
 //NewDynamoDevRepo creates a new instance of DynamoDevRepo
 func NewDynamoDevRepo() *DynamoDevRepo {
-	//TODO - pick up region from config?
 	return &DynamoDevRepo{
-		client: dynamodb.New(&aws.Config{Region: aws.String("us-east-1")}),
+		client: CreateDynamoDBClient(),
 	}
 }
 
