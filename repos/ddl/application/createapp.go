@@ -3,19 +3,12 @@ package main
 import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/xtraclabs/roll/dbutil"
 	"log"
-	"os"
 )
 
 func main() {
-	var svc *dynamodb.DynamoDB
-
-	localAddr := os.Getenv("LOCAL_DYNAMO_ADDR")
-	if localAddr != "" {
-		svc = dynamodb.New(&aws.Config{Endpoint: aws.String(localAddr), Region: aws.String("here")})
-	} else {
-		svc = dynamodb.New(&aws.Config{Region: aws.String("us-east-1")})
-	}
+	var svc *dynamodb.DynamoDB = dbutil.CreateDynamoDBClient()
 
 	params := &dynamodb.CreateTableInput{
 		AttributeDefinitions: []*dynamodb.AttributeDefinition{

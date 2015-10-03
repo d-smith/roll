@@ -3,6 +3,7 @@ package repos
 import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/xtraclabs/roll/dbutil"
 	"github.com/xtraclabs/roll/roll"
 	"github.com/xtraclabs/roll/secrets"
 	"log"
@@ -17,7 +18,7 @@ type DynamoAppRepo struct {
 //NewDynamoAppRepo returns a new instance of type DynamoAppRepo
 func NewDynamoAppRepo() *DynamoAppRepo {
 	return &DynamoAppRepo{
-		client: CreateDynamoDBClient(),
+		client: dbutil.CreateDynamoDBClient(),
 	}
 }
 

@@ -1,4 +1,4 @@
-package repos
+package dbutil
 
 import (
 	"github.com/aws/aws-sdk-go/aws"

@@ -3,6 +3,7 @@ package repos
 import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/xtraclabs/roll/dbutil"
 	"github.com/xtraclabs/roll/roll"
 	"log"
 )
@@ -23,7 +24,7 @@ func extractString(attrval *dynamodb.AttributeValue) string {
 //NewDynamoDevRepo creates a new instance of DynamoDevRepo
 func NewDynamoDevRepo() *DynamoDevRepo {
 	return &DynamoDevRepo{
-		client: CreateDynamoDBClient(),
+		client: dbutil.CreateDynamoDBClient(),
 	}
 }
 
