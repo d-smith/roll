@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 )
 
 var templates = template.Must(template.ParseFiles("static/callback.html", "static/echo.html"))
@@ -18,6 +19,7 @@ var azServerEndpoint string
 var clientID string
 var clientSecret string
 var redirectURI string
+var echoEndpoint string
 
 func init() {
 	azServerEndpoint = os.Getenv("AZ_SERVER")
@@ -31,6 +33,9 @@ func init() {
 
 	redirectURI = os.Getenv("REDIRECT_URI")
 	fmt.Println("REDIRECT_URI:", redirectURI)
+
+	echoEndpoint = os.Getenv("ECHO_ENDPOINT")
+	fmt.Println("ECHO_ENDPOINT:", echoEndpoint)
 }
 
 type accessTokenResponse struct {
@@ -100,6 +105,34 @@ func loginCallbackHandler() http.HandlerFunc {
 	}
 }
 
+func echoHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		token := r.FormValue("token")
+		echo := r.FormValue("echo")
+
+		req, err := http.NewRequest("PUT", echoEndpoint+"/echo", strings.NewReader(echo))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
+
+		client := http.Client{}
+		resp, err := client.Do(req)
+
+		defer resp.Body.Close()
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.Write(body)
+
+	}
+}
+
 func main() {
 
 	var port = flag.Int("port", -1, "Port to listen on")
@@ -114,5 +147,6 @@ func main() {
 	mux := http.NewServeMux()
 	mux.Handle("/oauth2_callback", oauthCallbackHandler())
 	mux.Handle("/XtracWeb/services/Login", loginCallbackHandler())
+	mux.Handle("/echo", echoHandler())
 	http.ListenAndServe(fmt.Sprintf(":%d", *port), mux)
 }
