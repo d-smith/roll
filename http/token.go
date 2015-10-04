@@ -178,6 +178,10 @@ func validateCode(secretsRepo roll.SecretsRepo, ctx *authCodeContext) error {
 		return errors.New("Invalid authorization code")
 	}
 
+	//TODO - implement the following...
+	log.Println("WARNING - CHECK CLIENT ID PRESENTED IN FLOW WITH AUD IN TOKEN - MUST MATCH")
+	//Not checking to simplify demo config
+
 	return nil
 }
 
