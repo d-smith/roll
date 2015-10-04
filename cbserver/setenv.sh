@@ -5,7 +5,7 @@
 # was registered with the application roll.
 
 export AZ_SERVER=localhost:3000
-export CLIENT_ID=399fe4c3-c4d0-4a14-7c4e-fea81e060229
-export CLIENT_SECRET=a3BAA8SZ9hXEKi+U9Ut9s1xEdsH8OvZAWx0ATnwDR7c=
+export CLIENT_ID=8a112572-47bb-4c95-5179-3c26fa0acd27
+export CLIENT_SECRET=8fnyNejHEMiAn5jXlRVuShq+AaAaEzU/HrfTvW61Tvw=
 export REDIRECT_URI=http://localhost:2000/oauth2_callback
 export ECHO_ENDPOINT=http://localhost:5000

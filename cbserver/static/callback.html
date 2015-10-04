@@ -25,9 +25,9 @@ while (m = regex.exec(queryString))
 console.log(oauthParams);
 
 if(oauthParams['access_token'] !== undefined) {
-	alert('yer token is ' + oauthParams['access_token']);
+	alert('Your token is ' + oauthParams['access_token']);
 } else {
-	alert('too bad for you: ' + oauthParams['error']);
+	alert('Access Denied: ' + oauthParams['error']);
 }
 
 
@@ -36,6 +36,6 @@ $('#oauthParams').html(html);
 });
 
 </script>
-Your callback
+
 </body>
 </html>
