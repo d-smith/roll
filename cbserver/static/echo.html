@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Echo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+</head>
+<body>
+
+
+
+<div class="container">
+    <h2>Echo</h2>
+    <form method="post" role="form" action="echo">
+        <div class="form-group">
+            <label for="token">Token:</label>
+            <input type="text" class="form-control" id="token" name="token" value="{{.AccessToken}}"/>
+        </div>
+        <div class="form-group">
+            <label for="echo">Echo This:</label>
+            <input type="text" class="form-control" id="echo" name="echo"/>
+        </div>
+        <button type="submit"  class="btn btn-default" name="echo" value="echo">Echo</button>
+    </form>
+</div>
+</body>
+</html>

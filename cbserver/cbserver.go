@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"html/template"
@@ -11,7 +12,7 @@ import (
 	"os"
 )
 
-var templates = template.Must(template.ParseFiles("static/callback.html"))
+var templates = template.Must(template.ParseFiles("static/callback.html", "static/echo.html"))
 
 var azServerEndpoint string
 var clientID string
@@ -30,6 +31,11 @@ func init() {
 
 	redirectURI = os.Getenv("REDIRECT_URI")
 	fmt.Println("REDIRECT_URI:", redirectURI)
+}
+
+type accessTokenResponse struct {
+	AccessToken string `json:"access_token"`
+	TokenType   string `json:"token_type"`
 }
 
 func isTokenCallback(r *http.Request) bool {
@@ -75,8 +81,17 @@ func doAuthCodeCallback(w http.ResponseWriter, r *http.Request) {
 
 	log.Println(fmt.Sprintf("%v", string(body)))
 
-	w.Write(body)
+	var jsonResponse accessTokenResponse
+	err = json.Unmarshal(body, &jsonResponse)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
+	if err = templates.ExecuteTemplate(w, "echo.html", jsonResponse); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func loginCallbackHandler() http.HandlerFunc {
