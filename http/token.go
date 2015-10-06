@@ -166,7 +166,7 @@ func validateClientDetails(core *roll.Core, ctx *authCodeContext) (*roll.Applica
 	return app, nil
 }
 
-func validateCode(secretsRepo roll.SecretsRepo, ctx *authCodeContext) error {
+func validateCode(secretsRepo roll.SecretsRepo, ctx *authCodeContext, clientID string) error {
 	token, err := jwt.Parse(ctx.authCode, roll.GenerateKeyExtractionFunction(secretsRepo))
 	if err != nil {
 		return err
@@ -178,9 +178,10 @@ func validateCode(secretsRepo roll.SecretsRepo, ctx *authCodeContext) error {
 		return errors.New("Invalid authorization code")
 	}
 
-	//TODO - implement the following...
-	log.Println("WARNING - CHECK CLIENT ID PRESENTED IN FLOW WITH AUD IN TOKEN - MUST MATCH")
-	//Not checking to simplify demo config
+	//make sure the client_id used to validate the token matches the token aud claim
+	if clientID != token.Claims["aud"] {
+		return errors.New("token not associated client ID presented")
+	}
 
 	return nil
 }
@@ -250,7 +251,7 @@ func handleAuthCodeGrantType(core *roll.Core, w http.ResponseWriter, r *http.Req
 	}
 
 	//Validate the code - it should be a token signed with the users' private key
-	if err = validateCode(core.SecretsRepo, codeContext); err != nil {
+	if err = validateCode(core.SecretsRepo, codeContext, r.FormValue("client_id")); err != nil {
 		respondError(w, http.StatusUnauthorized, err)
 		return
 	}
