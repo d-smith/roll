@@ -15,6 +15,10 @@ const (
 	ApplicationsURI = ApplicationsBaseURI + "/"
 )
 
+type clientID struct {
+	ClientID string `json:"client_id"`
+}
+
 
 func handleApplicationsBase(core *roll.Core) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -136,7 +140,10 @@ func handleApplicationPost(core *roll.Core, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	respondOk(w, nil)
+	//Return the client id
+	clientID := clientID{ClientID:id}
+
+	respondOk(w, clientID)
 
 }
 

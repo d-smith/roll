@@ -37,7 +37,18 @@ func TestStoreApp(t *testing.T) {
 	appRepoMock.AssertCalled(t, "StoreApplication", &app)
 	secretsRepoMock.AssertExpectations(t)
 
-	checkResponseStatus(t, resp, http.StatusNoContent)
+	checkResponseStatus(t, resp, http.StatusOK)
+
+	var cid clientID
+
+	defer resp.Body.Close()
+
+	dec := json.NewDecoder(resp.Body)
+	err := dec.Decode(&cid)
+	assert.Nil(t, err)
+	assert.Equal(t, "steve", cid.ClientID)
+
+
 }
 
 func TestUpdateApp(t *testing.T) {
