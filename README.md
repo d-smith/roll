@@ -150,13 +150,12 @@ curl -v localhost:3000/v1/developers/doug@dev.com
 Register an app:
 
 <pre>
-curl -X PUT -d '{
-"ClientID":"111-222-3333",
+curl -X POST -d '{
 "ApplicationName":"App No. 4",
 "DeveloperEmail":"doug@dev.com",
 "RedirectURI":"http://localhost:2000/oauth2_callback",
 "LoginProvider":"xtrac://localhost:2000"
-}' localhost:3000/v1/applications/111-222-3333
+}' localhost:3000/v1/applications
 </pre>
 
 Retrieve registered app:

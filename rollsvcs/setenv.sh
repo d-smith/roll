@@ -1,5 +1,5 @@
 #!/bin/sh
 
 export LOCAL_DYNAMO_ADDR=http://localhost:8000
-export VAULT_ADDR=http://localhost:8200
-export VAULT_TOKEN=2b818ab5-7274-f452-18f8-f3a3e98cbdbc
+export VAULT_ADDR=http://192.168.99.100:8200
+export VAULT_TOKEN=56e04159-36b8-147b-ea54-48c14d9ccdf6

@@ -49,12 +49,20 @@ func TestServer(t *testing.T, core *roll.Core) (net.Listener, string) {
 	return ln, addr
 }
 
+
+type TestIDGen struct{}
+
+func (tig TestIDGen) GenerateID()(string,error) {
+	return "steve",nil
+}
+
 //NewTestCore returns a roll.Core instance with mocked implementations of its internal dependencies
 func NewTestCore() (*roll.Core, *roll.CoreConfig) {
 	var coreConfig = roll.CoreConfig{}
 	coreConfig.DeveloperRepo = new(mocks.DeveloperRepo)
 	coreConfig.ApplicationRepo = new(mocks.ApplicationRepo)
 	coreConfig.SecretsRepo = new(mocks.SecretsRepo)
+	coreConfig.IdGenerator = TestIDGen{}
 	return roll.NewCore(&coreConfig), &coreConfig
 }
 
@@ -70,6 +78,10 @@ func testHTTPGet(t *testing.T, addr string, body interface{}) *http.Response {
 
 func testHTTPPut(t *testing.T, addr string, body interface{}) *http.Response {
 	return testHTTPData(t, "PUT", addr, body)
+}
+
+func testHTTPPost(t *testing.T, addr string, body interface{}) *http.Response {
+	return testHTTPData(t, "POST", addr, body)
 }
 
 func testHTTPData(t *testing.T, method string, addr string, body interface{}) *http.Response {

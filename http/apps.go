@@ -11,9 +11,21 @@ import (
 
 const (
 	//ApplicationsBaseURI is the base uri for the service.
-	ApplicationsBaseURI = "/v1/applications/"
+	ApplicationsBaseURI = "/v1/applications"
+	ApplicationsURI = ApplicationsBaseURI + "/"
 )
 
+
+func handleApplicationsBase(core *roll.Core) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case "POST":
+			handleApplicationPost(core, w, r)
+		default:
+			respondError(w, http.StatusMethodNotAllowed, errors.New("Method not allowed"))
+		}
+	})
+}
 func handleApplications(core *roll.Core) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
@@ -53,7 +65,7 @@ func listApplications(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 }
 
 func handleApplicationGet(core *roll.Core, w http.ResponseWriter, r *http.Request) {
-	clientID := strings.TrimPrefix(r.RequestURI, ApplicationsBaseURI)
+	clientID := strings.TrimPrefix(r.RequestURI, ApplicationsURI)
 	switch clientID {
 	case "":
 		listApplications(core, w, r)
@@ -80,21 +92,21 @@ func handleApplicationGet(core *roll.Core, w http.ResponseWriter, r *http.Reques
 	respondOk(w, app)
 }
 
-func handleApplicationPut(core *roll.Core, w http.ResponseWriter, r *http.Request) {
+func handleApplicationPost(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 	var app roll.Application
 	if err := parseRequest(r, &app); err != nil {
 		respondError(w, http.StatusBadRequest, err)
 		return
 	}
 
-	//Make sure we use the clientID in the resource not any clientID sent in the JSON.
-	clientID := strings.TrimPrefix(r.RequestURI, ApplicationsBaseURI)
-	if clientID == "" {
-		respondError(w, http.StatusBadRequest, nil)
+	//Assign a client ID
+	id, err := core.GenerateID()
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	app.ClientID = clientID
+	app.ClientID = id
 
 	//Validate the content
 	if err := app.Validate(); err != nil {
@@ -110,11 +122,63 @@ func handleApplicationPut(core *roll.Core, w http.ResponseWriter, r *http.Reques
 	}
 
 	//Store keys in secrets vault
-	err = core.StoreKeysForApp(clientID, private, public)
+	err = core.StoreKeysForApp(id, private, public)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, err)
 		return
 	}
+
+	//Store the application definition
+	log.Println("storing app def ", app)
+	err = core.StoreApplication(&app)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	respondOk(w, nil)
+
+}
+
+func handleApplicationPut(core *roll.Core, w http.ResponseWriter, r *http.Request) {
+	var app roll.Application
+	if err := parseRequest(r, &app); err != nil {
+		respondError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	//Make sure we use the clientID in the resource not any clientID sent in the JSON.
+	clientID := strings.TrimPrefix(r.RequestURI, ApplicationsURI)
+	if clientID == "" {
+		respondError(w, http.StatusBadRequest, nil)
+		return
+	}
+
+	app.ClientID = clientID
+
+	//Validate the content
+	if err := app.Validate(); err != nil {
+		respondError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	//Retrieve the app definition to update
+	storedApp, err := core.RetrieveApplication(clientID)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	if storedApp == nil {
+		respondError(w, http.StatusNotFound, nil)
+		return
+	}
+
+	//Copy over the potential updates
+	storedApp.ApplicationName = app.ApplicationName
+	storedApp.DeveloperEmail = app.DeveloperEmail
+	storedApp.LoginProvider = app.LoginProvider
+	storedApp.RedirectURI = app.RedirectURI
 
 	//Store the application definition
 	log.Println("storing app def ", app)

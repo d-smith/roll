@@ -9,7 +9,8 @@ import (
 func Handler(core *roll.Core) http.Handler {
 	mux := http.NewServeMux()
 	mux.Handle(DevelopersBaseURI, handleDevelopers(core))
-	mux.Handle(ApplicationsBaseURI, handleApplications(core))
+	mux.Handle(ApplicationsURI, handleApplications(core))
+	mux.Handle(ApplicationsBaseURI, handleApplicationsBase(core))
 	mux.Handle(AuthorizeBaseURI, handleAuthorize(core))
 	mux.Handle(ValidateBaseURI, handleValidate(core))
 	mux.Handle(OAuth2TokenBaseURI, handleToken(core))
