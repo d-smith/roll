@@ -1,7 +1,6 @@
 package repos
 
 import (
-	"errors"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
@@ -88,8 +87,60 @@ func (dar *DynamoAppRepo) CreateApplication(app *roll.Application) error {
 	return err
 }
 
+//UpdateApplication updates an existing application definition
 func (dar *DynamoAppRepo) UpdateApplication(app *roll.Application) error {
-	return errors.New("unimplemented")
+
+	//Build up the non-empty attributes to update
+	updateAttributes := make(map[string]*dynamodb.AttributeValueUpdate)
+
+	if app.LoginProvider != "" {
+		updateAttributes["LoginProvider"] = &dynamodb.AttributeValueUpdate{
+			Action: aws.String(dynamodb.AttributeActionPut),
+			Value: &dynamodb.AttributeValue{
+				S: aws.String(app.LoginProvider),
+			},
+		}
+	}
+
+	if app.RedirectURI != "" {
+		updateAttributes["RedirectURI"] = &dynamodb.AttributeValueUpdate{
+			Action: aws.String(dynamodb.AttributeActionPut),
+			Value: &dynamodb.AttributeValue{
+				S: aws.String(app.RedirectURI),
+			},
+		}
+	}
+
+	if app.JWTFlowPublicKey != "" {
+		updateAttributes["JWTFlowPublicKey"] = &dynamodb.AttributeValueUpdate{
+			Action: aws.String(dynamodb.AttributeActionPut),
+			Value: &dynamodb.AttributeValue{
+				S: aws.String(app.JWTFlowPublicKey),
+			},
+		}
+	}
+
+	if app.ApplicationName != "" {
+		log.Println("Updating application name:", app.ApplicationName)
+		updateAttributes["ApplicationName"] = &dynamodb.AttributeValueUpdate{
+			Action: aws.String(dynamodb.AttributeActionPut),
+			Value: &dynamodb.AttributeValue{
+				S: aws.String(app.ApplicationName),
+			},
+		}
+	}
+
+	params := &dynamodb.UpdateItemInput{
+		TableName: aws.String("Application"),
+		Key: map[string]*dynamodb.AttributeValue{
+			"ClientID": {S: aws.String(app.ClientID)},
+		},
+		AttributeUpdates: updateAttributes,
+	}
+
+	_, err := dar.client.UpdateItem(params)
+
+	return err
 }
 
 //RetrieveAppByNameAndDevEmail retrieves an application definition based on the combination of

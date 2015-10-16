@@ -142,7 +142,8 @@ func handleCertPost(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//Update the app with the public key
+	//Update the app with the public key. Note here we are adding the cert to the retrieved application
+	//attributes.
 	app.JWTFlowPublicKey = publicKeyPEM
 	err = core.UpdateApplication(app)
 	if err != nil {
