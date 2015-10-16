@@ -12,7 +12,9 @@ import (
 const (
 	//ApplicationsBaseURI is the base uri for the service.
 	ApplicationsBaseURI = "/v1/applications"
-	ApplicationsURI     = ApplicationsBaseURI + "/"
+
+	//ApplicationsURI is for specific resources
+	ApplicationsURI = ApplicationsBaseURI + "/"
 )
 
 type clientID struct {
@@ -25,7 +27,7 @@ func handleApplicationsBase(core *roll.Core) http.Handler {
 		case "POST":
 			handleApplicationPost(core, w, r)
 		case "GET":
-			listApplications(core,w,r)
+			listApplications(core, w, r)
 		default:
 			respondError(w, http.StatusMethodNotAllowed, errors.New("Method not allowed"))
 		}
@@ -64,7 +66,6 @@ func retrieveApplication(clientID string, core *roll.Core, w http.ResponseWriter
 
 	respondOk(w, app)
 }
-
 
 func listApplications(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 	apps, err := core.ListApplications()

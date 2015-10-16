@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-func TestStoreDeveloper(t *testing.T) {
+func TestStoreDeveloperOK(t *testing.T) {
 	core, coreConfig := NewTestCore()
 	ln, addr := TestServer(t, core)
 	defer ln.Close()
@@ -145,7 +145,7 @@ func TestGetDevelopers(t *testing.T) {
 	}
 	devRepoMock.On("ListDevelopers").Return(devs, nil)
 
-	resp := testHTTPGet(t, addr+"/v1/developers/", nil)
+	resp := testHTTPGet(t, addr+"/v1/developers", nil)
 	devRepoMock.AssertCalled(t, "ListDevelopers")
 
 	var actual []roll.Developer
@@ -175,7 +175,7 @@ func TestGetDevelopersDBError(t *testing.T) {
 	devRepoMock := coreConfig.DeveloperRepo.(*mocks.DeveloperRepo)
 	devRepoMock.On("ListDevelopers").Return(nil, errors.New("db error"))
 
-	resp := testHTTPGet(t, addr+"/v1/developers/", nil)
+	resp := testHTTPGet(t, addr+"/v1/developers", nil)
 	devRepoMock.AssertCalled(t, "ListDevelopers")
 
 	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
