@@ -164,6 +164,17 @@ Retrieve registered app:
 curl -v localhost:3000/v1/applications/111-222-3333
 </pre>
 
+Update an application
+
+<pre>
+curl -X PUT -d '{
+"ApplicationName":"App No. 4",
+"DeveloperEmail":"doug@dev.com",
+"RedirectURI":"http://localhost:2000/oauth2_callback",
+"LoginProvider":"xtrac://localhost:2000"
+}' localhost:3000/v1/applications/da61a640-d143-4c10-72c1-01ea0b6b1203
+</pre>
+
 
 #### Executing the flow
 

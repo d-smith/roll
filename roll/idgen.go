@@ -8,7 +8,7 @@ type IdGenerator interface {
 	GenerateID() (string, error)
 }
 
-type UUIDIdGenerator struct {}
+type UUIDIdGenerator struct{}
 
 func (uig UUIDIdGenerator) GenerateID() (string, error) {
 	u, err := uuid.NewV4()
@@ -18,4 +18,3 @@ func (uig UUIDIdGenerator) GenerateID() (string, error) {
 
 	return u.String(), nil
 }
-

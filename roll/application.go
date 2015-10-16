@@ -96,7 +96,8 @@ func (a *Application) Validate() error {
 
 //ApplicationRepo represents a repository abstraction for dealing with persistent Application instances.
 type ApplicationRepo interface {
-	StoreApplication(app *Application) error
+	CreateApplication(app *Application) error
+	UpdateApplication(app *Application) error
 	RetrieveApplication(clientID string) (*Application, error)
 	ListApplications() ([]Application, error)
 }

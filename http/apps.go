@@ -12,13 +12,12 @@ import (
 const (
 	//ApplicationsBaseURI is the base uri for the service.
 	ApplicationsBaseURI = "/v1/applications"
-	ApplicationsURI = ApplicationsBaseURI + "/"
+	ApplicationsURI     = ApplicationsBaseURI + "/"
 )
 
 type clientID struct {
 	ClientID string `json:"client_id"`
 }
-
 
 func handleApplicationsBase(core *roll.Core) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -77,7 +76,7 @@ func handleApplicationGet(core *roll.Core, w http.ResponseWriter, r *http.Reques
 		retrieveApplication(clientID, core, w, r)
 	}
 
-	if clientID == "" {
+	/*if clientID == "" {
 		respondNotFound(w)
 		return
 	}
@@ -94,6 +93,7 @@ func handleApplicationGet(core *roll.Core, w http.ResponseWriter, r *http.Reques
 	}
 
 	respondOk(w, app)
+	*/
 }
 
 func handleApplicationPost(core *roll.Core, w http.ResponseWriter, r *http.Request) {
@@ -134,14 +134,14 @@ func handleApplicationPost(core *roll.Core, w http.ResponseWriter, r *http.Reque
 
 	//Store the application definition
 	log.Println("storing app def ", app)
-	err = core.StoreApplication(&app)
+	err = core.CreateApplication(&app)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, err)
 		return
 	}
 
 	//Return the client id
-	clientID := clientID{ClientID:id}
+	clientID := clientID{ClientID: id}
 
 	respondOk(w, clientID)
 
@@ -189,7 +189,7 @@ func handleApplicationPut(core *roll.Core, w http.ResponseWriter, r *http.Reques
 
 	//Store the application definition
 	log.Println("storing app def ", app)
-	err = core.StoreApplication(&app)
+	err = core.UpdateApplication(&app)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, err)
 		return

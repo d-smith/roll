@@ -49,11 +49,10 @@ func TestServer(t *testing.T, core *roll.Core) (net.Listener, string) {
 	return ln, addr
 }
 
-
 type TestIDGen struct{}
 
-func (tig TestIDGen) GenerateID()(string,error) {
-	return "steve",nil
+func (tig TestIDGen) GenerateID() (string, error) {
+	return "steve", nil
 }
 
 //NewTestCore returns a roll.Core instance with mocked implementations of its internal dependencies

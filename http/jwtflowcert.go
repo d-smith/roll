@@ -144,7 +144,7 @@ func handleCertPost(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 
 	//Update the app with the public key
 	app.JWTFlowPublicKey = publicKeyPEM
-	err = core.StoreApplication(app)
+	err = core.UpdateApplication(app)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, err)
 		return

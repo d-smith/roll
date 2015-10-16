@@ -15,4 +15,4 @@ EXPOSE 8200
 ENTRYPOINT [ "vault" ]
 CMD [ "server", "-config=/var/vconfig" ]
 
-#docker run --cap-add IPC_LOCK -p 8200:8200 roll/vault
+#docker run -d --cap-add IPC_LOCK -p 8200:8200 roll/vault

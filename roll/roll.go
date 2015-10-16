@@ -44,7 +44,7 @@ func NewCore(config *CoreConfig) *Core {
 		developerRepo:   config.DeveloperRepo,
 		ApplicationRepo: config.ApplicationRepo,
 		SecretsRepo:     config.SecretsRepo,
-		IdGenerator: config.IdGenerator,
+		IdGenerator:     config.IdGenerator,
 	}
 }
 
@@ -59,8 +59,13 @@ func (core *Core) RetrieveDeveloper(email string) (*Developer, error) {
 }
 
 //StoreApplication stores an application using the embedded Application repository
-func (core *Core) StoreApplication(app *Application) error {
-	return core.ApplicationRepo.StoreApplication(app)
+func (core *Core) CreateApplication(app *Application) error {
+	return core.ApplicationRepo.CreateApplication(app)
+}
+
+//StoreApplication stores an application using the embedded Application repository
+func (core *Core) UpdateApplication(app *Application) error {
+	return core.ApplicationRepo.UpdateApplication(app)
 }
 
 //RetrieveApplication retrieves an application using the embedded Application repository
@@ -94,6 +99,6 @@ func (core *Core) ListApplications() ([]Application, error) {
 	return core.ApplicationRepo.ListApplications()
 }
 
-func (core *Core) GenerateID()(string, error) {
+func (core *Core) GenerateID() (string, error) {
 	return core.IdGenerator.GenerateID()
 }

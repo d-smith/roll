@@ -1,6 +1,8 @@
 package repos
 
 import (
+	"errors"
+	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/xtraclabs/roll/dbutil"
@@ -22,8 +24,36 @@ func NewDynamoAppRepo() *DynamoAppRepo {
 	}
 }
 
-//StoreApplication stores an application definition in DynamoDB
-func (dar *DynamoAppRepo) StoreApplication(app *roll.Application) error {
+type DuplicateAppdefError struct {
+	ApplicationName string
+	DeveloperEmail  string
+}
+
+func NewDuplicationAppdefError(appName, devEmail string) *DuplicateAppdefError {
+	return &DuplicateAppdefError{
+		ApplicationName: appName,
+		DeveloperEmail:  devEmail,
+	}
+}
+
+func (dae *DuplicateAppdefError) Error() string {
+	return fmt.Sprintf("Application definition exists for application name %s and developer email %s",
+		dae.ApplicationName, dae.DeveloperEmail)
+}
+
+//CreateApplication stores an application definition in DynamoDB
+func (dar *DynamoAppRepo) CreateApplication(app *roll.Application) error {
+
+	//Make sure we are not creating a new application definition for an existing
+	//application name/developer email combination
+	existing, err := dar.RetrieveAppByNameAndDevEmail(app.ApplicationName, app.DeveloperEmail)
+	if err != nil {
+		return err
+	}
+
+	if existing != nil {
+		return NewDuplicationAppdefError(app.ApplicationName, app.DeveloperEmail)
+	}
 
 	if app.ClientSecret == "" {
 		clientSecret, err := secrets.GenerateClientSecret()
@@ -49,12 +79,53 @@ func (dar *DynamoAppRepo) StoreApplication(app *roll.Application) error {
 	}
 
 	params := &dynamodb.PutItemInput{
-		TableName: aws.String("Application"),
-		Item:      appAttrs,
+		TableName:           aws.String("Application"),
+		ConditionExpression: aws.String("attribute_not_exists(ClientID)"),
+		Item:                appAttrs,
 	}
-	_, err := dar.client.PutItem(params)
+	_, err = dar.client.PutItem(params)
 
 	return err
+}
+
+func (dar *DynamoAppRepo) UpdateApplication(app *roll.Application) error {
+	return errors.New("unimplemented")
+}
+
+//RetrieveAppByNameAndDevEmail retrieves an application definition based on the combination of
+//application name and developer email
+func (dar *DynamoAppRepo) RetrieveAppByNameAndDevEmail(appName, email string) (*roll.Application, error) {
+	params := &dynamodb.QueryInput{
+		TableName:              aws.String("Application"),
+		IndexName:              aws.String("EMail-Index"),
+		KeyConditionExpression: aws.String("DeveloperEmail=:email"),
+		FilterExpression:       aws.String("ApplicationName=:appName"),
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":email":   {S: aws.String(email)},
+			":appName": {S: aws.String(appName)},
+		},
+	}
+
+	resp, err := dar.client.Query(params)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Println("RETURNED THIS MANY", *resp.Count)
+
+	if resp == nil || *resp.Count == 0 {
+		return nil, nil
+	}
+
+	return &roll.Application{
+		ClientID:         extractString(resp.Items[0]["ClientID"]),
+		ApplicationName:  extractString(resp.Items[0]["ApplicationName"]),
+		ClientSecret:     extractString(resp.Items[0]["ClientSecret"]),
+		DeveloperEmail:   extractString(resp.Items[0]["DeveloperEmail"]),
+		RedirectURI:      extractString(resp.Items[0]["RedirectUri"]),
+		LoginProvider:    extractString(resp.Items[0]["LoginProvider"]),
+		JWTFlowPublicKey: extractString(resp.Items[0]["JWTFlowPublicKey"]),
+	}, nil
 }
 
 //RetrieveApplication retrieves an application definition from DynamoDB

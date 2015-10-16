@@ -12,7 +12,6 @@ import (
 //OAuth2 flow
 const XtAuthCodeScope = "xtAuthCode"
 
-
 var idGenerator IdGenerator = UUIDIdGenerator{}
 
 //GenerateToken generates a signed JWT for an application using the
@@ -55,7 +54,7 @@ func GenerateCode(app *Application, privateKey string) (string, error) {
 	}
 
 	t.Claims["aud"] = app.ClientID
-	t.Claims["jti"] =jti
+	t.Claims["jti"] = jti
 	t.Claims["exp"] = time.Now().Add(30 * time.Second).Unix()
 	t.Claims["scope"] = XtAuthCodeScope
 

@@ -12,7 +12,7 @@ import (
 	"testing"
 )
 
-func TestStoreApp(t *testing.T) {
+func TestStoreAppOK(t *testing.T) {
 	t.Log("TestStoreAppOK")
 	core, coreConfig := NewTestCore()
 	ln, addr := TestServer(t, core)
@@ -20,21 +20,22 @@ func TestStoreApp(t *testing.T) {
 
 	app := roll.Application{
 		ApplicationName: "ambivilant birds",
-		ClientID: "steve",
+		ClientID:        "steve",
 		DeveloperEmail:  "doug@dev.com",
 		RedirectURI:     "http://localhost:3000/ab",
 		LoginProvider:   "xtrac://localhost:9000",
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("StoreApplication", &app).Return(nil)
+	appRepoMock.On("CreateApplication", &app).Return(nil)
 
 	secretsRepoMock := coreConfig.SecretsRepo.(*mocks.SecretsRepo)
 	secretsRepoMock.On("StoreKeysForApp",
 		mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(nil).Once()
 
 	resp := testHTTPPost(t, addr+"/v1/applications", app)
-	appRepoMock.AssertCalled(t, "StoreApplication", &app)
+	appRepoMock.AssertCalled(t, "CreateApplication", &app)
+	appRepoMock.AssertExpectations(t)
 	secretsRepoMock.AssertExpectations(t)
 
 	checkResponseStatus(t, resp, http.StatusOK)
@@ -48,17 +49,16 @@ func TestStoreApp(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, "steve", cid.ClientID)
 
-
 }
 
-func TestUpdateApp(t *testing.T) {
+func TestUpdateAppOK(t *testing.T) {
 	core, coreConfig := NewTestCore()
 	ln, addr := TestServer(t, core)
 	defer ln.Close()
 
 	app := roll.Application{
 		ApplicationName: "ambivilant birds",
-		ClientID: "111-222-333",
+		ClientID:        "111-222-333",
 		DeveloperEmail:  "doug@dev.com",
 		RedirectURI:     "http://localhost:3000/ab",
 		LoginProvider:   "xtrac://localhost:9000",
@@ -66,15 +66,15 @@ func TestUpdateApp(t *testing.T) {
 
 	app2 := roll.Application{
 		ApplicationName: "foos",
-		ClientID: "111-222-333",
+		ClientID:        "111-222-333",
 		DeveloperEmail:  "doug@dev.com",
 		RedirectURI:     "http://localhost:3000/ab",
 		LoginProvider:   "xtrac://localhost:9000",
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "111-222-333").Return(&app,nil)
-	appRepoMock.On("StoreApplication", &app2).Return(nil)
+	appRepoMock.On("RetrieveApplication", "111-222-333").Return(&app, nil)
+	appRepoMock.On("UpdateApplication", &app2).Return(nil)
 
 	secretsRepoMock := coreConfig.SecretsRepo.(*mocks.SecretsRepo)
 	secretsRepoMock.On("StoreKeysForApp",
@@ -82,7 +82,7 @@ func TestUpdateApp(t *testing.T) {
 
 	resp := testHTTPPut(t, addr+"/v1/applications/111-222-333", app2)
 	appRepoMock.AssertCalled(t, "RetrieveApplication", "111-222-333")
-	appRepoMock.AssertCalled(t, "StoreApplication", &app2)
+	appRepoMock.AssertCalled(t, "UpdateApplication", &app2)
 	secretsRepoMock.AssertNotCalled(t, "StoreKeysForApp")
 
 	checkResponseStatus(t, resp, http.StatusNoContent)
@@ -95,7 +95,7 @@ func TestUpdateAppStoreFault(t *testing.T) {
 
 	app := roll.Application{
 		ApplicationName: "ambivilant birds",
-		ClientID: "111-222-333",
+		ClientID:        "111-222-333",
 		DeveloperEmail:  "doug@dev.com",
 		RedirectURI:     "http://localhost:3000/ab",
 		LoginProvider:   "xtrac://localhost:9000",
@@ -103,15 +103,15 @@ func TestUpdateAppStoreFault(t *testing.T) {
 
 	app2 := roll.Application{
 		ApplicationName: "foos",
-		ClientID: "111-222-333",
+		ClientID:        "111-222-333",
 		DeveloperEmail:  "doug@dev.com",
 		RedirectURI:     "http://localhost:3000/ab",
 		LoginProvider:   "xtrac://localhost:9000",
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "111-222-333").Return(&app,nil)
-	appRepoMock.On("StoreApplication", &app2).Return(errors.New("boom!"))
+	appRepoMock.On("RetrieveApplication", "111-222-333").Return(&app, nil)
+	appRepoMock.On("UpdateApplication", &app2).Return(errors.New("boom!"))
 
 	secretsRepoMock := coreConfig.SecretsRepo.(*mocks.SecretsRepo)
 	secretsRepoMock.On("StoreKeysForApp",
@@ -119,7 +119,7 @@ func TestUpdateAppStoreFault(t *testing.T) {
 
 	resp := testHTTPPut(t, addr+"/v1/applications/111-222-333", app2)
 	appRepoMock.AssertCalled(t, "RetrieveApplication", "111-222-333")
-	appRepoMock.AssertCalled(t, "StoreApplication", &app2)
+	appRepoMock.AssertCalled(t, "UpdateApplication", &app2)
 	secretsRepoMock.AssertNotCalled(t, "StoreKeysForApp")
 
 	checkResponseStatus(t, resp, http.StatusInternalServerError)
@@ -190,9 +190,9 @@ func TestUpdateAppNotFound(t *testing.T) {
 	checkResponseStatus(t, resp, http.StatusNotFound)
 }
 
-type BadIDGenerator struct {}
+type BadIDGenerator struct{}
 
-func (big BadIDGenerator) GenerateID()(string, error) {
+func (big BadIDGenerator) GenerateID() (string, error) {
 	return "", errors.New("whoops")
 }
 
@@ -221,7 +221,6 @@ func TestStoreAppContentValidationFault(t *testing.T) {
 	ln, addr := TestServer(t, core)
 	defer ln.Close()
 
-
 	app := roll.Application{
 		ApplicationName: "ambivilant birds",
 		DeveloperEmail:  "yeah yeah yeah",
@@ -234,7 +233,6 @@ func TestStoreAppContentValidationFault(t *testing.T) {
 
 	checkResponseStatus(t, resp, http.StatusBadRequest)
 }
-
 
 func TestStoreAppStoreFault(t *testing.T) {
 	core, coreConfig := NewTestCore()
@@ -249,19 +247,18 @@ func TestStoreAppStoreFault(t *testing.T) {
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("StoreApplication", mock.AnythingOfType("*roll.Application")).Return(errors.New("storage fault"))
+	appRepoMock.On("CreateApplication", mock.AnythingOfType("*roll.Application")).Return(errors.New("storage fault"))
 
 	secretsRepoMock := coreConfig.SecretsRepo.(*mocks.SecretsRepo)
 	secretsRepoMock.On("StoreKeysForApp",
 		mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(nil).Once()
 
 	resp := testHTTPPost(t, addr+"/v1/applications", app)
-	appRepoMock.AssertCalled(t, "StoreApplication", mock.AnythingOfType("*roll.Application"))
+	appRepoMock.AssertCalled(t, "CreateApplication", mock.AnythingOfType("*roll.Application"))
 	secretsRepoMock.AssertExpectations(t)
 
 	checkResponseStatus(t, resp, http.StatusInternalServerError)
 }
-
 
 func TestUpdateAppNoResource(t *testing.T) {
 	core, _ := NewTestCore()
@@ -291,7 +288,6 @@ func TestUpdateAppNoResource(t *testing.T) {
 	checkResponseStatus(t, resp, http.StatusBadRequest)
 
 }
-
 
 func TestStoreAppBodyParseError(t *testing.T) {
 	core, _ := NewTestCore()
@@ -336,7 +332,7 @@ func TestAppUnsupportedMethodBaseURI(t *testing.T) {
 	ln, addr := TestServer(t, core)
 	defer ln.Close()
 
-	req,err := http.NewRequest("OPTIONS" ,addr + "/v1/applications", nil)
+	req, err := http.NewRequest("OPTIONS", addr+"/v1/applications", nil)
 	assert.Nil(t, err)
 
 	client := http.Client{}
@@ -350,7 +346,7 @@ func TestAppUnsupportedMethodExtendedURI(t *testing.T) {
 	ln, addr := TestServer(t, core)
 	defer ln.Close()
 
-	req,err := http.NewRequest("OPTIONS" ,addr + "/v1/applications/", nil)
+	req, err := http.NewRequest("OPTIONS", addr+"/v1/applications/", nil)
 	assert.Nil(t, err)
 
 	client := http.Client{}
@@ -358,7 +354,6 @@ func TestAppUnsupportedMethodExtendedURI(t *testing.T) {
 	assert.Nil(t, err)
 	checkResponseStatus(t, resp, http.StatusMethodNotAllowed)
 }
-
 
 func TestStoreAppInvalidContent(t *testing.T) {
 	core, _ := NewTestCore()
@@ -376,7 +371,6 @@ func TestStoreAppInvalidContent(t *testing.T) {
 	resp := testHTTPPut(t, addr+"/v1/applications/1111-2222-3333333-4444444", app)
 	checkResponseStatus(t, resp, http.StatusBadRequest)
 }
-
 
 func TestGetApplication(t *testing.T) {
 	t.Log("xxxxxxxxxxxxxxxxxxxxxxx")
@@ -416,7 +410,6 @@ func TestGetApplication(t *testing.T) {
 	assert.Equal(t, "xtrac://localhost:9000", actual.LoginProvider)
 
 }
-
 
 func TestGetApplications(t *testing.T) {
 	core, coreConfig := NewTestCore()
@@ -475,7 +468,6 @@ func TestGetApplicationsReposError(t *testing.T) {
 	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 
 }
-
 
 func TestRetrieveOfNonexistantApp(t *testing.T) {
 	core, coreConfig := NewTestCore()
