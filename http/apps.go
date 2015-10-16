@@ -24,6 +24,8 @@ func handleApplicationsBase(core *roll.Core) http.Handler {
 		switch r.Method {
 		case "POST":
 			handleApplicationPost(core, w, r)
+		case "GET":
+			listApplications(core,w,r)
 		default:
 			respondError(w, http.StatusMethodNotAllowed, errors.New("Method not allowed"))
 		}
@@ -43,6 +45,12 @@ func handleApplications(core *roll.Core) http.Handler {
 }
 
 func retrieveApplication(clientID string, core *roll.Core, w http.ResponseWriter, r *http.Request) {
+	log.Println("ret appl called", clientID)
+	if clientID == "" {
+		respondError(w, http.StatusNotFound, errors.New("Resource not specified"))
+		return
+	}
+
 	app, err := core.RetrieveApplication(clientID)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, err)
@@ -56,6 +64,7 @@ func retrieveApplication(clientID string, core *roll.Core, w http.ResponseWriter
 
 	respondOk(w, app)
 }
+
 
 func listApplications(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 	apps, err := core.ListApplications()
@@ -68,32 +77,9 @@ func listApplications(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 }
 
 func handleApplicationGet(core *roll.Core, w http.ResponseWriter, r *http.Request) {
+	log.Println("handleApplicationGet called")
 	clientID := strings.TrimPrefix(r.RequestURI, ApplicationsURI)
-	switch clientID {
-	case "":
-		listApplications(core, w, r)
-	default:
-		retrieveApplication(clientID, core, w, r)
-	}
-
-	/*if clientID == "" {
-		respondNotFound(w)
-		return
-	}
-
-	app, err := core.RetrieveApplication(clientID)
-	if err != nil {
-		respondError(w, http.StatusInternalServerError, err)
-		return
-	}
-
-	if app == nil {
-		respondNotFound(w)
-		return
-	}
-
-	respondOk(w, app)
-	*/
+	retrieveApplication(clientID, core, w, r)
 }
 
 func handleApplicationPost(core *roll.Core, w http.ResponseWriter, r *http.Request) {

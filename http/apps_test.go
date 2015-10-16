@@ -411,7 +411,7 @@ func TestGetApplication(t *testing.T) {
 
 }
 
-func TestGetApplications(t *testing.T) {
+func TestGetApplicationsOK(t *testing.T) {
 	core, coreConfig := NewTestCore()
 	ln, addr := TestServer(t, core)
 	defer ln.Close()
@@ -437,7 +437,7 @@ func TestGetApplications(t *testing.T) {
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
 	appRepoMock.On("ListApplications").Return(returnVal, nil)
 
-	resp := testHTTPGet(t, addr+"/v1/applications/", nil)
+	resp := testHTTPGet(t, addr+"/v1/applications", nil)
 	appRepoMock.AssertCalled(t, "ListApplications")
 
 	var actual []roll.Application
@@ -462,7 +462,7 @@ func TestGetApplicationsReposError(t *testing.T) {
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
 	appRepoMock.On("ListApplications").Return(nil, errors.New("db error"))
 
-	resp := testHTTPGet(t, addr+"/v1/applications/", nil)
+	resp := testHTTPGet(t, addr+"/v1/applications", nil)
 	appRepoMock.AssertCalled(t, "ListApplications")
 
 	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
