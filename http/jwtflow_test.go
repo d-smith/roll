@@ -185,7 +185,7 @@ func TestJWTFlowSetupAppUpdateError(t *testing.T) {
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
 	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
-	appRepoMock.On("StoreApplication", &storeVal).Return(errors.New("Ummm"))
+	appRepoMock.On("UpdateApplication", &storeVal).Return(errors.New("Ummm"))
 
 	resp, err := http.PostForm(addr+JWTFlowCertsURI+"1111-2222-3333333-4444444",
 		url.Values{"client_secret": {"foo"},
@@ -221,7 +221,7 @@ func TestJWTFlowSetupAppUpdateOk(t *testing.T) {
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
 	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
-	appRepoMock.On("StoreApplication", &storeVal).Return(nil)
+	appRepoMock.On("UpdateApplication", &storeVal).Return(nil)
 
 	resp, err := http.PostForm(addr+JWTFlowCertsURI+"1111-2222-3333333-4444444",
 		url.Values{"client_secret": {"foo"},

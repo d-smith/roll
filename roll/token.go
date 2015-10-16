@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	jwt "github.com/dgrijalva/jwt-go"
-	"github.com/nu7hatch/gouuid"
 	"log"
 	"time"
 )
@@ -13,12 +12,14 @@ import (
 //OAuth2 flow
 const XtAuthCodeScope = "xtAuthCode"
 
+var idGenerator IdGenerator = UUIDIdGenerator{}
+
 //GenerateToken generates a signed JWT for an application using the
 //provided private key which is assocaited with the application.
 func GenerateToken(app *Application, privateKey string) (string, error) {
 	t := jwt.New(jwt.GetSigningMethod("RS256"))
 
-	u, err := uuid.NewV4()
+	jti, err := idGenerator.GenerateID()
 	if err != nil {
 		return "", err
 	}
@@ -26,7 +27,7 @@ func GenerateToken(app *Application, privateKey string) (string, error) {
 	t.Claims["aud"] = app.ClientID
 	t.Claims["iat"] = int64(time.Now().Unix())
 	t.Claims["exp"] = time.Now().Add(24 * time.Hour).Unix()
-	t.Claims["jti"] = u.String()
+	t.Claims["jti"] = jti
 	t.Claims["application"] = app.ApplicationName
 
 	signKey, err := jwt.ParseRSAPrivateKeyFromPEM([]byte(privateKey))
@@ -47,13 +48,13 @@ func GenerateToken(app *Application, privateKey string) (string, error) {
 func GenerateCode(app *Application, privateKey string) (string, error) {
 	t := jwt.New(jwt.GetSigningMethod("RS256"))
 
-	u, err := uuid.NewV4()
+	jti, err := idGenerator.GenerateID()
 	if err != nil {
 		return "", err
 	}
 
 	t.Claims["aud"] = app.ClientID
-	t.Claims["jti"] = u.String()
+	t.Claims["jti"] = jti
 	t.Claims["exp"] = time.Now().Add(30 * time.Second).Unix()
 	t.Claims["scope"] = XtAuthCodeScope
 

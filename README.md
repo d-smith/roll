@@ -127,9 +127,9 @@ XTRAC login if you used xtrac://localhost:2000 as the login provider. We assume 
 ./cbserver -port 2000
 </pre>
 
-#### Data Setup
+#### API Examples
 
-Register a dev:
+Create Developer
 
 <pre>
 curl -v -X PUT -d '
@@ -140,31 +140,49 @@ curl -v -X PUT -d '
 }' localhost:3000/v1/developers/doug@dev.com
 </pre>
 
-Retrieve a dev:
+Retrieve a Developer
 
 <pre>
-curl -v localhost:3000/v1/developers/doug@dev.com
+curl localhost:3000/v1/developers/doug@dev.com
+{"FirstName":"Doug","LastName":"Dev","Email":"doug@dev.com","ID":""}
 </pre>
 
-
-Register an app:
+List Developers
 
 <pre>
-curl -X PUT -d '{
-"ClientID":"111-222-3333",
+curl localhost:3000/v1/developers/
+[{"FirstName":"Doug","LastName":"Dev","Email":"doug@dev.com","ID":""}]
+</pre>
+
+Register an application
+
+<pre>
+curl -X POST -d '{
 "ApplicationName":"App No. 4",
 "DeveloperEmail":"doug@dev.com",
 "RedirectURI":"http://localhost:2000/oauth2_callback",
 "LoginProvider":"xtrac://localhost:2000"
-}' localhost:3000/v1/applications/111-222-3333
+}' localhost:3000/v1/applications
+{"client_id":"c594d77b-cf6b-4d64-5866-92ae13815935"}
 </pre>
 
-Retrieve registered app:
+Update an application
 
 <pre>
-curl -v localhost:3000/v1/applications/111-222-3333
+curl -v -X PUT -d '{
+"ApplicationName":"App No. Four",
+"DeveloperEmail":"doug@dev.com",
+"RedirectURI":"http://localhost:2000/oauth2_callback",
+"LoginProvider":"xtrac://localhost:2000"
+}' localhost:3000/v1/applications/c594d77b-cf6b-4d64-5866-92ae13815935
 </pre>
 
+Retrieve an Application
+
+<pre>
+curl localhost:3000/v1/applications/c594d77b-cf6b-4d64-5866-92ae13815935
+{"DeveloperEmail":"doug@dev.com","ClientID":"c594d77b-cf6b-4d64-5866-92ae13815935","ApplicationName":"App No. Four","ClientSecret":"dKjpbJFsi9ibfxrD14hUM9mIhHcVACxDw7rW1zg0Qb0=","RedirectURI":"http://localhost:2000/oauth2_callback","LoginProvider":"xtrac://localhost:2000","JWTFlowPublicKey":""}
+</pre>
 
 #### Executing the flow
 

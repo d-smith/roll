@@ -17,7 +17,7 @@ func main() {
 				AttributeType: aws.String("S"),
 			},
 			{
-				AttributeName: aws.String("EMail"),
+				AttributeName: aws.String("DeveloperEmail"),
 				AttributeType: aws.String("S"),
 			},
 		},
@@ -37,7 +37,7 @@ func main() {
 				IndexName: aws.String("EMail-Index"),
 				KeySchema: []*dynamodb.KeySchemaElement{
 					{ // Required
-						AttributeName: aws.String("EMail"),
+						AttributeName: aws.String("DeveloperEmail"),
 						KeyType:       aws.String("HASH"),
 					},
 					// More values...

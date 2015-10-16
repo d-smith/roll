@@ -10,8 +10,22 @@ import (
 
 const (
 	//DevelopersBaseURI is the base uri for the service.
-	DevelopersBaseURI = "/v1/developers/"
+	DevelopersBaseURI = "/v1/developers"
+
+	//DevelopersURI is for specific resources
+	DevelopersURI = DevelopersBaseURI + "/"
 )
+
+func handleDevelopersBase(core *roll.Core) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case "GET":
+			listDevelopers(core, w, r)
+		default:
+			respondError(w, http.StatusMethodNotAllowed, errors.New("Method not allowed"))
+		}
+	})
+}
 
 func handleDevelopers(core *roll.Core) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -58,14 +72,12 @@ func retrieveDeveloper(email string, core *roll.Core, w http.ResponseWriter, r *
 }
 
 func handleDeveloperGet(core *roll.Core, w http.ResponseWriter, r *http.Request) {
-	email := strings.TrimPrefix(r.RequestURI, DevelopersBaseURI)
-	switch email {
-	case "":
-		listDevelopers(core, w, r)
-	default:
-		retrieveDeveloper(email, core, w, r)
+	email := strings.TrimPrefix(r.RequestURI, DevelopersURI)
+	if email == "" {
+		respondError(w, http.StatusNotFound, errors.New("Missing resource"))
+		return
 	}
-
+	retrieveDeveloper(email, core, w, r)
 }
 
 func handleDeveloperPut(core *roll.Core, w http.ResponseWriter, r *http.Request) {
@@ -80,14 +92,14 @@ func handleDeveloperPut(core *roll.Core, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	email := strings.TrimPrefix(r.RequestURI, DevelopersBaseURI)
+	email := strings.TrimPrefix(r.RequestURI, DevelopersURI)
 
-	//Ensure the email in the payload is the same as in the resource
-	if dev.Email != email {
-		respondError(w, http.StatusBadRequest, errors.New("email in body does not match email in request uri"))
-		return
-	}
+	//If the user included the email inf the body we ignore it. Ignoring it lets us reuse the
+	//developer struct for parsing the request, instead of having a projection of the developer
+	//structure used to parse the input
+	dev.Email = email
 
+	//Store the developer information
 	if err := core.StoreDeveloper(&dev); err != nil {
 		respondError(w, http.StatusInternalServerError, err)
 		return

@@ -9,6 +9,7 @@ type Core struct {
 	developerRepo   DeveloperRepo
 	ApplicationRepo ApplicationRepo
 	SecretsRepo     SecretsRepo
+	IdGenerator     IdGenerator
 }
 
 //CoreConfig is a structure used to inject infrastructure dependency implementations into
@@ -17,6 +18,7 @@ type CoreConfig struct {
 	DeveloperRepo   DeveloperRepo
 	ApplicationRepo ApplicationRepo
 	SecretsRepo     SecretsRepo
+	IdGenerator     IdGenerator
 }
 
 //NewCore creates a new Core instance injecting dependencies from the CoreConfig argument
@@ -31,13 +33,18 @@ func NewCore(config *CoreConfig) *Core {
 	}
 
 	if config.SecretsRepo == nil {
-		panic(errors.New("core config must specify a repo of secrets persistance"))
+		panic(errors.New("core config must specify a repo for secrets persistance"))
+	}
+
+	if config.IdGenerator == nil {
+		panic(errors.New("core config must specify an id generator"))
 	}
 
 	return &Core{
 		developerRepo:   config.DeveloperRepo,
 		ApplicationRepo: config.ApplicationRepo,
 		SecretsRepo:     config.SecretsRepo,
+		IdGenerator:     config.IdGenerator,
 	}
 }
 
@@ -52,8 +59,13 @@ func (core *Core) RetrieveDeveloper(email string) (*Developer, error) {
 }
 
 //StoreApplication stores an application using the embedded Application repository
-func (core *Core) StoreApplication(app *Application) error {
-	return core.ApplicationRepo.StoreApplication(app)
+func (core *Core) CreateApplication(app *Application) error {
+	return core.ApplicationRepo.CreateApplication(app)
+}
+
+//StoreApplication stores an application using the embedded Application repository
+func (core *Core) UpdateApplication(app *Application) error {
+	return core.ApplicationRepo.UpdateApplication(app)
 }
 
 //RetrieveApplication retrieves an application using the embedded Application repository
@@ -85,4 +97,8 @@ func (core *Core) ListDevelopers() ([]Developer, error) {
 
 func (core *Core) ListApplications() ([]Application, error) {
 	return core.ApplicationRepo.ListApplications()
+}
+
+func (core *Core) GenerateID() (string, error) {
+	return core.IdGenerator.GenerateID()
 }

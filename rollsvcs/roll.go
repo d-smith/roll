@@ -23,6 +23,7 @@ func main() {
 		DeveloperRepo:   repos.NewDynamoDevRepo(),
 		ApplicationRepo: repos.NewDynamoAppRepo(),
 		SecretsRepo:     repos.NewVaultSecretsRepo(),
+		IdGenerator: new(roll.UUIDIdGenerator),
 	}
 
 	core := roll.NewCore(&coreConfig)
