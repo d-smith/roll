@@ -1,3 +1,4 @@
+internal/runutils/runroll/runroll
 echo/echo
 cbserver/cbserver
 rollsvcs/rollsvcs
