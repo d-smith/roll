@@ -1,6 +1,6 @@
 //This command starts vault in a docker container and spits out the VAULT_ADDR and VAULT_TOKEN to use when running
 //roll integration tests
-package main
+package runutils
 
 import (
 	"github.com/xtraclabs/roll/internal/dockerutil"
@@ -9,6 +9,10 @@ import (
 	"net/http"
 	"github.com/samalba/dockerclient"
 	"time"
+	"os"
+	"os/signal"
+	"github.com/xtraclabs/roll/rollsvcs"
+	"fmt"
 )
 
 
@@ -117,4 +121,43 @@ func stopVaultOnShutdown(containerId string, docker *dockerclient.DockerClient) 
 	log.Println("... stopping container", containerId, "...")
 	docker.StopContainer(containerId, 5)
 	docker.RemoveContainer(containerId, true, false)
+}
+
+func RunVaultAndRoll() chan bool {
+	//Grab the environment
+	dockerHost, dockerCertPath := dockerutil.ReadDockerEnv()
+
+	// Init the client
+	log.Println("Create docker client")
+	docker, _ := dockerclient.NewDockerClient(dockerHost, dockerutil.BuildDockerTLSConfig(dockerCertPath))
+
+	containerName, token := runVault(docker)
+
+	log.Printf("export VAULT_TOKEN=%s\n", token)
+	log.Println("export VAULT_ADDR=http://localhost:8200")
+
+	//Set up interrupt signal handler
+	signalChan := make(chan os.Signal, 1)
+	shutdownDone := make(chan bool)
+	signal.Notify(signalChan, os.Interrupt)
+
+	//Run the server
+	go func() {
+		os.Setenv("VAULT_TOKEN", token)
+		os.Setenv("VAULT_ADDR", "http://localhost:8200")
+
+		coreConfig := rollsvcs.DefaultConfig()
+		rollsvcs.RunRoll(3000,coreConfig)
+	}()
+
+	//Handler shutdown
+	go func() {
+		for _ = range signalChan {
+			fmt.Println("\nReceived an interrupt, stopping roll...")
+			stopVaultOnShutdown(containerName, docker)
+			shutdownDone <- true
+		}
+	}()
+
+	return shutdownDone
 }
