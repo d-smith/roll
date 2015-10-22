@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"github.com/samalba/dockerclient"
 	"time"
-	"fmt"
 )
 
 
@@ -80,7 +79,7 @@ func initializeVault() string {
 	return unsealVault(vc, initResponse)
 }
 
-func runVault(docker *dockerclient.DockerClient) string {
+func runVault(docker *dockerclient.DockerClient) (string,string) {
 	var bootedContainer bool
 
 	//Is vault running?
@@ -90,7 +89,7 @@ func runVault(docker *dockerclient.DockerClient) string {
 	if info != nil {
 		log.Println("Vault container found - state is: ", info.State.StateString())
 		log.Fatal("You must kill and remove the container manually - can't get the root token from an existing container in this test")
-		return "" //not reached
+		return "", "" //not reached
 	}
 
 	log.Println("Vault is not running - create container context")
@@ -99,31 +98,23 @@ func runVault(docker *dockerclient.DockerClient) string {
 
 	//Create and start the container.
 	log.Println("Create and start the container")
-	dockerutil.CreateAndStartContainer(docker, []string{"IPC_LOCK"}, nil, vaultContainerCtx)
+	containerId := dockerutil.CreateAndStartContainer(docker, []string{"IPC_LOCK"}, nil, vaultContainerCtx)
 
 	if bootedContainer {
 		//Give the container a little time to boot
 		time.Sleep(1 * time.Second)
 	}
 
-	info = dockerutil.GetAcceptanceTestContainerInfo(docker, "atest-vault")
 
 	//Now initialize and unseal the damn vault
 	rootToken := initializeVault()
 
-	return rootToken
+	return containerId, rootToken
 }
 
-func main() {
-	//Grab the environment
-	dockerHost, dockerCertPath := dockerutil.ReadDockerEnv()
 
-	// Init the client
-	log.Println("Create docker client")
-	docker, _ := dockerclient.NewDockerClient(dockerHost, dockerutil.BuildDockerTLSConfig(dockerCertPath))
-
-	token := runVault(docker)
-
-	fmt.Printf("export VAULT_TOKEN=%s\n", token)
-	fmt.Println(dockerHost)
+func stopVaultOnShutdown(containerId string, docker *dockerclient.DockerClient) {
+	log.Println("... stopping container", containerId, "...")
+	docker.StopContainer(containerId, 5)
+	docker.RemoveContainer(containerId, true, false)
 }

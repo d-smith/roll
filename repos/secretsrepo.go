@@ -8,29 +8,28 @@ import (
 	"os"
 )
 
-var vaultEndpoint string
-var vaultToken string
 
-func init() {
-	vaultEndpoint = os.Getenv("VAULT_ADDR")
-	if vaultEndpoint == "" {
-		panic(errors.New("Missing Configuration: VAULT_ADDR env variable not specified"))
-	}
-
-	vaultToken = os.Getenv("VAULT_TOKEN")
-	if vaultToken == "" {
-		panic(errors.New("Missing configuration: VAULT_TOKEN env variable not specified"))
-	}
-}
 
 //VaultSecretsRepo provides a Vault implementation of a repository for secrets. See
 //https://vaultproject.io/ for more details on Vault
 type VaultSecretsRepo struct {
+	vaultEndpoint string
+	vaultToken string
 	vaultClient *vault.Client
 }
 
 //NewVaultSecretsRepo returns a new instance of VaultSecretsRepo
 func NewVaultSecretsRepo() *VaultSecretsRepo {
+	vaultEndpoint := os.Getenv("VAULT_ADDR")
+	if vaultEndpoint == "" {
+		panic(errors.New("Missing Configuration: VAULT_ADDR env variable not specified"))
+	}
+
+	vaultToken := os.Getenv("VAULT_TOKEN")
+	if vaultToken == "" {
+		panic(errors.New("Missing configuration: VAULT_TOKEN env variable not specified"))
+	}
+
 	vc, err := vault.NewClient(vault.DefaultConfig())
 	if err != nil {
 		panic(err)
@@ -38,6 +37,8 @@ func NewVaultSecretsRepo() *VaultSecretsRepo {
 
 	return &VaultSecretsRepo{
 		vaultClient: vc,
+		vaultEndpoint: vaultEndpoint,
+		vaultToken: vaultToken,
 	}
 }
 
