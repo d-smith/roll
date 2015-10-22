@@ -158,7 +158,7 @@ Register an application
 
 <pre>
 curl -X POST -d '{
-"ApplicationName":"App No. 4",
+"ApplicationName":"App No. 5",
 "DeveloperEmail":"doug@dev.com",
 "RedirectURI":"http://localhost:2000/oauth2_callback",
 "LoginProvider":"xtrac://localhost:2000"

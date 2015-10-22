@@ -10,9 +10,28 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"github.com/xtraclabs/roll/html"
 )
 
-var templates = template.Must(template.ParseFiles("../html/authorize.html", "../html/authorize3leg.html"))
+var authTemplate *template.Template
+var auth3Template *template.Template
+
+func init() {
+	var err error
+
+	authTemplate = template.New("authorize.html")
+	authTemplate, err = authTemplate.Parse(html.Authorize)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	auth3Template = template.New("authorize3leg.html")
+	auth3Template,err = auth3Template.Parse(html.Authorize3Leg)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
 
 type authPageContext struct {
 	AppName  string
@@ -78,22 +97,22 @@ func validateInputParams(core *roll.Core, r *http.Request) (*roll.Application, e
 
 func executeAuthTemplate(w http.ResponseWriter, r *http.Request, pageCtx *authPageContext) error {
 	responseType := r.FormValue("response_type")
-	var authPage string
+	var authPage *template.Template
 
 	switch responseType {
 	case "token":
-		authPage = "authorize.html"
+		authPage = authTemplate
 	case "code":
-		authPage = "authorize3leg.html"
+		authPage = auth3Template
 	default:
-		authPage = "error"
+		authPage = nil
 	}
 
-	if authPage == "error" {
+	if authPage == nil {
 		return errors.New("Unable to build authorization page for response_type " + responseType)
 	}
 
-	return templates.ExecuteTemplate(w, authPage, pageCtx)
+	return authPage.Execute(w, pageCtx)
 
 }
 
