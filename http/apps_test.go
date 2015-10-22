@@ -33,7 +33,7 @@ func TestStoreAppOK(t *testing.T) {
 	secretsRepoMock.On("StoreKeysForApp",
 		mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(nil).Once()
 
-	resp := testHTTPPost(t, addr+"/v1/applications", app)
+	resp := TestHTTPPost(t, addr+"/v1/applications", app)
 	appRepoMock.AssertCalled(t, "CreateApplication", &app)
 	appRepoMock.AssertExpectations(t)
 	secretsRepoMock.AssertExpectations(t)
@@ -80,7 +80,7 @@ func TestUpdateAppOK(t *testing.T) {
 	secretsRepoMock.On("StoreKeysForApp",
 		mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(nil).Once()
 
-	resp := testHTTPPut(t, addr+"/v1/applications/111-222-333", app2)
+	resp := TestHTTPPut(t, addr+"/v1/applications/111-222-333", app2)
 	appRepoMock.AssertCalled(t, "RetrieveApplication", "111-222-333")
 	appRepoMock.AssertCalled(t, "UpdateApplication", &app2)
 	secretsRepoMock.AssertNotCalled(t, "StoreKeysForApp")
@@ -117,7 +117,7 @@ func TestUpdateAppStoreFault(t *testing.T) {
 	secretsRepoMock.On("StoreKeysForApp",
 		mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(nil).Once()
 
-	resp := testHTTPPut(t, addr+"/v1/applications/111-222-333", app2)
+	resp := TestHTTPPut(t, addr+"/v1/applications/111-222-333", app2)
 	appRepoMock.AssertCalled(t, "RetrieveApplication", "111-222-333")
 	appRepoMock.AssertCalled(t, "UpdateApplication", &app2)
 	secretsRepoMock.AssertNotCalled(t, "StoreKeysForApp")
@@ -142,7 +142,7 @@ func TestStoreAppSecretStoreFault(t *testing.T) {
 	secretsRepoMock.On("StoreKeysForApp",
 		mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(errors.New("secret store error")).Once()
 
-	resp := testHTTPPost(t, addr+"/v1/applications", app)
+	resp := TestHTTPPost(t, addr+"/v1/applications", app)
 	secretsRepoMock.AssertExpectations(t)
 
 	checkResponseStatus(t, resp, http.StatusInternalServerError)
@@ -164,7 +164,7 @@ func TestUpdateAppRetrieveFault(t *testing.T) {
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
 	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(nil, errors.New("kaboom"))
 
-	resp := testHTTPPut(t, addr+"/v1/applications/1111-2222-3333333-4444444", app)
+	resp := TestHTTPPut(t, addr+"/v1/applications/1111-2222-3333333-4444444", app)
 
 	checkResponseStatus(t, resp, http.StatusInternalServerError)
 }
@@ -185,7 +185,7 @@ func TestUpdateAppNotFound(t *testing.T) {
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
 	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(nil, nil)
 
-	resp := testHTTPPut(t, addr+"/v1/applications/1111-2222-3333333-4444444", app)
+	resp := TestHTTPPut(t, addr+"/v1/applications/1111-2222-3333333-4444444", app)
 
 	checkResponseStatus(t, resp, http.StatusNotFound)
 }
@@ -211,7 +211,7 @@ func TestStoreAppIDGenFault(t *testing.T) {
 		LoginProvider:   "xtrac://localhost:9000",
 	}
 
-	resp := testHTTPPost(t, addr+"/v1/applications", app)
+	resp := TestHTTPPost(t, addr+"/v1/applications", app)
 
 	checkResponseStatus(t, resp, http.StatusInternalServerError)
 }
@@ -229,7 +229,7 @@ func TestStoreAppContentValidationFault(t *testing.T) {
 		LoginProvider:   "xtrac://localhost:9000",
 	}
 
-	resp := testHTTPPost(t, addr+"/v1/applications", app)
+	resp := TestHTTPPost(t, addr+"/v1/applications", app)
 
 	checkResponseStatus(t, resp, http.StatusBadRequest)
 }
@@ -253,7 +253,7 @@ func TestStoreAppStoreFault(t *testing.T) {
 	secretsRepoMock.On("StoreKeysForApp",
 		mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(nil).Once()
 
-	resp := testHTTPPost(t, addr+"/v1/applications", app)
+	resp := TestHTTPPost(t, addr+"/v1/applications", app)
 	appRepoMock.AssertCalled(t, "CreateApplication", mock.AnythingOfType("*roll.Application"))
 	secretsRepoMock.AssertExpectations(t)
 
@@ -368,7 +368,7 @@ func TestStoreAppInvalidContent(t *testing.T) {
 		LoginProvider:   "xtrac://localhost:9000",
 	}
 
-	resp := testHTTPPut(t, addr+"/v1/applications/1111-2222-3333333-4444444", app)
+	resp := TestHTTPPut(t, addr+"/v1/applications/1111-2222-3333333-4444444", app)
 	checkResponseStatus(t, resp, http.StatusBadRequest)
 }
 
@@ -392,7 +392,7 @@ func TestGetApplication(t *testing.T) {
 	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
 	t.Log("get get get get get")
-	resp := testHTTPGet(t, addr+"/v1/applications/1111-2222-3333333-4444444", nil)
+	resp := TestHTTPGet(t, addr+"/v1/applications/1111-2222-3333333-4444444", nil)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 	t.Log("assert get was called with the input client id")
@@ -437,7 +437,7 @@ func TestGetApplicationsOK(t *testing.T) {
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
 	appRepoMock.On("ListApplications").Return(returnVal, nil)
 
-	resp := testHTTPGet(t, addr+"/v1/applications", nil)
+	resp := TestHTTPGet(t, addr+"/v1/applications", nil)
 	appRepoMock.AssertCalled(t, "ListApplications")
 
 	var actual []roll.Application
@@ -462,7 +462,7 @@ func TestGetApplicationsReposError(t *testing.T) {
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
 	appRepoMock.On("ListApplications").Return(nil, errors.New("db error"))
 
-	resp := testHTTPGet(t, addr+"/v1/applications", nil)
+	resp := TestHTTPGet(t, addr+"/v1/applications", nil)
 	appRepoMock.AssertCalled(t, "ListApplications")
 
 	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
@@ -477,7 +477,7 @@ func TestRetrieveOfNonexistantApp(t *testing.T) {
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
 	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(nil, nil)
 
-	resp := testHTTPGet(t, addr+"/v1/applications/1111-2222-3333333-4444444", nil)
+	resp := TestHTTPGet(t, addr+"/v1/applications/1111-2222-3333333-4444444", nil)
 	appRepoMock.AssertCalled(t, "RetrieveApplication", "1111-2222-3333333-4444444")
 
 	checkResponseStatus(t, resp, http.StatusNotFound)
@@ -491,7 +491,7 @@ func TestErrorOnAppRetrieve(t *testing.T) {
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
 	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(nil, errors.New("big problem"))
 
-	resp := testHTTPGet(t, addr+"/v1/applications/1111-2222-3333333-4444444", nil)
+	resp := TestHTTPGet(t, addr+"/v1/applications/1111-2222-3333333-4444444", nil)
 	appRepoMock.AssertCalled(t, "RetrieveApplication", "1111-2222-3333333-4444444")
 
 	checkResponseStatus(t, resp, http.StatusInternalServerError)

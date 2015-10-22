@@ -65,25 +65,26 @@ func NewTestCore() (*roll.Core, *roll.CoreConfig) {
 	return roll.NewCore(&coreConfig), &coreConfig
 }
 
-func checkFatal(t *testing.T, err error) {
+func checkFatal(t assert.TestingT, err error) {
 	if err != nil {
-		t.Fatalf("error: %s", err)
+		log.Println("checkFatal passed an error")
+		assert.Fail(t, err.Error())
 	}
 }
 
-func testHTTPGet(t *testing.T, addr string, body interface{}) *http.Response {
+func TestHTTPGet(t assert.TestingT, addr string, body interface{}) *http.Response {
 	return testHTTPData(t, "GET", addr, body)
 }
 
-func testHTTPPut(t *testing.T, addr string, body interface{}) *http.Response {
+func TestHTTPPut(t assert.TestingT, addr string, body interface{}) *http.Response {
 	return testHTTPData(t, "PUT", addr, body)
 }
 
-func testHTTPPost(t *testing.T, addr string, body interface{}) *http.Response {
+func TestHTTPPost(t assert.TestingT, addr string, body interface{}) *http.Response {
 	return testHTTPData(t, "POST", addr, body)
 }
 
-func testHTTPData(t *testing.T, method string, addr string, body interface{}) *http.Response {
+func testHTTPData(t assert.TestingT, method string, addr string, body interface{}) *http.Response {
 	bodyReader := new(bytes.Buffer)
 	if body != nil {
 		enc := json.NewEncoder(bodyReader)

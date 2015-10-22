@@ -24,7 +24,7 @@ func TestStoreDeveloperOK(t *testing.T) {
 	devRepoMock := coreConfig.DeveloperRepo.(*mocks.DeveloperRepo)
 	devRepoMock.On("StoreDeveloper", &dev).Return(nil)
 
-	resp := testHTTPPut(t, addr+"/v1/developers/foo@gmail.com", dev)
+	resp := TestHTTPPut(t, addr+"/v1/developers/foo@gmail.com", dev)
 	devRepoMock.AssertCalled(t, "StoreDeveloper", &dev)
 
 	checkResponseStatus(t, resp, http.StatusNoContent)
@@ -44,7 +44,7 @@ func TestStoreDeveloperStorageFault(t *testing.T) {
 	devRepoMock := coreConfig.DeveloperRepo.(*mocks.DeveloperRepo)
 	devRepoMock.On("StoreDeveloper", &dev).Return(errors.New("can't store"))
 
-	resp := testHTTPPut(t, addr+"/v1/developers/foo@gmail.com", dev)
+	resp := TestHTTPPut(t, addr+"/v1/developers/foo@gmail.com", dev)
 	devRepoMock.AssertCalled(t, "StoreDeveloper", &dev)
 
 	checkResponseStatus(t, resp, http.StatusInternalServerError)
@@ -55,7 +55,7 @@ func TestStoreDeveloperInvalidEmailResource(t *testing.T) {
 	ln, addr := TestServer(t, core)
 	defer ln.Close()
 
-	resp := testHTTPPut(t, addr+"/v1/developers/<script/>", nil)
+	resp := TestHTTPPut(t, addr+"/v1/developers/<script/>", nil)
 	checkResponseStatus(t, resp, http.StatusBadRequest)
 }
 
@@ -89,7 +89,7 @@ func TestStoreDeveloperInvalidContent(t *testing.T) {
 		Email:     "foo@gmail.com",
 	}
 
-	resp := testHTTPPut(t, addr+"/v1/developers/foo@gmail.com", dev)
+	resp := TestHTTPPut(t, addr+"/v1/developers/foo@gmail.com", dev)
 
 	checkResponseStatus(t, resp, http.StatusBadRequest)
 }
@@ -99,7 +99,7 @@ func TestGetDeveloperInvalidEmailResource(t *testing.T) {
 	ln, addr := TestServer(t, core)
 	defer ln.Close()
 
-	resp := testHTTPGet(t, addr+"/v1/developers/<script/>", nil)
+	resp := TestHTTPGet(t, addr+"/v1/developers/<script/>", nil)
 	checkResponseStatus(t, resp, http.StatusBadRequest)
 }
 
@@ -121,7 +121,7 @@ func TestGetDeveloper(t *testing.T) {
 	devRepoMock := coreConfig.DeveloperRepo.(*mocks.DeveloperRepo)
 	devRepoMock.On("RetrieveDeveloper", "joe@dev.com").Return(&roll.Developer{FirstName: "Joe", LastName: "Dev", Email: "joe@dev.com"}, nil)
 
-	resp := testHTTPGet(t, addr+"/v1/developers/joe@dev.com", nil)
+	resp := TestHTTPGet(t, addr+"/v1/developers/joe@dev.com", nil)
 	devRepoMock.AssertCalled(t, "RetrieveDeveloper", "joe@dev.com")
 
 	var actual roll.Developer
@@ -145,7 +145,7 @@ func TestGetDevelopers(t *testing.T) {
 	}
 	devRepoMock.On("ListDevelopers").Return(devs, nil)
 
-	resp := testHTTPGet(t, addr+"/v1/developers", nil)
+	resp := TestHTTPGet(t, addr+"/v1/developers", nil)
 	devRepoMock.AssertCalled(t, "ListDevelopers")
 
 	var actual []roll.Developer
@@ -175,7 +175,7 @@ func TestGetDevelopersDBError(t *testing.T) {
 	devRepoMock := coreConfig.DeveloperRepo.(*mocks.DeveloperRepo)
 	devRepoMock.On("ListDevelopers").Return(nil, errors.New("db error"))
 
-	resp := testHTTPGet(t, addr+"/v1/developers", nil)
+	resp := TestHTTPGet(t, addr+"/v1/developers", nil)
 	devRepoMock.AssertCalled(t, "ListDevelopers")
 
 	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
@@ -189,7 +189,7 @@ func TestGetDeveloperRetrieveError(t *testing.T) {
 	devRepoMock := coreConfig.DeveloperRepo.(*mocks.DeveloperRepo)
 	devRepoMock.On("RetrieveDeveloper", "joe@dev.com").Return(nil, errors.New("retrieve error"))
 
-	resp := testHTTPGet(t, addr+"/v1/developers/joe@dev.com", nil)
+	resp := TestHTTPGet(t, addr+"/v1/developers/joe@dev.com", nil)
 	devRepoMock.AssertCalled(t, "RetrieveDeveloper", "joe@dev.com")
 
 	checkResponseStatus(t, resp, http.StatusInternalServerError)
@@ -203,7 +203,7 @@ func TestGetNonExistentDeveloper(t *testing.T) {
 	devRepoMock := coreConfig.DeveloperRepo.(*mocks.DeveloperRepo)
 	devRepoMock.On("RetrieveDeveloper", "joe@dev.com").Return(nil, nil)
 
-	resp := testHTTPGet(t, addr+"/v1/developers/joe@dev.com", nil)
+	resp := TestHTTPGet(t, addr+"/v1/developers/joe@dev.com", nil)
 	devRepoMock.AssertCalled(t, "RetrieveDeveloper", "joe@dev.com")
 
 	checkResponseStatus(t, resp, http.StatusNotFound)
@@ -218,7 +218,7 @@ func TestCheckResponseStatus(t *testing.T) {
 	devRepoMock := coreConfig.DeveloperRepo.(*mocks.DeveloperRepo)
 	devRepoMock.On("RetrieveDeveloper", "joe@dev.com").Return(nil, nil)
 
-	resp := testHTTPGet(t, addr+"/v1/developers/joe@dev.com", nil)
+	resp := TestHTTPGet(t, addr+"/v1/developers/joe@dev.com", nil)
 	devRepoMock.AssertCalled(t, "RetrieveDeveloper", "joe@dev.com")
 
 	ok := checkResponseStatus(nil, resp, http.StatusOK)

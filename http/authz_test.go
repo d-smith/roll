@@ -198,7 +198,7 @@ func TestHandleAuthorize(t *testing.T) {
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
 	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
-	resp := testHTTPGet(t, addr+"/oauth2/authorize?client_id=1111-2222-3333333-4444444&redirect_uri=http://localhost:3000/ab&response_type=token", nil)
+	resp := TestHTTPGet(t, addr+"/oauth2/authorize?client_id=1111-2222-3333333-4444444&redirect_uri=http://localhost:3000/ab&response_type=token", nil)
 	appRepoMock.AssertCalled(t, "RetrieveApplication", "1111-2222-3333333-4444444")
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
@@ -224,7 +224,7 @@ func TestHandleAuthorizeMissingParams(t *testing.T) {
 	ln, addr := TestServer(t, core)
 	defer ln.Close()
 
-	resp := testHTTPGet(t, addr+"/oauth2/authorize", nil)
+	resp := TestHTTPGet(t, addr+"/oauth2/authorize", nil)
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 }
 
@@ -245,7 +245,7 @@ func TestHandleAuthorizeBadRedirectParam(t *testing.T) {
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
 	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
-	resp := testHTTPGet(t, addr+"/oauth2/authorize?client_id=1111-2222-3333333-4444444&redirect_uri=not-in-the-face&response_type=token", nil)
+	resp := TestHTTPGet(t, addr+"/oauth2/authorize?client_id=1111-2222-3333333-4444444&redirect_uri=not-in-the-face&response_type=token", nil)
 	appRepoMock.AssertCalled(t, "RetrieveApplication", "1111-2222-3333333-4444444")
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 }

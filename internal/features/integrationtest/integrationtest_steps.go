@@ -5,6 +5,7 @@ import (
 	"log"
 	"github.com/xtraclabs/roll/internal/runutils"
 	"syscall"
+	"time"
 )
 
 func init() {
@@ -19,6 +20,8 @@ func init() {
 	GlobalContext.BeforeAll(func() {
 		log.Println("starting test containers")
 		shutdownDone = runutils.RunVaultAndRoll()
+		//TODO - need to signal when the container is ready... for now sleep...
+		time.Sleep(1 * time.Second)
 	})
 
 	GlobalContext.AfterAll(func() {
