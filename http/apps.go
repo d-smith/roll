@@ -182,9 +182,10 @@ func handleApplicationPut(core *roll.Core, w http.ResponseWriter, r *http.Reques
 	storedApp.RedirectURI = app.RedirectURI
 
 	//Store the application definition
-	log.Println("storing app def ", app)
+	log.Println("updating app def ", app)
 	err = core.UpdateApplication(&app)
 	if err != nil {
+		log.Println("Error updating definition: ", err.Error())
 		respondError(w, http.StatusInternalServerError, err)
 		return
 	}

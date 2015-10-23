@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"strings"
+	"log"
 )
 
 func init() {
@@ -20,9 +21,14 @@ func init() {
 	var reRegisterStatus int
 	var duplicationErrorMessage string
 
+	Before("@apptests", func() {
+		testutils.URLGuard("http://localhost:3000/v1/developers")
+	})
+
 	Given(`^a developer registered with the portal$`, func() {
 		dev = testutils.CreateNewTestDev()
 		resp := rollhttp.TestHTTPPut(T, "http://localhost:3000/v1/developers/" + dev.Email, dev)
+		println("resp is", resp)
 		assert.Equal(T, http.StatusNoContent, resp.StatusCode)
 	})
 
@@ -48,19 +54,11 @@ func init() {
 		clientId = appCreatedResponse.ClientID
 	})
 
-	Given(`^a registed application$`, func() {
-		resp := rollhttp.TestHTTPGet(T, "http://localhost:3000/v1/applications/" + clientId, nil)
-		assert.Equal(T, http.StatusOK, resp.StatusCode)
-
-		defer resp.Body.Close()
-		dec := json.NewDecoder(resp.Body)
-		err := dec.Decode(&retrievedApp)
-		assert.Nil(T, err)
-
-
+	Given(`^a registered application$`, func() {
+		retrieveAppDefinition(clientId, &retrievedApp)
 	})
 
-	Then(`^the details assocaited with the application can be retrieved$`, func() {
+	Then(`^the details associated with the application can be retrieved$`, func() {
 		assert.Equal(T, app.ApplicationName, retrievedApp.ApplicationName)
 		assert.Equal(T, app.DeveloperEmail, retrievedApp.DeveloperEmail)
 		assert.Equal(T, app.RedirectURI, retrievedApp.RedirectURI)
@@ -92,4 +90,33 @@ func init() {
 		assert.True(T, strings.Contains(duplicationErrorMessage, "definition exists for application"))
 	})
 
+	Given(`^a registered application to update$`, func() {
+		assert.True(T, len(clientId) > 0)
+	})
+
+	And(`^there are updates to make to the application defnition$`, func() {
+		app.RedirectURI = "http://localhost:3000/son_of_callback"
+	})
+
+	Then(`^the application can be updated$`, func() {
+		resp := rollhttp.TestHTTPPut(T, "http://localhost:3000/v1/applications/" + clientId, app)
+		assert.Equal(T, http.StatusNoContent, resp.StatusCode)
+	})
+
+	And(`^the updates are reflected when retrieving the application definition anew$`, func() {
+		retrieveAppDefinition(clientId, &retrievedApp)
+		assert.Equal(T, "http://localhost:3000/son_of_callback", retrievedApp.RedirectURI)
+	})
+
+}
+
+func retrieveAppDefinition(clientID string, app interface{}) {
+	resp := rollhttp.TestHTTPGet(T, "http://localhost:3000/v1/applications/" + clientID, nil)
+	assert.Equal(T, http.StatusOK, resp.StatusCode)
+
+	defer resp.Body.Close()
+	dec := json.NewDecoder(resp.Body)
+	err := dec.Decode(&app)
+	assert.Nil(T, err)
+	log.Printf("%v\n",app)
 }

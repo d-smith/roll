@@ -1,3 +1,4 @@
+@devtests
 Feature: Developer Tests
 
   Scenario: Developer Registration

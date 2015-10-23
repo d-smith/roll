@@ -35,6 +35,16 @@ func NewDuplicationAppdefError(appName, devEmail string) *DuplicateAppdefError {
 	}
 }
 
+const (
+	ClientID = "ClientID"
+	ApplicationName = "ApplicationName"
+	ClientSecret = "ClientSecret"
+	DeveloperEmail = "DeveloperEmail"
+	RedirectUri = "RedirectUri"
+	LoginProvider = "LoginProvider"
+	JWTFlowPublicKey = "JWTFlowPublicKey"
+)
+
 func (dae *DuplicateAppdefError) Error() string {
 	return fmt.Sprintf("Application definition exists for application name %s and developer email %s",
 		dae.ApplicationName, dae.DeveloperEmail)
@@ -63,16 +73,16 @@ func (dar *DynamoAppRepo) CreateApplication(app *roll.Application) error {
 	}
 
 	appAttrs := map[string]*dynamodb.AttributeValue{
-		"ClientID":        {S: aws.String(app.ClientID)},
-		"ApplicationName": {S: aws.String(app.ApplicationName)},
-		"ClientSecret":    {S: aws.String(app.ClientSecret)},
-		"DeveloperEmail":  {S: aws.String(app.DeveloperEmail)},
-		"RedirectUri":     {S: aws.String(app.RedirectURI)},
-		"LoginProvider":   {S: aws.String(app.LoginProvider)},
+		ClientID:        {S: aws.String(app.ClientID)},
+		ApplicationName: {S: aws.String(app.ApplicationName)},
+		ClientSecret:    {S: aws.String(app.ClientSecret)},
+		DeveloperEmail:  {S: aws.String(app.DeveloperEmail)},
+		RedirectUri:     {S: aws.String(app.RedirectURI)},
+		LoginProvider:   {S: aws.String(app.LoginProvider)},
 	}
 
 	if app.JWTFlowPublicKey != "" {
-		appAttrs["JWTFlowPublicKey"] = &dynamodb.AttributeValue{
+		appAttrs[JWTFlowPublicKey] = &dynamodb.AttributeValue{
 			S: aws.String(app.JWTFlowPublicKey),
 		}
 	}
@@ -94,7 +104,7 @@ func (dar *DynamoAppRepo) UpdateApplication(app *roll.Application) error {
 	updateAttributes := make(map[string]*dynamodb.AttributeValueUpdate)
 
 	if app.LoginProvider != "" {
-		updateAttributes["LoginProvider"] = &dynamodb.AttributeValueUpdate{
+		updateAttributes[LoginProvider] = &dynamodb.AttributeValueUpdate{
 			Action: aws.String(dynamodb.AttributeActionPut),
 			Value: &dynamodb.AttributeValue{
 				S: aws.String(app.LoginProvider),
@@ -103,7 +113,8 @@ func (dar *DynamoAppRepo) UpdateApplication(app *roll.Application) error {
 	}
 
 	if app.RedirectURI != "" {
-		updateAttributes["RedirectURI"] = &dynamodb.AttributeValueUpdate{
+		log.Println("Updating redirect uri:", app.RedirectURI)
+		updateAttributes[RedirectUri] = &dynamodb.AttributeValueUpdate{
 			Action: aws.String(dynamodb.AttributeActionPut),
 			Value: &dynamodb.AttributeValue{
 				S: aws.String(app.RedirectURI),
@@ -112,7 +123,7 @@ func (dar *DynamoAppRepo) UpdateApplication(app *roll.Application) error {
 	}
 
 	if app.JWTFlowPublicKey != "" {
-		updateAttributes["JWTFlowPublicKey"] = &dynamodb.AttributeValueUpdate{
+		updateAttributes[JWTFlowPublicKey] = &dynamodb.AttributeValueUpdate{
 			Action: aws.String(dynamodb.AttributeActionPut),
 			Value: &dynamodb.AttributeValue{
 				S: aws.String(app.JWTFlowPublicKey),
@@ -122,7 +133,7 @@ func (dar *DynamoAppRepo) UpdateApplication(app *roll.Application) error {
 
 	if app.ApplicationName != "" {
 		log.Println("Updating application name:", app.ApplicationName)
-		updateAttributes["ApplicationName"] = &dynamodb.AttributeValueUpdate{
+		updateAttributes[ApplicationName] = &dynamodb.AttributeValueUpdate{
 			Action: aws.String(dynamodb.AttributeActionPut),
 			Value: &dynamodb.AttributeValue{
 				S: aws.String(app.ApplicationName),
@@ -133,7 +144,7 @@ func (dar *DynamoAppRepo) UpdateApplication(app *roll.Application) error {
 	params := &dynamodb.UpdateItemInput{
 		TableName: aws.String("Application"),
 		Key: map[string]*dynamodb.AttributeValue{
-			"ClientID": {S: aws.String(app.ClientID)},
+			ClientID: {S: aws.String(app.ClientID)},
 		},
 		AttributeUpdates: updateAttributes,
 	}
@@ -167,13 +178,13 @@ func (dar *DynamoAppRepo) RetrieveAppByNameAndDevEmail(appName, email string) (*
 	}
 
 	return &roll.Application{
-		ClientID:         extractString(resp.Items[0]["ClientID"]),
-		ApplicationName:  extractString(resp.Items[0]["ApplicationName"]),
-		ClientSecret:     extractString(resp.Items[0]["ClientSecret"]),
-		DeveloperEmail:   extractString(resp.Items[0]["DeveloperEmail"]),
-		RedirectURI:      extractString(resp.Items[0]["RedirectUri"]),
-		LoginProvider:    extractString(resp.Items[0]["LoginProvider"]),
-		JWTFlowPublicKey: extractString(resp.Items[0]["JWTFlowPublicKey"]),
+		ClientID:         extractString(resp.Items[0][ClientID]),
+		ApplicationName:  extractString(resp.Items[0][ApplicationName]),
+		ClientSecret:     extractString(resp.Items[0][ClientSecret]),
+		DeveloperEmail:   extractString(resp.Items[0][DeveloperEmail]),
+		RedirectURI:      extractString(resp.Items[0][RedirectUri]),
+		LoginProvider:    extractString(resp.Items[0][LoginProvider]),
+		JWTFlowPublicKey: extractString(resp.Items[0][JWTFlowPublicKey]),
 	}, nil
 }
 
@@ -182,7 +193,7 @@ func (dar *DynamoAppRepo) RetrieveApplication(clientID string) (*roll.Applicatio
 	params := &dynamodb.GetItemInput{
 		TableName: aws.String("Application"),
 		Key: map[string]*dynamodb.AttributeValue{
-			"ClientID": {S: aws.String(clientID)},
+			ClientID: {S: aws.String(clientID)},
 		},
 	}
 
@@ -198,13 +209,13 @@ func (dar *DynamoAppRepo) RetrieveApplication(clientID string) (*roll.Applicatio
 
 	log.Println("Load struct with data returned from dynamo")
 	return &roll.Application{
-		ClientID:         extractString(out.Item["ClientID"]),
-		ApplicationName:  extractString(out.Item["ApplicationName"]),
-		ClientSecret:     extractString(out.Item["ClientSecret"]),
-		DeveloperEmail:   extractString(out.Item["DeveloperEmail"]),
-		RedirectURI:      extractString(out.Item["RedirectUri"]),
-		LoginProvider:    extractString(out.Item["LoginProvider"]),
-		JWTFlowPublicKey: extractString(out.Item["JWTFlowPublicKey"]),
+		ClientID:         extractString(out.Item[ClientID]),
+		ApplicationName:  extractString(out.Item[ApplicationName]),
+		ClientSecret:     extractString(out.Item[ClientSecret]),
+		DeveloperEmail:   extractString(out.Item[DeveloperEmail]),
+		RedirectURI:      extractString(out.Item[RedirectUri]),
+		LoginProvider:    extractString(out.Item[LoginProvider]),
+		JWTFlowPublicKey: extractString(out.Item[JWTFlowPublicKey]),
 	}, nil
 }
 
@@ -212,13 +223,13 @@ func (dar *DynamoAppRepo) ListApplications() ([]roll.Application, error) {
 	params := &dynamodb.ScanInput{
 		TableName: aws.String("Application"),
 		AttributesToGet: []*string{
-			aws.String("ClientID"),
-			aws.String("ApplicationName"),
-			aws.String("ClientSecret"),
-			aws.String("DeveloperEmail"),
-			aws.String("RedirectUri"),
-			aws.String("LoginProvider"),
-			aws.String("JWTFlowPublicKey"),
+			aws.String(ClientID),
+			aws.String(ApplicationName),
+			aws.String(ClientSecret),
+			aws.String(DeveloperEmail),
+			aws.String(RedirectUri),
+			aws.String(LoginProvider),
+			aws.String(JWTFlowPublicKey),
 		},
 	}
 
@@ -231,13 +242,13 @@ func (dar *DynamoAppRepo) ListApplications() ([]roll.Application, error) {
 
 	for _, item := range resp.Items {
 		application := roll.Application{
-			ClientID:         extractString(item["ClientID"]),
-			ApplicationName:  extractString(item["ApplicationName"]),
-			ClientSecret:     extractString(item["ClientSecret"]),
-			DeveloperEmail:   extractString(item["DeveloperEmail"]),
-			RedirectURI:      extractString(item["RedirectUri"]),
-			LoginProvider:    extractString(item["LoginProvider"]),
-			JWTFlowPublicKey: extractString(item["JWTFlowPublicKey"]),
+			ClientID:         extractString(item[ClientID]),
+			ApplicationName:  extractString(item[ApplicationName]),
+			ClientSecret:     extractString(item[ClientSecret]),
+			DeveloperEmail:   extractString(item[DeveloperEmail]),
+			RedirectURI:      extractString(item[RedirectUri]),
+			LoginProvider:    extractString(item[LoginProvider]),
+			JWTFlowPublicKey: extractString(item[JWTFlowPublicKey]),
 		}
 
 		apps = append(apps, application)

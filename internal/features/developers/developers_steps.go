@@ -18,6 +18,10 @@ func init() {
 	var newDev roll.Developer
 	var malformed roll.Developer
 
+	Before("@devtests", func() {
+		testutils.URLGuard("http://localhost:3000/v1/developers")
+	})
+
 	Given(`^A developer who registers on the portal$`, func() {
 		log.Println("Create dev with malformed email")
 		newDev = testutils.CreateNewTestDev()
