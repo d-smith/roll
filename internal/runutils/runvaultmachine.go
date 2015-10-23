@@ -3,25 +3,24 @@
 package runutils
 
 import (
-	"github.com/xtraclabs/roll/internal/dockerutil"
+	"fmt"
 	vault "github.com/hashicorp/vault/api"
+	"github.com/samalba/dockerclient"
+	"github.com/xtraclabs/roll/internal/dockerutil"
+	"github.com/xtraclabs/roll/rollsvcs"
 	"log"
 	"net/http"
-	"github.com/samalba/dockerclient"
-	"time"
 	"os"
 	"os/signal"
-	"github.com/xtraclabs/roll/rollsvcs"
-	"fmt"
+	"time"
 )
-
 
 //Here's the assumed docker build commands
 // Vault:
 //	docker build -t "vault-roll" .
 
 const (
-	VaultTestContainer      = "vault-roll"
+	VaultTestContainer = "vault-roll"
 )
 
 func createVaultTestContainerContext() *dockerutil.ContainerContext {
@@ -37,7 +36,6 @@ func createVaultTestContainerContext() *dockerutil.ContainerContext {
 
 	return &containerCtx
 }
-
 
 func fatal(err error) {
 	if err != nil {
@@ -83,7 +81,7 @@ func initializeVault() string {
 	return unsealVault(vc, initResponse)
 }
 
-func runVault(docker *dockerclient.DockerClient) (string,string) {
+func runVault(docker *dockerclient.DockerClient) (string, string) {
 	var bootedContainer bool
 
 	//Is vault running?
@@ -109,13 +107,11 @@ func runVault(docker *dockerclient.DockerClient) (string,string) {
 		time.Sleep(1 * time.Second)
 	}
 
-
 	//Now initialize and unseal the damn vault
 	rootToken := initializeVault()
 
 	return containerId, rootToken
 }
-
 
 func stopVaultOnShutdown(containerId string, docker *dockerclient.DockerClient) {
 	log.Println("... stopping container", containerId, "...")
@@ -147,7 +143,7 @@ func RunVaultAndRoll() chan bool {
 		os.Setenv("VAULT_ADDR", "http://localhost:8200")
 
 		coreConfig := rollsvcs.DefaultConfig()
-		rollsvcs.RunRoll(3000,coreConfig)
+		rollsvcs.RunRoll(3000, coreConfig)
 	}()
 
 	//Handler shutdown

@@ -1,17 +1,14 @@
 package developers
 
-
 import (
 	. "github.com/lsegal/gucumber"
-	"github.com/xtraclabs/roll/roll"
-	rollhttp "github.com/xtraclabs/roll/http"
 	"github.com/stretchr/testify/assert"
-	"net/http"
-	"log"
+	rollhttp "github.com/xtraclabs/roll/http"
 	"github.com/xtraclabs/roll/internal/testutils"
+	"github.com/xtraclabs/roll/roll"
+	"log"
+	"net/http"
 )
-
-
 
 func init() {
 
@@ -36,7 +33,7 @@ func init() {
 	})
 
 	Then(`^They are added to the portal successfully$`, func() {
-		resp := rollhttp.TestHTTPPut(T, "http://localhost:3000/v1/developers/" + newDev.Email, newDev)
+		resp := rollhttp.TestHTTPPut(T, "http://localhost:3000/v1/developers/"+newDev.Email, newDev)
 		assert.Equal(T, http.StatusNoContent, resp.StatusCode)
 	})
 
@@ -44,8 +41,8 @@ func init() {
 		log.Println("Create dev with malformed email")
 		malformed = roll.Developer{
 			FirstName: "test",
-			LastName: "test",
-			Email: "no-good",
+			LastName:  "test",
+			Email:     "no-good",
 		}
 	})
 
@@ -55,7 +52,7 @@ func init() {
 
 	Then(`^An error is returned with StatusBadRequest$`, func() {
 		log.Println("Add dev with malformed email", malformed)
-		resp := rollhttp.TestHTTPPut(T, "http://localhost:3000/v1/developers/" + malformed.Email, malformed)
+		resp := rollhttp.TestHTTPPut(T, "http://localhost:3000/v1/developers/"+malformed.Email, malformed)
 		assert.Equal(T, http.StatusBadRequest, resp.StatusCode)
 	})
 

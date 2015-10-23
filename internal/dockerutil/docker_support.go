@@ -1,6 +1,5 @@
 package dockerutil
 
-
 import (
 	"crypto/tls"
 	"crypto/x509"

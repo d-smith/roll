@@ -2,8 +2,8 @@ package integrationtest
 
 import (
 	. "github.com/lsegal/gucumber"
-	"log"
 	"github.com/xtraclabs/roll/internal/runutils"
+	"log"
 	"syscall"
 	"time"
 )
@@ -30,6 +30,5 @@ func init() {
 		<-shutdownDone
 		//Send signal
 	})
-
 
 }

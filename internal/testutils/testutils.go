@@ -2,10 +2,10 @@ package testutils
 
 import (
 	"fmt"
-	"time"
 	"github.com/xtraclabs/roll/roll"
 	"log"
 	"net/http"
+	"time"
 )
 
 func NewDevTestEmail() string {
@@ -15,8 +15,8 @@ func NewDevTestEmail() string {
 func CreateNewTestDev() roll.Developer {
 	return roll.Developer{
 		FirstName: "test",
-		LastName: "test",
-		Email: NewDevTestEmail(),
+		LastName:  "test",
+		Email:     NewDevTestEmail(),
 	}
 }
 
@@ -31,7 +31,7 @@ func URLGuard(url string) {
 		}
 
 		count += 1
-		time.Sleep(1*time.Second)
+		time.Sleep(1 * time.Second)
 	}
 
 	log.Println("acceptance tests ready for action boss")
