@@ -3,6 +3,7 @@ package http
 import (
 	"errors"
 	"fmt"
+	"github.com/xtraclabs/roll/html"
 	"github.com/xtraclabs/roll/login"
 	"github.com/xtraclabs/roll/roll"
 	"html/template"
@@ -10,7 +11,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"github.com/xtraclabs/roll/html"
 )
 
 var authTemplate *template.Template
@@ -26,12 +26,11 @@ func init() {
 	}
 
 	auth3Template = template.New("authorize3leg.html")
-	auth3Template,err = auth3Template.Parse(html.Authorize3Leg)
+	auth3Template, err = auth3Template.Parse(html.Authorize3Leg)
 	if err != nil {
 		log.Fatal(err)
 	}
 }
-
 
 type authPageContext struct {
 	AppName  string

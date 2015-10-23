@@ -2,6 +2,7 @@ package http
 
 import (
 	"errors"
+	"github.com/xtraclabs/roll/repos"
 	"github.com/xtraclabs/roll/roll"
 	"github.com/xtraclabs/roll/secrets"
 	"log"
@@ -105,6 +106,20 @@ func handleApplicationPost(core *roll.Core, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	//Store the application definition
+	log.Println("storing app def ", app)
+	err = core.CreateApplication(&app)
+	if err != nil {
+		switch err.(type) {
+		case *repos.DuplicateAppdefError:
+			respondError(w, http.StatusConflict, err)
+		default:
+			respondError(w, http.StatusInternalServerError, err)
+		}
+
+		return
+	}
+
 	//Generate a private/public key pair
 	private, public, err := secrets.GenerateKeyPair()
 	if err != nil {
@@ -114,14 +129,6 @@ func handleApplicationPost(core *roll.Core, w http.ResponseWriter, r *http.Reque
 
 	//Store keys in secrets vault
 	err = core.StoreKeysForApp(id, private, public)
-	if err != nil {
-		respondError(w, http.StatusInternalServerError, err)
-		return
-	}
-
-	//Store the application definition
-	log.Println("storing app def ", app)
-	err = core.CreateApplication(&app)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, err)
 		return

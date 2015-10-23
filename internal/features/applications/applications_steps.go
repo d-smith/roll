@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"github.com/stretchr/testify/assert"
 	"encoding/json"
+	"io/ioutil"
+	"strings"
 )
 
 func init() {
@@ -15,6 +17,8 @@ func init() {
 	var app roll.Application
 	var retrievedApp roll.Application
 	var clientId string
+	var reRegisterStatus int
+	var duplicationErrorMessage string
 
 	Given(`^a developer registered with the portal$`, func() {
 		dev = testutils.CreateNewTestDev()
@@ -64,6 +68,28 @@ func init() {
 		assert.Equal(T, clientId, retrievedApp.ClientID)
 		assert.True(T, len(retrievedApp.ClientSecret) > 0)
 		assert.Equal(T, retrievedApp.JWTFlowPublicKey,"")
+	})
+
+	Given(`^an application has already been registered$`, func() {
+		assert.True(T, len(clientId) > 0)
+	})
+
+	And(`^a developer attempts to register an application with the same name$`, func() {
+		resp := rollhttp.TestHTTPPost(T, "http://localhost:3000/v1/applications", app)
+		reRegisterStatus = resp.StatusCode
+
+		defer resp.Body.Close()
+		bodyBytes,err  := ioutil.ReadAll(resp.Body)
+		assert.Nil(T, err)
+		duplicationErrorMessage = string(bodyBytes)
+	})
+
+	Then(`^an error is returned with status code StatusConflict$`, func() {
+		assert.Equal(T, http.StatusConflict, reRegisterStatus)
+	})
+
+	And(`^the error message indicates a duplicate registration was attempted$`, func() {
+		assert.True(T, strings.Contains(duplicationErrorMessage, "definition exists for application"))
 	})
 
 }
