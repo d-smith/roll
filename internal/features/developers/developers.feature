@@ -10,8 +10,3 @@ Feature: Developer Tests
     Given a developer who registers on the portal
     And They provide a malformed email
     Then An error is returned with StatusBadRequest
-
-  Scenario: Registration Exists for Email
-    Given A developer attempts to register on the portal
-    And A registration is already associated with that email
-    Then An error is returned with StatusConflict

@@ -61,17 +61,5 @@ func init() {
 		resp := rollhttp.TestHTTPPut(T, "http://localhost:3000/v1/developers/" + malformed.Email, malformed)
 		assert.Equal(T, http.StatusBadRequest, resp.StatusCode)
 	})
-
-	Given(`^A developer attempts to register on the portal$`, func() {
-		T.Skip() // pending
-	})
-
-	And(`^A registration is already associated with that email$`, func() {
-		T.Skip() // pending
-	})
-
-	Then(`^An error is returned with StatusConflict$`, func() {
-		T.Skip() // pending
-	})
-
+	
 }
