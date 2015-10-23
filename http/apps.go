@@ -17,7 +17,7 @@ const (
 	ApplicationsURI = ApplicationsBaseURI + "/"
 )
 
-type clientID struct {
+type ApplicationCreatedResponse struct {
 	ClientID string `json:"client_id"`
 }
 
@@ -128,7 +128,7 @@ func handleApplicationPost(core *roll.Core, w http.ResponseWriter, r *http.Reque
 	}
 
 	//Return the client id
-	clientID := clientID{ClientID: id}
+	clientID := ApplicationCreatedResponse{ClientID: id}
 
 	respondOk(w, clientID)
 

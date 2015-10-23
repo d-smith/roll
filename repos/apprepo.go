@@ -162,8 +162,6 @@ func (dar *DynamoAppRepo) RetrieveAppByNameAndDevEmail(appName, email string) (*
 		return nil, err
 	}
 
-	log.Println("RETURNED THIS MANY", *resp.Count)
-
 	if resp == nil || *resp.Count == 0 {
 		return nil, nil
 	}

@@ -40,7 +40,7 @@ func TestStoreAppOK(t *testing.T) {
 
 	checkResponseStatus(t, resp, http.StatusOK)
 
-	var cid clientID
+	var cid ApplicationCreatedResponse
 
 	defer resp.Body.Close()
 

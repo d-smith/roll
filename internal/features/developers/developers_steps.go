@@ -4,17 +4,14 @@ package developers
 import (
 	. "github.com/lsegal/gucumber"
 	"github.com/xtraclabs/roll/roll"
-	"time"
-	"fmt"
 	rollhttp "github.com/xtraclabs/roll/http"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"log"
+	"github.com/xtraclabs/roll/internal/testutils"
 )
 
-func devEmail() string {
-	return fmt.Sprintf("%d@%d.net", time.Now().Unix(), time.Now().Unix())
-}
+
 
 func init() {
 
@@ -23,11 +20,7 @@ func init() {
 
 	Given(`^A developer who registers on the portal$`, func() {
 		log.Println("Create dev with malformed email")
-		newDev = roll.Developer{
-			FirstName: "test",
-			LastName: "test",
-			Email: devEmail(),
-		}
+		newDev = testutils.CreateNewTestDev()
 	})
 
 	And(`^They have not registered before$`, func() {
@@ -61,5 +54,5 @@ func init() {
 		resp := rollhttp.TestHTTPPut(T, "http://localhost:3000/v1/developers/" + malformed.Email, malformed)
 		assert.Equal(T, http.StatusBadRequest, resp.StatusCode)
 	})
-	
+
 }
