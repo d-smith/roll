@@ -13,6 +13,8 @@ import (
 func init() {
 	var dev roll.Developer
 	var app roll.Application
+	var retrievedApp roll.Application
+	var clientId string
 
 	Given(`^a developer registered with the portal$`, func() {
 		dev = testutils.CreateNewTestDev()
@@ -39,6 +41,29 @@ func init() {
 		err := dec.Decode(&appCreatedResponse)
 		assert.Nil(T, err)
 		assert.True(T, len(appCreatedResponse.ClientID) > 0)
+		clientId = appCreatedResponse.ClientID
+	})
+
+	Given(`^a registed application$`, func() {
+		resp := rollhttp.TestHTTPGet(T, "http://localhost:3000/v1/applications/" + clientId, nil)
+		assert.Equal(T, http.StatusOK, resp.StatusCode)
+
+		defer resp.Body.Close()
+		dec := json.NewDecoder(resp.Body)
+		err := dec.Decode(&retrievedApp)
+		assert.Nil(T, err)
+
+
+	})
+
+	Then(`^the details assocaited with the application can be retrieved$`, func() {
+		assert.Equal(T, app.ApplicationName, retrievedApp.ApplicationName)
+		assert.Equal(T, app.DeveloperEmail, retrievedApp.DeveloperEmail)
+		assert.Equal(T, app.RedirectURI, retrievedApp.RedirectURI)
+		assert.Equal(T, app.LoginProvider, retrievedApp.LoginProvider)
+		assert.Equal(T, clientId, retrievedApp.ClientID)
+		assert.True(T, len(retrievedApp.ClientSecret) > 0)
+		assert.Equal(T, retrievedApp.JWTFlowPublicKey,"")
 	})
 
 }
