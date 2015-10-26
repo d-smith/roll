@@ -1,7 +1,7 @@
 FROM voxxit/base:alpine
 
-ENV http_proxy http://***REMOVED***:8000
-ENV https_proxy http://***REMOVED***:8000
+ENV http_proxy http://proxyhost:proxyport
+ENV https_proxy http://proxyhost:proxyport
 
 ADD vconfig /var/vconfig
 
