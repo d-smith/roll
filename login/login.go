@@ -20,7 +20,7 @@ type XtracLoginKit struct{}
 
 //RequestBuilder builds a login request for logging into XTRAC via the loginXt service
 func (xt *XtracLoginKit) RequestBuilder(username string, password string) string {
-	return `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns="http://xmlns.***REMOVED***/systems/dev/xtrac/2004/06/" xmlns:ser="http://xmlns.***REMOVED***/common/headers/2005/12/ServiceProcessingDirectives" xmlns:ser1="http://xmlns.***REMOVED***/common/headers/2005/12/ServiceCallContext" xmlns:typ="http://xmlns.***REMOVED***/systems/dev/xtrac/2004/06/types">
+	return `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns="http://xmlns.fmr.com/systems/dev/xtrac/2004/06/" xmlns:ser="http://xmlns.fmr.com/common/headers/2005/12/ServiceProcessingDirectives" xmlns:ser1="http://xmlns.fmr.com/common/headers/2005/12/ServiceCallContext" xmlns:typ="http://xmlns.fmr.com/systems/dev/xtrac/2004/06/types">
    <soapenv:Header/>
    <soapenv:Body>
       <ns:loginXt>
