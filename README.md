@@ -81,7 +81,7 @@ variable, e.g.
 export LOCAL_DYNAMO_ADDR=http://localhost:8000
 </pre>
 
-### Build dependencies
+### Build Dependencies
 
 Still need to vendor my dependencies, but they are:
 
@@ -106,6 +106,22 @@ go get github.com/dgrijalva/jwt-go
 go get github.com/nu7hatch/gouuid
 </pre>
 
+### Test Dependencies
+
+To run the integration test, install gucumber:
+
+<pre>
+go get github.com/lsegal/gucumber/cmd/gucumber
+</pre>
+
+You will also need the docker client to run the integration tests.
+
+<pre>
+go get github.com/samalba/dockerclient
+</pre>
+
+Running the integration tests requires docker-machine to be installed. You also need AWS credentials and, if
+behind an http_proxy, set your http_proxy environment variable appropriately.
 
 ### Trying out the Implicit Grant Flow
 
