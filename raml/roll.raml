@@ -1,0 +1,74 @@
+#%RAML 0.8
+title: Roll developer portal services
+version: 1
+schemas:
+  - Developer: !include schemas/developer.json
+    Developers: !include schemas/developers.json
+    Errors: !include schemas/errors.json
+baseUri: http://localhost:3000
+/v1/developers:
+  get:
+    description: |
+      Retrieve a list of developers registered with Roll. Note that a full list is available only to the roll application 'user' - all other callers receive a single 
+      element list containing their details.
+    headers:
+      Authorization:
+        description: |
+          Used to convey a bearer token obtained via one of the roll OAuth 2 flows
+    responses:
+      200:
+        body:
+          application/json:
+            schema: Developers
+      500:
+        body:
+          application/json:
+            schema: Errors
+      
+    
+/v1/developers/{email}:
+  get:
+    description: |
+      Retrieve the developer definition associated with the given email address.
+    headers:
+      Authorization:
+        description: OAuth2 Bearer token
+    responses:
+      200:
+        body:
+          application/json:
+            schema: Developer
+      404:
+        body:
+          application/json:
+            schema: Errors
+      500:
+        body:
+          application/json:
+            schema: Errors
+  put:
+    description: |
+      Register a developer with their email address as their identifier. Note the EMail
+      property in the Developer object is ignored - the email from the full resource
+      URI is considered authoritative for this operation.
+    headers:
+      Authorization:
+        description: OAuth 2 Bearer token
+    body:      
+      application/json:
+        schema: Developer
+    responses:
+      204:
+      400:
+        body:
+          application/json:
+            schema: Errors
+      500:
+        body:
+          application/json:
+            schema: Errors
+            
+            
+          
+
+    

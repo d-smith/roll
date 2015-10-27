@@ -1,0 +1,23 @@
+{
+  "type":"array",
+  "items" : {
+    "title":"Developer",
+    "type":"object",
+    "properties": {
+      "Email": {
+        "type":"string"
+      },
+      "FirstName": {
+        "type":"string"
+      },
+      "LastName": {
+        "type":"string"
+      },
+      "ID": {
+        "type":"string"
+      }
+    }
+  }
+}
+    
+    
