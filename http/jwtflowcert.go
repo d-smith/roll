@@ -23,9 +23,9 @@ var (
 	errInvalidClientSecret = errors.New("")
 )
 
-type certPutCtx struct {
+type CertPutCtx struct {
 	ClientSecret string
-	CertPEM string
+	CertPEM      string
 }
 
 type publicKeyCtx struct {
@@ -98,7 +98,7 @@ func extractPublicKeyFromCert(certPEM string) (string, error) {
 	return string(pemdata), nil
 }
 
-func checkBodyContent(certCtx certPutCtx) error {
+func checkBodyContent(certCtx CertPutCtx) error {
 	if certCtx.ClientSecret == "" {
 		return errors.New("Request has empty ClientSecret")
 	}
@@ -121,7 +121,7 @@ func handleCertPut(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 	log.Println("Putting cert for client_id", clientID)
 
 	//Parse body
-	var certCtx certPutCtx
+	var certCtx CertPutCtx
 	if err := parseRequest(r, &certCtx); err != nil {
 		log.Println("Error parsing request body", err.Error())
 		respondError(w, http.StatusBadRequest, err)
@@ -129,12 +129,15 @@ func handleCertPut(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 	}
 
 	//Check body content
-	err := checkBodyContent(certCtx); if err != nil {
+	log.Println("Checking content")
+	err := checkBodyContent(certCtx)
+	if err != nil {
 		respondError(w, http.StatusBadRequest, err)
 		return
 	}
 
 	//Validate client secret
+	log.Println("validating client secret")
 	app, err := validateClientSecret(core, r, clientID, certCtx.ClientSecret)
 	if err != nil {
 		switch err {
@@ -149,6 +152,7 @@ func handleCertPut(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 	}
 
 	//Extract public key from cert
+	log.Println("Extract public key")
 	publicKeyPEM, err := extractPublicKeyFromCert(certCtx.CertPEM)
 	if err != nil {
 		respondError(w, http.StatusBadRequest, err)
@@ -157,6 +161,7 @@ func handleCertPut(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 
 	//Update the app with the public key. Note here we are adding the cert to the retrieved application
 	//attributes.
+	log.Println("Update app with public key")
 	app.JWTFlowPublicKey = publicKeyPEM
 	err = core.UpdateApplication(app)
 	if err != nil {
@@ -171,7 +176,7 @@ func handleGetPublicKey(core *roll.Core, w http.ResponseWriter, r *http.Request)
 	//Extract client id
 	clientID := strings.TrimPrefix(r.RequestURI, JWTFlowCertsURI)
 	if clientID == "" {
-		respondError(w, http.StatusNotFound, errors.New("Resource not specified"))
+		respondError(w, http.StatusBadRequest, errors.New("Resource not specified"))
 		return
 	}
 
@@ -188,8 +193,8 @@ func handleGetPublicKey(core *roll.Core, w http.ResponseWriter, r *http.Request)
 	}
 
 	pk := publicKeyCtx{
-		PublicKey:app.JWTFlowPublicKey,
+		PublicKey: app.JWTFlowPublicKey,
 	}
 
-	respondOk(w,&pk)
+	respondOk(w, &pk)
 }

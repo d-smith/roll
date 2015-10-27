@@ -151,8 +151,6 @@ func TestUpdateAppStoreFault(t *testing.T) {
 	checkResponseStatus(t, resp, http.StatusInternalServerError)
 }
 
-
-
 func TestUpdateAppRetrieveFault(t *testing.T) {
 	core, coreConfig := NewTestCore()
 	ln, addr := TestServer(t, core)

@@ -1,8 +1,11 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	jwt "github.com/dgrijalva/jwt-go"
+	rollhttp "github.com/xtraclabs/roll/http"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -59,13 +62,31 @@ T9276oM42khyKY36lXvLi4yjk2yHysIvO7ckuX0F/vZtQjG1zuBb
 -----END RSA PRIVATE KEY-----
 `
 
+const (
+	clientID     = "aa8610ab-6f9f-42b4-4a5b-31a91d256b9f"
+	clientSecret = "hhDLqYSZoc0uY1u1DQ97ZrwyeP17AkwyxtjNiy6eeWI="
+)
+
 func uploadCert() {
 	fmt.Println("Uploading cert")
 	fmt.Println(certPEM)
 
-	resp, err := http.PostForm("http://localhost:3000/v1/jwtflowcerts/111-222-3333",
-		url.Values{"client_secret": {"ssYqvl6UNJv8u7OMtzhjBvKJ13tEBkV6+dsBraJwRC4="},
-			"cert_pem": {certPEM}})
+	payload := rollhttp.CertPutCtx{
+		ClientSecret: clientSecret,
+		CertPEM:      certPEM,
+	}
+
+	bodyReader := new(bytes.Buffer)
+	enc := json.NewEncoder(bodyReader)
+	err := enc.Encode(&payload)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	req, err := http.NewRequest("PUT", "http://localhost:3000/v1/jwtflowcerts/"+clientID, bodyReader)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -82,7 +103,7 @@ func generateJTW() string {
 	}
 
 	token := jwt.New(jwt.GetSigningMethod("RS256"))
-	token.Claims["iss"] = "111-222-3333"
+	token.Claims["iss"] = clientID
 	token.Claims["sub"] = "drscan"
 
 	tokenString, err := token.SignedString(signKey)
