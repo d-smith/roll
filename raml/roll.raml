@@ -68,6 +68,41 @@ baseUri: http://localhost:3000
           application/json:
             schema: Errors
             
+/v1/applications:
+  get:
+    description: |
+      Retrieve the list of applications registered with the developer portal. For the 
+      roll application 'user', all application definitions are returned. In all
+      other cases, the applications associated with that user are returned.
+      
+  post:
+    description: |
+      Create a new application definition associated with the user identified by the 
+      accompanying bearer token. The client id created by the systen for the created
+      application definition is returned to the caller.
+        
+/v1/applications/{client_id}:
+  get:
+    description: |
+      Retrieve the application definition associated with the client_id. Only the roll
+      application user may retrieve any application definition, all other users are
+      restricted to retrieving applications registered to their identity.
+  put:
+    description: |
+      Update the application definition associated with the given client_id.
+  
+        
+/v1/jwtflowverts/{client_id}:
+  put:
+    description: |
+      The owner associated with the given application client_id may PUT a certificate
+      to the resource, from which the public key will be extracted and used to verify
+      token signatures in the OAuth2 JWT flow.
+  get:
+    description: |
+      Retrieve the public key associated with the given client id.
+          
+            
             
           
 
