@@ -188,7 +188,9 @@ func (dar *DynamoAppRepo) RetrieveAppByNameAndDevEmail(appName, email string) (*
 	}, nil
 }
 
-//RetrieveApplication retrieves an application definition from DynamoDB
+//RetrieveApplication retrieves an application definition from DynamoDB. Note a nil
+//pointer is returned if a successful call to dynamodb does not find an application
+//stored for the given clientID
 func (dar *DynamoAppRepo) RetrieveApplication(clientID string) (*roll.Application, error) {
 	params := &dynamodb.GetItemInput{
 		TableName: aws.String("Application"),
