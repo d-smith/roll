@@ -51,6 +51,32 @@ func TestStoreAppOK(t *testing.T) {
 
 }
 
+func TestStoreAppSecretStoreFault(t *testing.T) {
+	core, coreConfig := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	app := roll.Application{
+		ApplicationName: "ambivilant birds",
+		DeveloperEmail:  "doug@dev.com",
+		ClientID:        "steve",
+		RedirectURI:     "http://localhost:3000/ab",
+		LoginProvider:   "xtrac://localhost:9000",
+	}
+
+	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
+	appRepoMock.On("CreateApplication", &app).Return(nil)
+
+	secretsRepoMock := coreConfig.SecretsRepo.(*mocks.SecretsRepo)
+	secretsRepoMock.On("StoreKeysForApp",
+		mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(errors.New("secret store error")).Once()
+
+	resp := TestHTTPPost(t, addr+"/v1/applications", app)
+	secretsRepoMock.AssertExpectations(t)
+
+	checkResponseStatus(t, resp, http.StatusInternalServerError)
+}
+
 func TestUpdateAppOK(t *testing.T) {
 	core, coreConfig := NewTestCore()
 	ln, addr := TestServer(t, core)
@@ -121,29 +147,6 @@ func TestUpdateAppStoreFault(t *testing.T) {
 	appRepoMock.AssertCalled(t, "RetrieveApplication", "111-222-333")
 	appRepoMock.AssertCalled(t, "UpdateApplication", &app2)
 	secretsRepoMock.AssertNotCalled(t, "StoreKeysForApp")
-
-	checkResponseStatus(t, resp, http.StatusInternalServerError)
-}
-
-func TestStoreAppSecretStoreFault(t *testing.T) {
-	core, coreConfig := NewTestCore()
-	ln, addr := TestServer(t, core)
-	defer ln.Close()
-
-	app := roll.Application{
-		ApplicationName: "ambivilant birds",
-		DeveloperEmail:  "doug@dev.com",
-		ClientID:        "1111-2222-3333333-4444444",
-		RedirectURI:     "http://localhost:3000/ab",
-		LoginProvider:   "xtrac://localhost:9000",
-	}
-
-	secretsRepoMock := coreConfig.SecretsRepo.(*mocks.SecretsRepo)
-	secretsRepoMock.On("StoreKeysForApp",
-		mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(errors.New("secret store error")).Once()
-
-	resp := TestHTTPPost(t, addr+"/v1/applications", app)
-	secretsRepoMock.AssertExpectations(t)
 
 	checkResponseStatus(t, resp, http.StatusInternalServerError)
 }
@@ -249,13 +252,8 @@ func TestStoreAppStoreFault(t *testing.T) {
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
 	appRepoMock.On("CreateApplication", mock.AnythingOfType("*roll.Application")).Return(errors.New("storage fault"))
 
-	secretsRepoMock := coreConfig.SecretsRepo.(*mocks.SecretsRepo)
-	secretsRepoMock.On("StoreKeysForApp",
-		mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(nil).Once()
-
 	resp := TestHTTPPost(t, addr+"/v1/applications", app)
 	appRepoMock.AssertCalled(t, "CreateApplication", mock.AnythingOfType("*roll.Application"))
-	secretsRepoMock.AssertExpectations(t)
 
 	checkResponseStatus(t, resp, http.StatusInternalServerError)
 }

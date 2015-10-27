@@ -1,6 +1,7 @@
 package http
 
 import (
+	"bytes"
 	"errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/xtraclabs/roll/roll"
@@ -50,17 +51,38 @@ VQIDAQAB
 //see where the assertion used in this test came from.
 const jwtAssertion = `eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIxMTExLTIyMjItMzMzMzMzMy00NDQ0NDQ0Iiwic3ViIjoiZHJzY2FuIn0.XpMy2bJAjfnw3wcadaehayCiWlMwBbIftlFDO_s8rUPPV31b3lqmyPoOvw4FOB_ManLIyJ13PpUobvTwadFGhbkS7B-GFFAJxv3q179qU5ZE6IwlhR80aky9icKzNWj77ozYx041-itWYWbvRxLRMORRygTPeE7T6b4VhZud18mGIeObuLim7YDR7_mZCDdjSeh734dSJBj7y3nilOm-AsmSKPkg0EZ5z_S_74LZo6x4asdKrSnUww3efo4t3si9UnFhF_cbMOekCPHkigSd57tcTqz38PX8aHkj-N8crHDup7_T150UnE4anQY8yyEErmtOpuB-imW-yjSkecfZrg`
 
+func TestJWTFlowSetupMalformedPayload(t *testing.T) {
+	core, _ := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	buf := new(bytes.Buffer)
+	buf.WriteString(`{"this won't parse`)
+
+	req, err := http.NewRequest("PUT", addr+"/v1/jwtflowcerts/11-22-33", buf)
+	checkFatal(t, err)
+
+	client := http.DefaultClient
+	resp, err := client.Do(req)
+	assert.Nil(t, err)
+
+	checkResponseStatus(t, resp, http.StatusBadRequest)
+}
+
 func TestJWTFlowSetupMissingClientSecret(t *testing.T) {
 	core, _ := NewTestCore()
 	ln, addr := TestServer(t, core)
 	defer ln.Close()
 
-	resp, err := http.PostForm(addr+JWTFlowCertsURI,
-		url.Values{})
+	requestBody := CertPutCtx{
+		ClientSecret: "",
+		CertPEM:      "yeah",
+	}
 
-	assert.Nil(t, err)
+	resp := TestHTTPPut(t, addr+JWTFlowCertsURI+"123", requestBody)
+
 	body := responseAsString(t, resp)
-	assert.True(t, strings.Contains(body, "client_secret missing from request"))
+	assert.True(t, strings.Contains(body, "Request has empty ClientSecret"))
 }
 
 func TestJWTFlowSetupMissingCertPEM(t *testing.T) {
@@ -68,12 +90,15 @@ func TestJWTFlowSetupMissingCertPEM(t *testing.T) {
 	ln, addr := TestServer(t, core)
 	defer ln.Close()
 
-	resp, err := http.PostForm(addr+JWTFlowCertsURI,
-		url.Values{"client_secret": {"foo"}})
+	requestBody := CertPutCtx{
+		ClientSecret: "password123",
+		CertPEM:      "",
+	}
 
-	assert.Nil(t, err)
+	resp := TestHTTPPut(t, addr+JWTFlowCertsURI+"123", requestBody)
+
 	body := responseAsString(t, resp)
-	assert.True(t, strings.Contains(body, "cert_pem missing from request"))
+	assert.True(t, strings.Contains(body, "Request has empty CertPEM"))
 }
 
 func TestJWTFlowSetupAppLookupError(t *testing.T) {
@@ -84,11 +109,13 @@ func TestJWTFlowSetupAppLookupError(t *testing.T) {
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
 	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(nil, errors.New("Drat"))
 
-	resp, err := http.PostForm(addr+JWTFlowCertsURI+"1111-2222-3333333-4444444",
-		url.Values{"client_secret": {"foo"},
-			"cert_pem": {"xxxxxx"}})
+	requestBody := CertPutCtx{
+		ClientSecret: "foo",
+		CertPEM:      "xxxxxx",
+	}
 
-	assert.Nil(t, err)
+	resp := TestHTTPPut(t, addr+JWTFlowCertsURI+"1111-2222-3333333-4444444", requestBody)
+
 	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 
 }
@@ -101,11 +128,12 @@ func TestJWTFlowSetupAppNotFound(t *testing.T) {
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
 	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(nil, nil)
 
-	resp, err := http.PostForm(addr+JWTFlowCertsURI+"1111-2222-3333333-4444444",
-		url.Values{"client_secret": {"foo"},
-			"cert_pem": {"xxxxxx"}})
+	requestBody := CertPutCtx{
+		ClientSecret: "foo",
+		CertPEM:      "xxxxxx",
+	}
 
-	assert.Nil(t, err)
+	resp := TestHTTPPut(t, addr+JWTFlowCertsURI+"1111-2222-3333333-4444444", requestBody)
 	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
 }
 
@@ -126,11 +154,13 @@ func TestJWTFlowSetupInvalidClientSecret(t *testing.T) {
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
 	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
-	resp, err := http.PostForm(addr+JWTFlowCertsURI+"1111-2222-3333333-4444444",
-		url.Values{"client_secret": {"foo"},
-			"cert_pem": {"xxxxxx"}})
+	requestBody := CertPutCtx{
+		ClientSecret: "foo",
+		CertPEM:      "xxxxxx",
+	}
 
-	assert.Nil(t, err)
+	resp := TestHTTPPut(t, addr+JWTFlowCertsURI+"1111-2222-3333333-4444444", requestBody)
+
 	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 }
 
@@ -151,11 +181,12 @@ func TestJWTFlowSetupInvalidCertPEM(t *testing.T) {
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
 	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
-	resp, err := http.PostForm(addr+JWTFlowCertsURI+"1111-2222-3333333-4444444",
-		url.Values{"client_secret": {"foo"},
-			"cert_pem": {"xxxxxx"}})
+	requestBody := CertPutCtx{
+		ClientSecret: "foo",
+		CertPEM:      "xxxxxx",
+	}
 
-	assert.Nil(t, err)
+	resp := TestHTTPPut(t, addr+JWTFlowCertsURI+"1111-2222-3333333-4444444", requestBody)
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 }
 
@@ -187,11 +218,13 @@ func TestJWTFlowSetupAppUpdateError(t *testing.T) {
 	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 	appRepoMock.On("UpdateApplication", &storeVal).Return(errors.New("Ummm"))
 
-	resp, err := http.PostForm(addr+JWTFlowCertsURI+"1111-2222-3333333-4444444",
-		url.Values{"client_secret": {"foo"},
-			"cert_pem": {certPEM}})
+	requestBody := CertPutCtx{
+		ClientSecret: "foo",
+		CertPEM:      certPEM,
+	}
 
-	assert.Nil(t, err)
+	resp := TestHTTPPut(t, addr+JWTFlowCertsURI+"1111-2222-3333333-4444444", requestBody)
+
 	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 }
 
@@ -223,11 +256,12 @@ func TestJWTFlowSetupAppUpdateOk(t *testing.T) {
 	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 	appRepoMock.On("UpdateApplication", &storeVal).Return(nil)
 
-	resp, err := http.PostForm(addr+JWTFlowCertsURI+"1111-2222-3333333-4444444",
-		url.Values{"client_secret": {"foo"},
-			"cert_pem": {certPEM}})
+	requestBody := CertPutCtx{
+		ClientSecret: "foo",
+		CertPEM:      certPEM,
+	}
 
-	assert.Nil(t, err)
+	resp := TestHTTPPut(t, addr+JWTFlowCertsURI+"1111-2222-3333333-4444444", requestBody)
 	assert.Equal(t, http.StatusNoContent, resp.StatusCode)
 }
 
@@ -320,4 +354,64 @@ func TestJWTFlowValidAssertionOkYeah(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
+}
+
+func TestJWTFlowGetResourceNotSpecified(t *testing.T) {
+	core, _ := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	resp := TestHTTPGet(t, addr+JWTFlowCertsURI+"/", nil)
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+}
+
+func TestJWTFlowGetCertNotFound(t *testing.T) {
+	core, coreConfig := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
+	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(nil, nil)
+
+	resp := TestHTTPGet(t, addr+JWTFlowCertsURI+"/1111-2222-3333333-4444444", nil)
+	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
+}
+
+func TestJWTFlowGetCertRetrievalError(t *testing.T) {
+	core, coreConfig := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
+	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(nil, errors.New("Drat"))
+
+	resp := TestHTTPGet(t, addr+JWTFlowCertsURI+"/1111-2222-3333333-4444444", nil)
+	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+}
+
+func TestJWTFlowGetCertOK(t *testing.T) {
+	core, coreConfig := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	returnVal := roll.Application{
+		DeveloperEmail:   "doug@dev.com",
+		ClientID:         "1111-2222-3333333-4444444",
+		ApplicationName:  "fight club",
+		ClientSecret:     "not for browser clients",
+		RedirectURI:      "http://localhost:3000/ab",
+		LoginProvider:    "xtrac://localhost:9000",
+		JWTFlowPublicKey: publicKey,
+	}
+
+	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
+	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+
+	resp := TestHTTPGet(t, addr+JWTFlowCertsURI+"/1111-2222-3333333-4444444", nil)
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var pkResp publicKeyCtx
+	checkResponseBody(t, resp, &pkResp)
+	assert.Equal(t, pkResp.PublicKey, publicKey)
+
 }
