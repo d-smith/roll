@@ -5,6 +5,10 @@ schemas:
   - Developer: !include schemas/developer.json
     Developers: !include schemas/developers.json
     Errors: !include schemas/errors.json
+    Applications: !include schemas/applications.json
+    Application: !include schemas/application.json
+    CreateApp: !include schemas/createapp.json
+    AppCreated: !include schemas/appcreated.json
 baseUri: http://localhost:3000
 /v1/developers:
   get:
@@ -74,12 +78,45 @@ baseUri: http://localhost:3000
       Retrieve the list of applications registered with the developer portal. For the 
       roll application 'user', all application definitions are returned. In all
       other cases, the applications associated with that user are returned.
+    headers:
+      Authorization:
+        description: OAuth2 Bearer token
+    responses:
+      200:
+        body:
+          application/json:
+            schema: Applications
+      500:
+        body:
+          application/json:
+            schema: Errors
       
   post:
     description: |
       Create a new application definition associated with the user identified by the 
       accompanying bearer token. The client id created by the systen for the created
       application definition is returned to the caller.
+    body:
+      application/json:
+        schema: Application
+    responses:
+      200:
+        body:
+          application/json:
+            schema: AppCreated
+      400:
+        body:
+          application/json:
+            schema: Errors
+      409:
+        body:
+          application/json:
+            schema: Errors
+      500:
+        body:
+          application/json:
+            schema: Errors
+      
         
 /v1/applications/{client_id}:
   get:

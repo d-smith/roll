@@ -1,0 +1,31 @@
+{
+  "type":"array",
+  "items": {
+    "type":"object",
+    "properties": {
+      "DeveloperEmail": {
+        "type":"string"
+      },
+      "ClientID": {
+        "type":"string"
+      },
+      "ApplicationName": {
+        "type":"string"
+      },
+      "ClientSecret": {
+        "type":"string"
+      },
+      "RedirectURI": {
+        "type":"string"
+      },
+      "LoginProvider": {
+        "type":"string"
+      },
+      "JWTFlowPublicKey": {
+        "type":"string"
+      }
+    }
+  }
+}
+      
+  
