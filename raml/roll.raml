@@ -10,8 +10,27 @@ schemas:
     CreateApp: !include schemas/createapp.json
     AppCreated: !include schemas/appcreated.json
 baseUri: http://localhost:3000
+securitySchemes:
+    - oauth_2_0:
+        description: |
+            Roll services are secured by OAuth2
+        type: OAuth 2.0
+        describedBy:
+            headers:
+                Authorization:
+                    description: |
+                       Used to send a valid OAuth 2 access token. 
+                    type: string
+            responses:
+                401:
+                    description: |
+                       Returned when any request cannot be authorized for any reason, including malformed or expired tokens, problems with token signatures, system problems preventing token validation, etc.
+        settings:
+          accessTokenUri: /oauth2/token
+          authorizationUri: /oauth2/authorize
 /v1/developers:
   get:
+    securedBy: [oauth_2_0]
     description: |
       Retrieve a list of developers registered with Roll. Note that a full list is available only to the roll application 'user' - all other callers receive a single 
       element list containing their details.
@@ -32,6 +51,7 @@ baseUri: http://localhost:3000
     
 /v1/developers/{email}:
   get:
+    securedBy: [oauth_2_0]
     description: |
       Retrieve the developer definition associated with the given email address.
     headers:
@@ -51,6 +71,7 @@ baseUri: http://localhost:3000
           application/json:
             schema: Errors
   put:
+    securedBy: [oauth_2_0]
     description: |
       Register a developer with their email address as their identifier. Note the EMail
       property in the Developer object is ignored - the email from the full resource
@@ -74,6 +95,7 @@ baseUri: http://localhost:3000
             
 /v1/applications:
   get:
+    securedBy: [oauth_2_0]
     description: |
       Retrieve the list of applications registered with the developer portal. For the 
       roll application 'user', all application definitions are returned. In all
@@ -92,6 +114,7 @@ baseUri: http://localhost:3000
             schema: Errors
       
   post:
+    securedBy: [oauth_2_0]
     description: |
       Create a new application definition associated with the user identified by the 
       accompanying bearer token. The client id created by the systen for the created
@@ -120,22 +143,26 @@ baseUri: http://localhost:3000
         
 /v1/applications/{client_id}:
   get:
+    securedBy: [oauth_2_0]
     description: |
       Retrieve the application definition associated with the client_id. Only the roll
       application user may retrieve any application definition, all other users are
       restricted to retrieving applications registered to their identity.
   put:
+    securedBy: [oauth_2_0]
     description: |
       Update the application definition associated with the given client_id.
   
         
 /v1/jwtflowverts/{client_id}:
   put:
+    securedBy: [oauth_2_0]
     description: |
       The owner associated with the given application client_id may PUT a certificate
       to the resource, from which the public key will be extracted and used to verify
       token signatures in the OAuth2 JWT flow.
   get:
+    securedBy: [oauth_2_0]
     description: |
       Retrieve the public key associated with the given client id.
           
