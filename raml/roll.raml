@@ -34,10 +34,6 @@ securitySchemes:
     description: |
       Retrieve a list of developers registered with Roll. Note that a full list is available only to the roll application 'user' - all other callers receive a single 
       element list containing their details.
-    headers:
-      Authorization:
-        description: |
-          Used to convey a bearer token obtained via one of the roll OAuth 2 flows
     responses:
       200:
         body:
@@ -54,9 +50,6 @@ securitySchemes:
     securedBy: [oauth_2_0]
     description: |
       Retrieve the developer definition associated with the given email address.
-    headers:
-      Authorization:
-        description: OAuth2 Bearer token
     responses:
       200:
         body:
@@ -76,9 +69,6 @@ securitySchemes:
       Register a developer with their email address as their identifier. Note the EMail
       property in the Developer object is ignored - the email from the full resource
       URI is considered authoritative for this operation.
-    headers:
-      Authorization:
-        description: OAuth 2 Bearer token
     body:      
       application/json:
         schema: Developer
@@ -100,9 +90,6 @@ securitySchemes:
       Retrieve the list of applications registered with the developer portal. For the 
       roll application 'user', all application definitions are returned. In all
       other cases, the applications associated with that user are returned.
-    headers:
-      Authorization:
-        description: OAuth2 Bearer token
     responses:
       200:
         body:
