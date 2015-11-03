@@ -7,6 +7,7 @@ import (
 	"github.com/xtraclabs/roll/roll"
 	"log"
 	"net/http"
+	"strings"
 )
 
 const (
@@ -126,6 +127,60 @@ func validateAndExtractFormParams(r *http.Request) (*authCodeContext, error) {
 
 	return acc, acc.validate()
 
+}
+
+func subjectFromAuthHeader(core *roll.Core, r *http.Request) (string, error) {
+	if core.Secure() {
+		return subjectFromBearerToken(core, r)
+	} else {
+		return subjectFromUnsecuredHeader(core, r)
+	}
+}
+
+func subjectFromBearerToken(core *roll.Core, r *http.Request) (string, error) {
+	//Check for header presence
+	authzHeader := r.Header.Get("Authorization")
+	if authzHeader == "" {
+		return "", errors.New("Authorization header missing from request")
+	}
+
+	//Header format should be Bearer token
+	parts := strings.SplitAfter(authzHeader, "Bearer")
+	if len(parts) != 2 {
+		return "", errors.New("Unexpected authorization header format - expecting bearer token")
+	}
+
+	//Parse the token
+	bearerToken := strings.TrimSpace(parts[1])
+	token, err := jwt.Parse(bearerToken, roll.GenerateKeyExtractionFunction(core.SecretsRepo))
+	if err != nil {
+		return "", err
+	}
+
+	//Grab the subject from the claims
+	subject, ok := token.Claims["sub"].(string)
+	if !ok {
+		return "", errors.New("problem with subject claim")
+	}
+
+	//Is the subject something other than an empty string?
+	if subject == "" {
+		return "", errors.New("empty subject claim")
+	}
+
+	return subject, nil
+}
+
+func subjectFromUnsecuredHeader(core *roll.Core, r *http.Request) (string, error) {
+	log.Println("get subject from unsecured header")
+	subject := r.Header.Get("X-Roll-Subject")
+
+	//Is the subject something other than an empty string?
+	if subject == "" {
+		return "", errors.New("empty subject claim")
+	}
+
+	return subject, nil
 }
 
 func lookupApplication(core *roll.Core, clientID string) (*roll.Application, error) {

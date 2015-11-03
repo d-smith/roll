@@ -8,14 +8,12 @@ import (
 	"os"
 )
 
-
-
 //VaultSecretsRepo provides a Vault implementation of a repository for secrets. See
 //https://vaultproject.io/ for more details on Vault
 type VaultSecretsRepo struct {
 	vaultEndpoint string
-	vaultToken string
-	vaultClient *vault.Client
+	vaultToken    string
+	vaultClient   *vault.Client
 }
 
 //NewVaultSecretsRepo returns a new instance of VaultSecretsRepo
@@ -36,9 +34,9 @@ func NewVaultSecretsRepo() *VaultSecretsRepo {
 	}
 
 	return &VaultSecretsRepo{
-		vaultClient: vc,
+		vaultClient:   vc,
 		vaultEndpoint: vaultEndpoint,
-		vaultToken: vaultToken,
+		vaultToken:    vaultToken,
 	}
 }
 

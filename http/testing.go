@@ -62,6 +62,7 @@ func NewTestCore() (*roll.Core, *roll.CoreConfig) {
 	coreConfig.ApplicationRepo = new(mocks.ApplicationRepo)
 	coreConfig.SecretsRepo = new(mocks.SecretsRepo)
 	coreConfig.IdGenerator = TestIDGen{}
+	coreConfig.Secure = false
 	return roll.NewCore(&coreConfig), &coreConfig
 }
 
@@ -73,18 +74,22 @@ func checkFatal(t assert.TestingT, err error) {
 }
 
 func TestHTTPGet(t assert.TestingT, addr string, body interface{}) *http.Response {
-	return testHTTPData(t, "GET", addr, body)
+	return testHTTPData(t, "GET", addr, false, body)
 }
 
 func TestHTTPPut(t assert.TestingT, addr string, body interface{}) *http.Response {
-	return testHTTPData(t, "PUT", addr, body)
+	return testHTTPData(t, "PUT", addr, false, body)
+}
+
+func TestHTTPPutWithRollSubject(t assert.TestingT, addr string, body interface{}) *http.Response {
+	return testHTTPData(t, "PUT", addr, true, body)
 }
 
 func TestHTTPPost(t assert.TestingT, addr string, body interface{}) *http.Response {
-	return testHTTPData(t, "POST", addr, body)
+	return testHTTPData(t, "POST", addr, false, body)
 }
 
-func testHTTPData(t assert.TestingT, method string, addr string, body interface{}) *http.Response {
+func testHTTPData(t assert.TestingT, method string, addr string, rollSubject bool, body interface{}) *http.Response {
 	bodyReader := new(bytes.Buffer)
 	if body != nil {
 		enc := json.NewEncoder(bodyReader)
@@ -96,6 +101,9 @@ func testHTTPData(t assert.TestingT, method string, addr string, body interface{
 	checkFatal(t, err)
 
 	req.Header.Set("Content-Type", "application/json")
+	if rollSubject {
+		req.Header.Set("X-Roll-Subject", "rolltest")
+	}
 
 	client := http.DefaultClient
 

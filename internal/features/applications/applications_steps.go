@@ -27,7 +27,7 @@ func init() {
 
 	Given(`^a developer registered with the portal$`, func() {
 		dev = testutils.CreateNewTestDev()
-		resp := rollhttp.TestHTTPPut(T, "http://localhost:3000/v1/developers/"+dev.Email, dev)
+		resp := rollhttp.TestHTTPPutWithRollSubject(T, "http://localhost:3000/v1/developers/"+dev.Email, dev)
 		println("resp is", resp)
 		assert.Equal(T, http.StatusNoContent, resp.StatusCode)
 	})

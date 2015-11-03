@@ -36,12 +36,12 @@ func NewDuplicationAppdefError(appName, devEmail string) *DuplicateAppdefError {
 }
 
 const (
-	ClientID = "ClientID"
-	ApplicationName = "ApplicationName"
-	ClientSecret = "ClientSecret"
-	DeveloperEmail = "DeveloperEmail"
-	RedirectUri = "RedirectUri"
-	LoginProvider = "LoginProvider"
+	ClientID         = "ClientID"
+	ApplicationName  = "ApplicationName"
+	ClientSecret     = "ClientSecret"
+	DeveloperEmail   = "DeveloperEmail"
+	RedirectUri      = "RedirectUri"
+	LoginProvider    = "LoginProvider"
 	JWTFlowPublicKey = "JWTFlowPublicKey"
 )
 

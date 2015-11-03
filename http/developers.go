@@ -102,6 +102,17 @@ func handleDeveloperPut(core *roll.Core, w http.ResponseWriter, r *http.Request)
 	//structure used to parse the input
 	dev.Email = email
 
+	//Extract the subject from the request header based on security mode
+	subject, err := subjectFromAuthHeader(core, r)
+	if err != nil {
+		log.Print("Error extracting subject:", err.Error())
+		respondError(w, http.StatusInternalServerError, nil)
+		return
+	}
+
+	//Set the developer id to the subject
+	dev.ID = subject
+
 	//Store the developer information
 	if err := core.StoreDeveloper(&dev); err != nil {
 		respondError(w, http.StatusInternalServerError, err)

@@ -29,9 +29,10 @@ func NewDynamoDevRepo() *DynamoDevRepo {
 }
 
 const (
-	EMail = "EMail"
+	EMail     = "EMail"
 	FirstName = "FirstName"
-	LastName = "LastName"
+	LastName  = "LastName"
+	ID        = "ID"
 )
 
 //RetrieveDeveloper retrieves a developer from DynamoDB using the developer's email as the key
@@ -58,6 +59,7 @@ func (dddr DynamoDevRepo) RetrieveDeveloper(email string) (*roll.Developer, erro
 		Email:     extractString(out.Item[EMail]),
 		FirstName: extractString(out.Item[FirstName]),
 		LastName:  extractString(out.Item[LastName]),
+		ID:        extractString(out.Item[ID]),
 	}, nil
 }
 
@@ -69,6 +71,7 @@ func (dddr DynamoDevRepo) StoreDeveloper(dev *roll.Developer) error {
 			EMail:     {S: aws.String(dev.Email)},
 			FirstName: {S: aws.String(dev.FirstName)},
 			LastName:  {S: aws.String(dev.LastName)},
+			ID:        {S: aws.String(dev.ID)},
 		},
 	}
 	_, err := dddr.client.PutItem(params)
@@ -83,6 +86,7 @@ func (dddr DynamoDevRepo) ListDevelopers() ([]roll.Developer, error) {
 			aws.String(EMail),
 			aws.String(FirstName),
 			aws.String(LastName),
+			aws.String(ID),
 		},
 	}
 
@@ -98,6 +102,7 @@ func (dddr DynamoDevRepo) ListDevelopers() ([]roll.Developer, error) {
 			Email:     extractString(item[EMail]),
 			FirstName: extractString(item[FirstName]),
 			LastName:  extractString(item[LastName]),
+			ID:        extractString(item[ID]),
 		}
 
 		devs = append(devs, developer)

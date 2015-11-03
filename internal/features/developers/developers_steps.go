@@ -33,7 +33,7 @@ func init() {
 	})
 
 	Then(`^They are added to the portal successfully$`, func() {
-		resp := rollhttp.TestHTTPPut(T, "http://localhost:3000/v1/developers/"+newDev.Email, newDev)
+		resp := rollhttp.TestHTTPPutWithRollSubject(T, "http://localhost:3000/v1/developers/"+newDev.Email, newDev)
 		assert.Equal(T, http.StatusNoContent, resp.StatusCode)
 	})
 
@@ -52,7 +52,7 @@ func init() {
 
 	Then(`^An error is returned with StatusBadRequest$`, func() {
 		log.Println("Add dev with malformed email", malformed)
-		resp := rollhttp.TestHTTPPut(T, "http://localhost:3000/v1/developers/"+malformed.Email, malformed)
+		resp := rollhttp.TestHTTPPutWithRollSubject(T, "http://localhost:3000/v1/developers/"+malformed.Email, malformed)
 		assert.Equal(T, http.StatusBadRequest, resp.StatusCode)
 	})
 
