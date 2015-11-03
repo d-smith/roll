@@ -4,9 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/xtraclabs/roll/roll"
+	"log"
 	"net/http"
 	"strings"
-	"log"
 )
 
 const (

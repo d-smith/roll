@@ -14,7 +14,18 @@ func DefaultConfig() *roll.CoreConfig {
 		DeveloperRepo:   repos.NewDynamoDevRepo(),
 		ApplicationRepo: repos.NewDynamoAppRepo(),
 		SecretsRepo:     repos.NewVaultSecretsRepo(),
-		IdGenerator: new(roll.UUIDIdGenerator),
+		IdGenerator:     new(roll.UUIDIdGenerator),
+		Secure:          true,
+	}
+}
+
+func DefaultUnsecureConfig() *roll.CoreConfig {
+	return &roll.CoreConfig{
+		DeveloperRepo:   repos.NewDynamoDevRepo(),
+		ApplicationRepo: repos.NewDynamoAppRepo(),
+		SecretsRepo:     repos.NewVaultSecretsRepo(),
+		IdGenerator:     new(roll.UUIDIdGenerator),
+		Secure:          false,
 	}
 }
 

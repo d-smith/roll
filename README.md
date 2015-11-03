@@ -246,7 +246,7 @@ http://localhost:3000/oauth2/authorize?client_id=111-222-3333&response_type=code
 This can be executed directly via curl, e.g.
 
 <pre>
-curl --data "client_id=111-222-3333" --data "grant_type=password" --data-urlencode "client_secret=ssYqvl6UNJv8u7OMtzhjBvKJ13tEBkV6+dsBraJwRC4=" --data "username=foo" --data "password=passw0rd" localhost:3000/oauth2/token
+curl --data "client_id=7843541e-d4cb-4903-5b88-ee596c32ecd7" --data "grant_type=password" --data-urlencode "client_secret=bQeH+n/Q9g8gM++Xd9gnqrn6zp92EZpSXrRPofVUbyk=" --data "username=foo" --data "password=passw0rd" localhost:3000/oauth2/token
 </pre>
 
 ### JWT Flow

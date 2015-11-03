@@ -10,6 +10,7 @@ type Core struct {
 	ApplicationRepo ApplicationRepo
 	SecretsRepo     SecretsRepo
 	IdGenerator     IdGenerator
+	secure          bool
 }
 
 //CoreConfig is a structure used to inject infrastructure dependency implementations into
@@ -19,6 +20,7 @@ type CoreConfig struct {
 	ApplicationRepo ApplicationRepo
 	SecretsRepo     SecretsRepo
 	IdGenerator     IdGenerator
+	Secure          bool
 }
 
 //NewCore creates a new Core instance injecting dependencies from the CoreConfig argument
@@ -45,7 +47,13 @@ func NewCore(config *CoreConfig) *Core {
 		ApplicationRepo: config.ApplicationRepo,
 		SecretsRepo:     config.SecretsRepo,
 		IdGenerator:     config.IdGenerator,
+		secure:          config.Secure,
 	}
+}
+
+//Secure returns true if roll is running in secure mode, false otherwise
+func (core *Core) Secure() bool {
+	return core.secure
 }
 
 //StoreDeveloper stores a developer using the embedded Developer repository
