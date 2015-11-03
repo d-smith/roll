@@ -40,6 +40,7 @@ const (
 	ApplicationName  = "ApplicationName"
 	ClientSecret     = "ClientSecret"
 	DeveloperEmail   = "DeveloperEmail"
+	DeveloperID      = "DeveloperID"
 	RedirectUri      = "RedirectUri"
 	LoginProvider    = "LoginProvider"
 	JWTFlowPublicKey = "JWTFlowPublicKey"
@@ -77,6 +78,7 @@ func (dar *DynamoAppRepo) CreateApplication(app *roll.Application) error {
 		ApplicationName: {S: aws.String(app.ApplicationName)},
 		ClientSecret:    {S: aws.String(app.ClientSecret)},
 		DeveloperEmail:  {S: aws.String(app.DeveloperEmail)},
+		DeveloperID:     {S: aws.String(app.DeveloperID)},
 		RedirectUri:     {S: aws.String(app.RedirectURI)},
 		LoginProvider:   {S: aws.String(app.LoginProvider)},
 	}
@@ -182,6 +184,7 @@ func (dar *DynamoAppRepo) RetrieveAppByNameAndDevEmail(appName, email string) (*
 		ApplicationName:  extractString(resp.Items[0][ApplicationName]),
 		ClientSecret:     extractString(resp.Items[0][ClientSecret]),
 		DeveloperEmail:   extractString(resp.Items[0][DeveloperEmail]),
+		DeveloperID:      extractString(resp.Items[0][DeveloperID]),
 		RedirectURI:      extractString(resp.Items[0][RedirectUri]),
 		LoginProvider:    extractString(resp.Items[0][LoginProvider]),
 		JWTFlowPublicKey: extractString(resp.Items[0][JWTFlowPublicKey]),
@@ -215,6 +218,7 @@ func (dar *DynamoAppRepo) RetrieveApplication(clientID string) (*roll.Applicatio
 		ApplicationName:  extractString(out.Item[ApplicationName]),
 		ClientSecret:     extractString(out.Item[ClientSecret]),
 		DeveloperEmail:   extractString(out.Item[DeveloperEmail]),
+		DeveloperID:      extractString(out.Item[DeveloperID]),
 		RedirectURI:      extractString(out.Item[RedirectUri]),
 		LoginProvider:    extractString(out.Item[LoginProvider]),
 		JWTFlowPublicKey: extractString(out.Item[JWTFlowPublicKey]),
@@ -229,6 +233,7 @@ func (dar *DynamoAppRepo) ListApplications() ([]roll.Application, error) {
 			aws.String(ApplicationName),
 			aws.String(ClientSecret),
 			aws.String(DeveloperEmail),
+			aws.String(DeveloperID),
 			aws.String(RedirectUri),
 			aws.String(LoginProvider),
 			aws.String(JWTFlowPublicKey),
@@ -248,6 +253,7 @@ func (dar *DynamoAppRepo) ListApplications() ([]roll.Application, error) {
 			ApplicationName:  extractString(item[ApplicationName]),
 			ClientSecret:     extractString(item[ClientSecret]),
 			DeveloperEmail:   extractString(item[DeveloperEmail]),
+			DeveloperID:      extractString(item[DeveloperID]),
 			RedirectURI:      extractString(item[RedirectUri]),
 			LoginProvider:    extractString(item[LoginProvider]),
 			JWTFlowPublicKey: extractString(item[JWTFlowPublicKey]),

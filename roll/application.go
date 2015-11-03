@@ -12,6 +12,7 @@ import (
 //Application represents the data associated with an application that is exposed via the REST API
 type Application struct {
 	DeveloperEmail   string `json:"developerEmail"`
+	DeveloperID      string `json:developerID`
 	ClientID         string `json:"clientID"`
 	ApplicationName  string `json:"applicationName"`
 	ClientSecret     string `json:"clientSecret"`

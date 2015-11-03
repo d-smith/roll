@@ -42,7 +42,7 @@ func init() {
 	})
 
 	Then(`^the application should be successfully registered$`, func() {
-		resp := rollhttp.TestHTTPPost(T, "http://localhost:3000/v1/applications", app)
+		resp := rollhttp.TestHTTPPostWithRollSubject(T, "http://localhost:3000/v1/applications", app)
 		assert.Equal(T, http.StatusOK, resp.StatusCode)
 
 		var appCreatedResponse rollhttp.ApplicationCreatedResponse
@@ -73,7 +73,7 @@ func init() {
 	})
 
 	And(`^a developer attempts to register an application with the same name$`, func() {
-		resp := rollhttp.TestHTTPPost(T, "http://localhost:3000/v1/applications", app)
+		resp := rollhttp.TestHTTPPostWithRollSubject(T, "http://localhost:3000/v1/applications", app)
 		reRegisterStatus = resp.StatusCode
 
 		defer resp.Body.Close()
@@ -99,7 +99,7 @@ func init() {
 	})
 
 	Then(`^the application can be updated$`, func() {
-		resp := rollhttp.TestHTTPPut(T, "http://localhost:3000/v1/applications/"+clientId, app)
+		resp := rollhttp.TestHTTPPutWithRollSubject(T, "http://localhost:3000/v1/applications/"+clientId, app)
 		assert.Equal(T, http.StatusNoContent, resp.StatusCode)
 	})
 

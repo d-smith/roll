@@ -1,6 +1,5 @@
 package html
 
-
 var Authorize = `
 <!DOCTYPE html>
 <html lang="en">

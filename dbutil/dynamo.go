@@ -3,8 +3,8 @@ package dbutil
 import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"os"
 	"log"
+	"os"
 )
 
 func CreateDynamoDBClient() *dynamodb.DynamoDB {

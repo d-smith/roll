@@ -145,6 +145,16 @@ XTRAC login if you used xtrac://localhost:2000 as the login provider. We assume 
 
 #### API Examples
 
+The following command line examples using curl illustrate how to secure access to roll services to a specific application
+registered with roll.
+
+It's a two step process. First roll is booted in unsecured mode to allow an initial 'developer' to be created, followed by
+the creation of the application that will be authorized to call roll. After this has been done, roll is booted in secure
+mode, afterwhich all access will require an access token obtained using the authorized application.
+
+Note the OAuth endpoints are not restricted, but obtaining access tokens is done in the context of an authorized
+application, which is the source of the client id, client secret, etc.
+
 #####Unsecured (Bootstrap)
 
 <pre>
@@ -208,6 +218,17 @@ curl -v -X PUT -d '
 
 curl -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBsaWNhdGlvbiI6IkFwcCBOby4gNSIsImF1ZCI6IjFkNzAzZTE3LWZjODQtNDJlYi02NWI2LTlkY2I3NzAwYjI4MiIsImV4cCI6MTQ0NjY3MTc1NSwiaWF0IjoxNDQ2NTg1MzU1LCJqdGkiOiJkNTI3M2E3My02NjBjLTQ4YjEtNTk3Yy04NTY4YmJlZDRlYzQiLCJzdWIiOiJuZXdkZXYifQ.Ov2GZt3i276lUlgSv14CxEmwkH_eMVPprbhlUel6NOupevSuBVKHmyTJA6s-MbgPM3rOnfMH1Bjoswab9oYT9DG6eCHQB35_dPbAePG4iF2HfeRutGC2vmOGAymSlZ9NXYsIbBKrRxTW2vzsPqMwqEjcAGmnkli7yoFOnTDuLGQ' localhost:3000/v1/developers/new-dev@dev.com
 
+</pre>
+
+<pre>
+curl -X POST -d '{
+"applicationName":"App No. 5",
+"developerEmail":"new-dev@dev.com",
+"redirectURI":"http://localhost:2000/oauth2_callback",
+"loginProvider":"xtrac://localhost:2000"
+}' -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBsaWNhdGlvbiI6IkFwcCBOby4gNSIsImF1ZCI6IjFkNzAzZTE3LWZjODQtNDJlYi02NWI2LTlkY2I3NzAwYjI4MiIsImV4cCI6MTQ0NjY3MTc1NSwiaWF0IjoxNDQ2NTg1MzU1LCJqdGkiOiJkNTI3M2E3My02NjBjLTQ4YjEtNTk3Yy04NTY4YmJlZDRlYzQiLCJzdWIiOiJuZXdkZXYifQ.Ov2GZt3i276lUlgSv14CxEmwkH_eMVPprbhlUel6NOupevSuBVKHmyTJA6s-MbgPM3rOnfMH1Bjoswab9oYT9DG6eCHQB35_dPbAePG4iF2HfeRutGC2vmOGAymSlZ9NXYsIbBKrRxTW2vzsPqMwqEjcAGmnkli7yoFOnTDuLGQ' localhost:3000/v1/applications
+
+curl -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBsaWNhdGlvbiI6IkFwcCBOby4gNSIsImF1ZCI6IjFkNzAzZTE3LWZjODQtNDJlYi02NWI2LTlkY2I3NzAwYjI4MiIsImV4cCI6MTQ0NjY3MTc1NSwiaWF0IjoxNDQ2NTg1MzU1LCJqdGkiOiJkNTI3M2E3My02NjBjLTQ4YjEtNTk3Yy04NTY4YmJlZDRlYzQiLCJzdWIiOiJuZXdkZXYifQ.Ov2GZt3i276lUlgSv14CxEmwkH_eMVPprbhlUel6NOupevSuBVKHmyTJA6s-MbgPM3rOnfMH1Bjoswab9oYT9DG6eCHQB35_dPbAePG4iF2HfeRutGC2vmOGAymSlZ9NXYsIbBKrRxTW2vzsPqMwqEjcAGmnkli7yoFOnTDuLGQ' localhost:3000/v1/applications/3ca926b9-44eb-4ef2-7971-aa33b1620f78
 </pre>
 
 ##### Previous Example
