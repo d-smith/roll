@@ -15,6 +15,9 @@ func TestEmailValidate(t *testing.T) {
 
 	dev.Email = "foo/bar@bar.com"
 	assert.False(t, dev.validateEmail())
+
+	dev.Email = ""
+	assert.False(t, dev.validateEmail())
 }
 
 func TestFirstNameValidate(t *testing.T) {

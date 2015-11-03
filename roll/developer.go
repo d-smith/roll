@@ -8,10 +8,10 @@ import (
 
 //Developer represents the data associated with a Developer
 type Developer struct {
-	FirstName string
-	LastName  string
-	Email     string
-	ID        string
+	FirstName string `json:"firstName"`
+	LastName  string `json:"lastName"`
+	Email     string `json:"email"`
+	ID        string `json:"id"`
 }
 
 var validEmail = regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)

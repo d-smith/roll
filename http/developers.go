@@ -6,6 +6,7 @@ import (
 	"github.com/xtraclabs/roll/roll"
 	"net/http"
 	"strings"
+	"log"
 )
 
 const (
@@ -91,6 +92,8 @@ func handleDeveloperPut(core *roll.Core, w http.ResponseWriter, r *http.Request)
 		respondError(w, http.StatusBadRequest, err)
 		return
 	}
+
+	log.Printf("Handling put with payload %v", dev)
 
 	email := strings.TrimPrefix(r.RequestURI, DevelopersURI)
 

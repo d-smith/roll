@@ -150,9 +150,9 @@ Create Developer
 <pre>
 curl -v -X PUT -d '
 {
-"Email":"doug@dev.com",
-"FirstName":"Doug",
-"LastName":"Dev"
+"email":"doug@dev.com",
+"firstName":"Doug",
+"lastName":"Dev"
 }' localhost:3000/v1/developers/doug@dev.com
 </pre>
 
@@ -160,44 +160,51 @@ Retrieve a Developer
 
 <pre>
 curl localhost:3000/v1/developers/doug@dev.com
-{"FirstName":"Doug","LastName":"Dev","Email":"doug@dev.com","ID":""}
+{"firstName":"Doug","lastName":"Dev","email":"doug@dev.com","id":""}
 </pre>
 
 List Developers
 
 <pre>
-curl localhost:3000/v1/developers/
-[{"FirstName":"Doug","LastName":"Dev","Email":"doug@dev.com","ID":""}]
+curl localhost:3000/v1/developers
+[{"firstName":"Doug","lastName":"Dev","email":"doug@dev.com","id":""}]
 </pre>
 
 Register an application
 
 <pre>
 curl -X POST -d '{
-"ApplicationName":"App No. 5",
-"DeveloperEmail":"doug@dev.com",
-"RedirectURI":"http://localhost:2000/oauth2_callback",
-"LoginProvider":"xtrac://localhost:2000"
+"applicationName":"App No. 5",
+"developerEmail":"doug@dev.com",
+"redirectURI":"http://localhost:2000/oauth2_callback",
+"loginProvider":"xtrac://localhost:2000"
 }' localhost:3000/v1/applications
-{"client_id":"c594d77b-cf6b-4d64-5866-92ae13815935"}
+{"client_id":"7843541e-d4cb-4903-5b88-ee596c32ecd7"}
 </pre>
 
 Update an application
 
 <pre>
 curl -v -X PUT -d '{
-"ApplicationName":"App No. Four",
-"DeveloperEmail":"doug@dev.com",
-"RedirectURI":"http://localhost:2000/oauth2_callback",
-"LoginProvider":"xtrac://localhost:2000"
-}' localhost:3000/v1/applications/c594d77b-cf6b-4d64-5866-92ae13815935
+"applicationName":"App No. Four",
+"developerEmail":"doug@dev.com",
+"redirectURI":"http://localhost:2000/oauth2_callback",
+"loginProvider":"xtrac://localhost:2000"
+}' localhost:3000/v1/applications/7843541e-d4cb-4903-5b88-ee596c32ecd7
 </pre>
 
 Retrieve an Application
 
 <pre>
-curl localhost:3000/v1/applications/c594d77b-cf6b-4d64-5866-92ae13815935
-{"DeveloperEmail":"doug@dev.com","ClientID":"c594d77b-cf6b-4d64-5866-92ae13815935","ApplicationName":"App No. Four","ClientSecret":"dKjpbJFsi9ibfxrD14hUM9mIhHcVACxDw7rW1zg0Qb0=","RedirectURI":"http://localhost:2000/oauth2_callback","LoginProvider":"xtrac://localhost:2000","JWTFlowPublicKey":""}
+curl localhost:3000/v1/applications/7843541e-d4cb-4903-5b88-ee596c32ecd7
+{"developerEmail":"doug@dev.com","clientID":"7843541e-d4cb-4903-5b88-ee596c32ecd7","applicationName":"App No. Four","clientSecret":"bQeH+n/Q9g8gM++Xd9gnqrn6zp92EZpSXrRPofVUbyk=","redirectURI":"http://localhost:2000/oauth2_callback","loginProvider":"xtrac://localhost:2000","jwtFlowPublicKey":""}
+</pre>
+
+Retrieve all applications
+
+<pre>
+curl localhost:3000/v1/applications
+[{"developerEmail":"doug@dev.com","clientID":"7843541e-d4cb-4903-5b88-ee596c32ecd7","applicationName":"App No. Four","clientSecret":"bQeH+n/Q9g8gM++Xd9gnqrn6zp92EZpSXrRPofVUbyk=","redirectURI":"http://localhost:2000/oauth2_callback","loginProvider":"xtrac://localhost:2000","jwtFlowPublicKey":""}]
 </pre>
 
 #### Executing the flow
