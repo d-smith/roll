@@ -256,7 +256,7 @@ func TestTokenSignedWithWrongKey(t *testing.T) {
 	otherKey, _, err := secrets.GenerateKeyPair()
 	assert.Nil(t, err)
 
-	code, err := roll.GenerateCode(&returnVal, otherKey)
+	code, err := roll.GenerateCode("a-subject", &returnVal, otherKey)
 	assert.Nil(t, err)
 
 	resp, err := http.PostForm(addr+OAuth2TokenBaseURI,
@@ -296,7 +296,7 @@ func TestTokenValidCode(t *testing.T) {
 	secretsMock.On("RetrievePrivateKeyForApp", "1111-2222-3333333-4444444").Return(privateKey, nil)
 	secretsMock.On("RetrievePublicKeyForApp", "1111-2222-3333333-4444444").Return(publicKey, nil)
 
-	code, err := roll.GenerateCode(&returnVal, privateKey)
+	code, err := roll.GenerateCode("b-subject", &returnVal, privateKey)
 	assert.Nil(t, err)
 
 	resp, err := http.PostForm(addr+OAuth2TokenBaseURI,

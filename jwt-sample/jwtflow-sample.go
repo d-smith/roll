@@ -63,8 +63,8 @@ T9276oM42khyKY36lXvLi4yjk2yHysIvO7ckuX0F/vZtQjG1zuBb
 `
 
 const (
-	clientID     = "aa8610ab-6f9f-42b4-4a5b-31a91d256b9f"
-	clientSecret = "hhDLqYSZoc0uY1u1DQ97ZrwyeP17AkwyxtjNiy6eeWI="
+	clientID     = "b047f0b9-e830-4c6b-7c0c-0564bd07a0a7"
+	clientSecret = "ThWLhQYfW1s/9aXEA5W5Lszx1UoZUWebVv4j1KWPKxk="
 )
 
 func uploadCert() {

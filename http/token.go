@@ -211,8 +211,8 @@ func handleTokenPost(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func generateAndRespondWithAccessToken(core *roll.Core, app *roll.Application, w http.ResponseWriter) {
-	token, err := generateJWT(core, app)
+func generateAndRespondWithAccessToken(core *roll.Core, subject string, app *roll.Application, w http.ResponseWriter) {
+	token, err := generateJWT(subject, core, app)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, err)
 		return
@@ -257,7 +257,7 @@ func handleAuthCodeGrantType(core *roll.Core, w http.ResponseWriter, r *http.Req
 	}
 
 	//If everything is cool, generate a JWT access token
-	generateAndRespondWithAccessToken(core, app, w)
+	generateAndRespondWithAccessToken(core, codeContext.username, app, w)
 }
 
 func handlePasswordGrantType(core *roll.Core, w http.ResponseWriter, r *http.Request, codeContext *authCodeContext) {
@@ -293,7 +293,7 @@ func handlePasswordGrantType(core *roll.Core, w http.ResponseWriter, r *http.Req
 	}
 
 	//Create the access token
-	generateAndRespondWithAccessToken(core, app, w)
+	generateAndRespondWithAccessToken(core, codeContext.username, app, w)
 
 }
 
@@ -323,8 +323,21 @@ func handleJWTGrantType(core *roll.Core, w http.ResponseWriter, r *http.Request,
 		return
 	}
 
+	//Pass the identity
+	subject, ok := token.Claims["sub"].(string)
+	if !ok {
+		respondError(w, http.StatusBadRequest, errors.New("sub claim is not a string"))
+		return
+	}
+
+	//Make sure the claim conveys a sub
+	if subject == "" {
+		respondError(w, http.StatusBadRequest, errors.New("JWT missing sub claim"))
+		return
+	}
+
 	//Now we can generate a token since we had the app needed to form the token
 	log.Println("generate token")
-	generateAndRespondWithAccessToken(core, app, w)
+	generateAndRespondWithAccessToken(core, subject, app, w)
 
 }
