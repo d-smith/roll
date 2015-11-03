@@ -11,13 +11,14 @@ import (
 
 //Application represents the data associated with an application that is exposed via the REST API
 type Application struct {
-	DeveloperEmail   string
-	ClientID         string
-	ApplicationName  string
-	ClientSecret     string
-	RedirectURI      string
-	LoginProvider    string
-	JWTFlowPublicKey string
+	DeveloperEmail   string `json:"developerEmail"`
+	DeveloperID      string `json:developerID`
+	ClientID         string `json:"clientID"`
+	ApplicationName  string `json:"applicationName"`
+	ClientSecret     string `json:"clientSecret"`
+	RedirectURI      string `json:"redirectURI"`
+	LoginProvider    string `json:"loginProvider"`
+	JWTFlowPublicKey string `json:"jwtFlowPublicKey"`
 }
 
 var appName = regexp.MustCompile(`^([a-zA-Z'-.0-9]\s*)+$`)

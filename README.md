@@ -145,14 +145,101 @@ XTRAC login if you used xtrac://localhost:2000 as the login provider. We assume 
 
 #### API Examples
 
+The following command line examples using curl illustrate how to secure access to roll services to a specific application
+registered with roll.
+
+It's a two step process. First roll is booted in unsecured mode to allow an initial 'developer' to be created, followed by
+the creation of the application that will be authorized to call roll. After this has been done, roll is booted in secure
+mode, afterwhich all access will require an access token obtained using the authorized application.
+
+Note the OAuth endpoints are not restricted, but obtaining access tokens is done in the context of an authorized
+application, which is the source of the client id, client secret, etc.
+
+#####Unsecured (Bootstrap)
+
+<pre>
+go run rollmain.go -port 3000 -unsecure
+</pre>
+
+<pre>
+curl -v -X PUT -d '
+{
+"email":"doug@dev.com",
+"firstName":"Doug",
+"lastName":"Dev"
+}' -H 'X-Roll-Subject: foo' localhost:3000/v1/developers/doug@dev.com
+</pre>
+
+<pre>
+curl -X POST -d '{
+"applicationName":"App No. 5",
+"developerEmail":"doug@dev.com",
+"redirectURI":"http://localhost:2000/oauth2_callback",
+"loginProvider":"xtrac://localhost:2000"
+}' localhost:3000/v1/applications
+{"client_id":"1d703e17-fc84-42eb-65b6-9dcb7700b282"}
+
+curl localhost:3000/v1/applications/1d703e17-fc84-42eb-65b6-9dcb7700b282
+{"developerEmail":"doug@dev.com","clientID":"1d703e17-fc84-42eb-65b6-9dcb7700b282","applicationName":"App No. 5","clientSecret":"IXwRPoYjUsGV36N9mrk9E1yLYpHNGk3iwBKoQwOMYaY=","redirectURI":"http://localhost:2000/oauth2_callback","loginProvider":"xtrac://localhost:2000","jwtFlowPublicKey":""}
+
+curl --data "client_id=1d703e17-fc84-42eb-65b6-9dcb7700b282" --data "grant_type=password" --data-urlencode "client_secret=IXwRPoYjUsGV36N9mrk9E1yLYpHNGk3iwBKoQwOMYaY=" --data "username=foo" --data "password=passw0rd" localhost:3000/oauth2/token
+{"access_token":"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBsaWNhdGlvbiI6IkFwcCBOby4gNSIsImF1ZCI6IjFkNzAzZTE3LWZjODQtNDJlYi02NWI2LTlkY2I3NzAwYjI4MiIsImV4cCI6MTQ0NjY3MTU2MiwiaWF0IjoxNDQ2NTg1MTYyLCJqdGkiOiI1MmI2OTY1Yi1hNWJlLTQ1YWEtNmY1Ny1iODBhYzU2NWQxNGUiLCJzdWIiOiJmb28ifQ.M5Tiw0jnbv5WbVsRRBTxud9bXoPge5Yg4jqoT0TGQ-g1MQVL7qE7jq5x9Sm6q5jZtlsSGCmoCBh7IvmACCvIOA5ch-DDAVLyviIq57DG6EIkiQDCoD-Vyhtb9g-kHPHlkoyNY5Lu9Lc-R44Etln635zvD8YFNWvgaV9mX_CG3aA","token_type":"Bearer"}
+</pre>
+
+
+#####Secured
+
+<pre>
+export ROLL_CLIENTID=1d703e17-fc84-42eb-65b6-9dcb7700b282
+go run rollmain.go -port 3000
+</pre>
+
+<pre>
+curl -v -X PUT -d '
+{
+"email":"new-dev@dev.com",
+"firstName":"Doug",
+"lastName":"Dev"
+}' -H 'X-Roll-Subject: foo' localhost:3000/v1/developers/doug@dev.com
+
+< HTTP/1.1 401 Unauthorized
+
+
+curl --data "client_id=1d703e17-fc84-42eb-65b6-9dcb7700b282" --data "grant_type=password" --data-urlencode "client_secret=IXwRPoYjUsGV36N9mrk9E1yLYpHNGk3iwBKoQwOMYaY=" --data "username=newdev" --data "password=passw0rd" localhost:3000/oauth2/token
+{"access_token":"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBsaWNhdGlvbiI6IkFwcCBOby4gNSIsImF1ZCI6IjFkNzAzZTE3LWZjODQtNDJlYi02NWI2LTlkY2I3NzAwYjI4MiIsImV4cCI6MTQ0NjY3MTc1NSwiaWF0IjoxNDQ2NTg1MzU1LCJqdGkiOiJkNTI3M2E3My02NjBjLTQ4YjEtNTk3Yy04NTY4YmJlZDRlYzQiLCJzdWIiOiJuZXdkZXYifQ.Ov2GZt3i276lUlgSv14CxEmwkH_eMVPprbhlUel6NOupevSuBVKHmyTJA6s-MbgPM3rOnfMH1Bjoswab9oYT9DG6eCHQB35_dPbAePG4iF2HfeRutGC2vmOGAymSlZ9NXYsIbBKrRxTW2vzsPqMwqEjcAGmnkli7yoFOnTDuLGQ","token_type":"Bearer"}
+
+curl -v -X PUT -d '
+{
+"email":"new-dev@dev.com",
+"firstName":"Doug",
+"lastName":"Dev"
+}' -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBsaWNhdGlvbiI6IkFwcCBOby4gNSIsImF1ZCI6IjFkNzAzZTE3LWZjODQtNDJlYi02NWI2LTlkY2I3NzAwYjI4MiIsImV4cCI6MTQ0NjY3MTc1NSwiaWF0IjoxNDQ2NTg1MzU1LCJqdGkiOiJkNTI3M2E3My02NjBjLTQ4YjEtNTk3Yy04NTY4YmJlZDRlYzQiLCJzdWIiOiJuZXdkZXYifQ.Ov2GZt3i276lUlgSv14CxEmwkH_eMVPprbhlUel6NOupevSuBVKHmyTJA6s-MbgPM3rOnfMH1Bjoswab9oYT9DG6eCHQB35_dPbAePG4iF2HfeRutGC2vmOGAymSlZ9NXYsIbBKrRxTW2vzsPqMwqEjcAGmnkli7yoFOnTDuLGQ' localhost:3000/v1/developers/new-dev@dev.com
+
+
+curl -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBsaWNhdGlvbiI6IkFwcCBOby4gNSIsImF1ZCI6IjFkNzAzZTE3LWZjODQtNDJlYi02NWI2LTlkY2I3NzAwYjI4MiIsImV4cCI6MTQ0NjY3MTc1NSwiaWF0IjoxNDQ2NTg1MzU1LCJqdGkiOiJkNTI3M2E3My02NjBjLTQ4YjEtNTk3Yy04NTY4YmJlZDRlYzQiLCJzdWIiOiJuZXdkZXYifQ.Ov2GZt3i276lUlgSv14CxEmwkH_eMVPprbhlUel6NOupevSuBVKHmyTJA6s-MbgPM3rOnfMH1Bjoswab9oYT9DG6eCHQB35_dPbAePG4iF2HfeRutGC2vmOGAymSlZ9NXYsIbBKrRxTW2vzsPqMwqEjcAGmnkli7yoFOnTDuLGQ' localhost:3000/v1/developers/new-dev@dev.com
+
+</pre>
+
+<pre>
+curl -X POST -d '{
+"applicationName":"App No. 5",
+"developerEmail":"new-dev@dev.com",
+"redirectURI":"http://localhost:2000/oauth2_callback",
+"loginProvider":"xtrac://localhost:2000"
+}' -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBsaWNhdGlvbiI6IkFwcCBOby4gNSIsImF1ZCI6IjFkNzAzZTE3LWZjODQtNDJlYi02NWI2LTlkY2I3NzAwYjI4MiIsImV4cCI6MTQ0NjY3MTc1NSwiaWF0IjoxNDQ2NTg1MzU1LCJqdGkiOiJkNTI3M2E3My02NjBjLTQ4YjEtNTk3Yy04NTY4YmJlZDRlYzQiLCJzdWIiOiJuZXdkZXYifQ.Ov2GZt3i276lUlgSv14CxEmwkH_eMVPprbhlUel6NOupevSuBVKHmyTJA6s-MbgPM3rOnfMH1Bjoswab9oYT9DG6eCHQB35_dPbAePG4iF2HfeRutGC2vmOGAymSlZ9NXYsIbBKrRxTW2vzsPqMwqEjcAGmnkli7yoFOnTDuLGQ' localhost:3000/v1/applications
+
+curl -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBsaWNhdGlvbiI6IkFwcCBOby4gNSIsImF1ZCI6IjFkNzAzZTE3LWZjODQtNDJlYi02NWI2LTlkY2I3NzAwYjI4MiIsImV4cCI6MTQ0NjY3MTc1NSwiaWF0IjoxNDQ2NTg1MzU1LCJqdGkiOiJkNTI3M2E3My02NjBjLTQ4YjEtNTk3Yy04NTY4YmJlZDRlYzQiLCJzdWIiOiJuZXdkZXYifQ.Ov2GZt3i276lUlgSv14CxEmwkH_eMVPprbhlUel6NOupevSuBVKHmyTJA6s-MbgPM3rOnfMH1Bjoswab9oYT9DG6eCHQB35_dPbAePG4iF2HfeRutGC2vmOGAymSlZ9NXYsIbBKrRxTW2vzsPqMwqEjcAGmnkli7yoFOnTDuLGQ' localhost:3000/v1/applications/3ca926b9-44eb-4ef2-7971-aa33b1620f78
+</pre>
+
+##### Previous Example
 Create Developer
 
 <pre>
 curl -v -X PUT -d '
 {
-"Email":"doug@dev.com",
-"FirstName":"Doug",
-"LastName":"Dev"
+"email":"doug@dev.com",
+"firstName":"Doug",
+"lastName":"Dev"
 }' localhost:3000/v1/developers/doug@dev.com
 </pre>
 
@@ -160,44 +247,51 @@ Retrieve a Developer
 
 <pre>
 curl localhost:3000/v1/developers/doug@dev.com
-{"FirstName":"Doug","LastName":"Dev","Email":"doug@dev.com","ID":""}
+{"firstName":"Doug","lastName":"Dev","email":"doug@dev.com","id":""}
 </pre>
 
 List Developers
 
 <pre>
-curl localhost:3000/v1/developers/
-[{"FirstName":"Doug","LastName":"Dev","Email":"doug@dev.com","ID":""}]
+curl localhost:3000/v1/developers
+[{"firstName":"Doug","lastName":"Dev","email":"doug@dev.com","id":""}]
 </pre>
 
 Register an application
 
 <pre>
 curl -X POST -d '{
-"ApplicationName":"App No. 5",
-"DeveloperEmail":"doug@dev.com",
-"RedirectURI":"http://localhost:2000/oauth2_callback",
-"LoginProvider":"xtrac://localhost:2000"
+"applicationName":"App No. 5",
+"developerEmail":"doug@dev.com",
+"redirectURI":"http://localhost:2000/oauth2_callback",
+"loginProvider":"xtrac://localhost:2000"
 }' localhost:3000/v1/applications
-{"client_id":"c594d77b-cf6b-4d64-5866-92ae13815935"}
+{"client_id":"7843541e-d4cb-4903-5b88-ee596c32ecd7"}
 </pre>
 
 Update an application
 
 <pre>
 curl -v -X PUT -d '{
-"ApplicationName":"App No. Four",
-"DeveloperEmail":"doug@dev.com",
-"RedirectURI":"http://localhost:2000/oauth2_callback",
-"LoginProvider":"xtrac://localhost:2000"
-}' localhost:3000/v1/applications/c594d77b-cf6b-4d64-5866-92ae13815935
+"applicationName":"App No. Four",
+"developerEmail":"doug@dev.com",
+"redirectURI":"http://localhost:2000/oauth2_callback",
+"loginProvider":"xtrac://localhost:2000"
+}' localhost:3000/v1/applications/7843541e-d4cb-4903-5b88-ee596c32ecd7
 </pre>
 
 Retrieve an Application
 
 <pre>
-curl localhost:3000/v1/applications/c594d77b-cf6b-4d64-5866-92ae13815935
-{"DeveloperEmail":"doug@dev.com","ClientID":"c594d77b-cf6b-4d64-5866-92ae13815935","ApplicationName":"App No. Four","ClientSecret":"dKjpbJFsi9ibfxrD14hUM9mIhHcVACxDw7rW1zg0Qb0=","RedirectURI":"http://localhost:2000/oauth2_callback","LoginProvider":"xtrac://localhost:2000","JWTFlowPublicKey":""}
+curl localhost:3000/v1/applications/7843541e-d4cb-4903-5b88-ee596c32ecd7
+{"developerEmail":"doug@dev.com","clientID":"7843541e-d4cb-4903-5b88-ee596c32ecd7","applicationName":"App No. Four","clientSecret":"bQeH+n/Q9g8gM++Xd9gnqrn6zp92EZpSXrRPofVUbyk=","redirectURI":"http://localhost:2000/oauth2_callback","loginProvider":"xtrac://localhost:2000","jwtFlowPublicKey":""}
+</pre>
+
+Retrieve all applications
+
+<pre>
+curl localhost:3000/v1/applications
+[{"developerEmail":"doug@dev.com","clientID":"7843541e-d4cb-4903-5b88-ee596c32ecd7","applicationName":"App No. Four","clientSecret":"bQeH+n/Q9g8gM++Xd9gnqrn6zp92EZpSXrRPofVUbyk=","redirectURI":"http://localhost:2000/oauth2_callback","loginProvider":"xtrac://localhost:2000","jwtFlowPublicKey":""}]
 </pre>
 
 #### Executing the flow
@@ -239,7 +333,7 @@ http://localhost:3000/oauth2/authorize?client_id=111-222-3333&response_type=code
 This can be executed directly via curl, e.g.
 
 <pre>
-curl --data "client_id=111-222-3333" --data "grant_type=password" --data-urlencode "client_secret=ssYqvl6UNJv8u7OMtzhjBvKJ13tEBkV6+dsBraJwRC4=" --data "username=foo" --data "password=passw0rd" localhost:3000/oauth2/token
+curl --data "client_id=7843541e-d4cb-4903-5b88-ee596c32ecd7" --data "grant_type=password" --data-urlencode "client_secret=bQeH+n/Q9g8gM++Xd9gnqrn6zp92EZpSXrRPofVUbyk=" --data "username=foo" --data "password=passw0rd" localhost:3000/oauth2/token
 </pre>
 
 ### JWT Flow
@@ -281,11 +375,5 @@ If you use the token obtained through the implicit grant flow, access will be gr
 curl -X PUT -d 'Hello hello echo echo' -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBsaWNhdGlvbiI6IkhhbmdyeSBCaXJkeiIsImF1ZCI6IjExMS0yMjItMzMzMyIsImlhdCI6MTQ0MTcyNjA2NywianRpIjoiOGZjM2MzNzYtYjMyMy00Yzg5LTdiZTktOWRkZWE3ZWJhNWM2In0.yOjkodiiJtNnXGSoz2lipBgYNyKmQApjKVHPmkiW-peAVhtyQw-q3nnD-H93-vioiq-qvwKp9R4uj1gkPSXJlPJDDj4A6AtqlbbYElQ3K2q9IPPeYiaOR2fJZtLYsIvoDZimGHq_FjZvxDzYZalFSd7BDFeQ5xmhGWczqs6vNNE' localhost:5000/echo
 Hello hello echo echo
 </pre>
-
-### TODO
-
-* Create a token validation endpoint (to avoid the confused deputy problem)
-* Split the validate behavior out of the authz handler file
-* What about refresh tokens?
 
 

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/xtraclabs/roll/roll"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -92,12 +93,25 @@ func handleDeveloperPut(core *roll.Core, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	log.Printf("Handling put with payload %v", dev)
+
 	email := strings.TrimPrefix(r.RequestURI, DevelopersURI)
 
 	//If the user included the email inf the body we ignore it. Ignoring it lets us reuse the
 	//developer struct for parsing the request, instead of having a projection of the developer
 	//structure used to parse the input
 	dev.Email = email
+
+	//Extract the subject from the request header based on security mode
+	subject, err := subjectFromAuthHeader(core, r)
+	if err != nil {
+		log.Print("Error extracting subject:", err.Error())
+		respondError(w, http.StatusInternalServerError, nil)
+		return
+	}
+
+	//Set the developer id to the subject
+	dev.ID = subject
 
 	//Store the developer information
 	if err := core.StoreDeveloper(&dev); err != nil {

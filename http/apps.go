@@ -106,6 +106,16 @@ func handleApplicationPost(core *roll.Core, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	//Extract the subject from the request header based on security mode
+	subject, err := subjectFromAuthHeader(core, r)
+	if err != nil {
+		log.Print("Error extracting subject:", err.Error())
+		respondError(w, http.StatusInternalServerError, nil)
+		return
+	}
+
+	app.DeveloperID = subject
+
 	//Store the application definition
 	log.Println("storing app def ", app)
 	err = core.CreateApplication(&app)
@@ -180,6 +190,7 @@ func handleApplicationPut(core *roll.Core, w http.ResponseWriter, r *http.Reques
 	storedApp.DeveloperEmail = app.DeveloperEmail
 	storedApp.LoginProvider = app.LoginProvider
 	storedApp.RedirectURI = app.RedirectURI
+	storedApp.DeveloperID = app.DeveloperID
 
 	//Store the application definition
 	log.Println("updating app def ", app)

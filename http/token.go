@@ -7,6 +7,7 @@ import (
 	"github.com/xtraclabs/roll/roll"
 	"log"
 	"net/http"
+	"strings"
 )
 
 const (
@@ -128,6 +129,60 @@ func validateAndExtractFormParams(r *http.Request) (*authCodeContext, error) {
 
 }
 
+func subjectFromAuthHeader(core *roll.Core, r *http.Request) (string, error) {
+	if core.Secure() {
+		return subjectFromBearerToken(core, r)
+	} else {
+		return subjectFromUnsecuredHeader(core, r)
+	}
+}
+
+func subjectFromBearerToken(core *roll.Core, r *http.Request) (string, error) {
+	//Check for header presence
+	authzHeader := r.Header.Get("Authorization")
+	if authzHeader == "" {
+		return "", errors.New("Authorization header missing from request")
+	}
+
+	//Header format should be Bearer token
+	parts := strings.SplitAfter(authzHeader, "Bearer")
+	if len(parts) != 2 {
+		return "", errors.New("Unexpected authorization header format - expecting bearer token")
+	}
+
+	//Parse the token
+	bearerToken := strings.TrimSpace(parts[1])
+	token, err := jwt.Parse(bearerToken, roll.GenerateKeyExtractionFunction(core.SecretsRepo))
+	if err != nil {
+		return "", err
+	}
+
+	//Grab the subject from the claims
+	subject, ok := token.Claims["sub"].(string)
+	if !ok {
+		return "", errors.New("problem with subject claim")
+	}
+
+	//Is the subject something other than an empty string?
+	if subject == "" {
+		return "", errors.New("empty subject claim")
+	}
+
+	return subject, nil
+}
+
+func subjectFromUnsecuredHeader(core *roll.Core, r *http.Request) (string, error) {
+	log.Println("get subject from unsecured header")
+	subject := r.Header.Get("X-Roll-Subject")
+
+	//Is the subject something other than an empty string?
+	if subject == "" {
+		return "", errors.New("empty subject claim")
+	}
+
+	return subject, nil
+}
+
 func lookupApplication(core *roll.Core, clientID string) (*roll.Application, error) {
 	app, err := core.RetrieveApplication(clientID)
 	if err != nil {
@@ -211,8 +266,8 @@ func handleTokenPost(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func generateAndRespondWithAccessToken(core *roll.Core, app *roll.Application, w http.ResponseWriter) {
-	token, err := generateJWT(core, app)
+func generateAndRespondWithAccessToken(core *roll.Core, subject string, app *roll.Application, w http.ResponseWriter) {
+	token, err := generateJWT(subject, core, app)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, err)
 		return
@@ -257,7 +312,7 @@ func handleAuthCodeGrantType(core *roll.Core, w http.ResponseWriter, r *http.Req
 	}
 
 	//If everything is cool, generate a JWT access token
-	generateAndRespondWithAccessToken(core, app, w)
+	generateAndRespondWithAccessToken(core, codeContext.username, app, w)
 }
 
 func handlePasswordGrantType(core *roll.Core, w http.ResponseWriter, r *http.Request, codeContext *authCodeContext) {
@@ -293,7 +348,7 @@ func handlePasswordGrantType(core *roll.Core, w http.ResponseWriter, r *http.Req
 	}
 
 	//Create the access token
-	generateAndRespondWithAccessToken(core, app, w)
+	generateAndRespondWithAccessToken(core, codeContext.username, app, w)
 
 }
 
@@ -323,8 +378,21 @@ func handleJWTGrantType(core *roll.Core, w http.ResponseWriter, r *http.Request,
 		return
 	}
 
+	//Pass the identity
+	subject, ok := token.Claims["sub"].(string)
+	if !ok {
+		respondError(w, http.StatusBadRequest, errors.New("sub claim is not a string"))
+		return
+	}
+
+	//Make sure the claim conveys a sub
+	if subject == "" {
+		respondError(w, http.StatusBadRequest, errors.New("JWT missing sub claim"))
+		return
+	}
+
 	//Now we can generate a token since we had the app needed to form the token
 	log.Println("generate token")
-	generateAndRespondWithAccessToken(core, app, w)
+	generateAndRespondWithAccessToken(core, subject, app, w)
 
 }

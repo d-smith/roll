@@ -16,7 +16,7 @@ var idGenerator IdGenerator = UUIDIdGenerator{}
 
 //GenerateToken generates a signed JWT for an application using the
 //provided private key which is assocaited with the application.
-func GenerateToken(app *Application, privateKey string) (string, error) {
+func GenerateToken(subject string, app *Application, privateKey string) (string, error) {
 	t := jwt.New(jwt.GetSigningMethod("RS256"))
 
 	jti, err := idGenerator.GenerateID()
@@ -24,6 +24,7 @@ func GenerateToken(app *Application, privateKey string) (string, error) {
 		return "", err
 	}
 
+	t.Claims["sub"] = subject
 	t.Claims["aud"] = app.ClientID
 	t.Claims["iat"] = int64(time.Now().Unix())
 	t.Claims["exp"] = time.Now().Add(24 * time.Hour).Unix()
@@ -45,7 +46,7 @@ func GenerateToken(app *Application, privateKey string) (string, error) {
 
 //GenerateCode generates a code for the web server callback in a 3-legged Oauth2 flow. We create
 //these as signed tokens so we can see a) if its one of ours and b) if its still valid.
-func GenerateCode(app *Application, privateKey string) (string, error) {
+func GenerateCode(subject string, app *Application, privateKey string) (string, error) {
 	t := jwt.New(jwt.GetSigningMethod("RS256"))
 
 	jti, err := idGenerator.GenerateID()
@@ -53,6 +54,7 @@ func GenerateCode(app *Application, privateKey string) (string, error) {
 		return "", err
 	}
 
+	t.Claims["sub"] = subject
 	t.Claims["aud"] = app.ClientID
 	t.Claims["jti"] = jti
 	t.Claims["exp"] = time.Now().Add(30 * time.Second).Unix()

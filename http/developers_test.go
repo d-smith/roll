@@ -19,12 +19,13 @@ func TestStoreDeveloperOK(t *testing.T) {
 		FirstName: "Joe",
 		LastName:  "Developer",
 		Email:     "foo@gmail.com",
+		ID:        "rolltest",
 	}
 
 	devRepoMock := coreConfig.DeveloperRepo.(*mocks.DeveloperRepo)
 	devRepoMock.On("StoreDeveloper", &dev).Return(nil)
 
-	resp := TestHTTPPut(t, addr+"/v1/developers/foo@gmail.com", dev)
+	resp := TestHTTPPutWithRollSubject(t, addr+"/v1/developers/foo@gmail.com", dev)
 	devRepoMock.AssertCalled(t, "StoreDeveloper", &dev)
 
 	checkResponseStatus(t, resp, http.StatusNoContent)
@@ -39,12 +40,13 @@ func TestStoreDeveloperStorageFault(t *testing.T) {
 		FirstName: "Joe",
 		LastName:  "Developer",
 		Email:     "foo@gmail.com",
+		ID:        "rolltest",
 	}
 
 	devRepoMock := coreConfig.DeveloperRepo.(*mocks.DeveloperRepo)
 	devRepoMock.On("StoreDeveloper", &dev).Return(errors.New("can't store"))
 
-	resp := TestHTTPPut(t, addr+"/v1/developers/foo@gmail.com", dev)
+	resp := TestHTTPPutWithRollSubject(t, addr+"/v1/developers/foo@gmail.com", dev)
 	devRepoMock.AssertCalled(t, "StoreDeveloper", &dev)
 
 	checkResponseStatus(t, resp, http.StatusInternalServerError)
@@ -55,7 +57,7 @@ func TestStoreDeveloperInvalidEmailResource(t *testing.T) {
 	ln, addr := TestServer(t, core)
 	defer ln.Close()
 
-	resp := TestHTTPPut(t, addr+"/v1/developers/<script/>", nil)
+	resp := TestHTTPPutWithRollSubject(t, addr+"/v1/developers/<script/>", nil)
 	checkResponseStatus(t, resp, http.StatusBadRequest)
 }
 
@@ -89,7 +91,7 @@ func TestStoreDeveloperInvalidContent(t *testing.T) {
 		Email:     "foo@gmail.com",
 	}
 
-	resp := TestHTTPPut(t, addr+"/v1/developers/foo@gmail.com", dev)
+	resp := TestHTTPPutWithRollSubject(t, addr+"/v1/developers/foo@gmail.com", dev)
 
 	checkResponseStatus(t, resp, http.StatusBadRequest)
 }
