@@ -142,7 +142,7 @@ func RunVaultAndRoll() chan bool {
 		os.Setenv("VAULT_TOKEN", token)
 		os.Setenv("VAULT_ADDR", "http://localhost:8200")
 
-		coreConfig := rollsvcs.DefaultConfig()
+		coreConfig := rollsvcs.DefaultUnsecureConfig()
 		rollsvcs.RunRoll(3000, coreConfig)
 	}()
 

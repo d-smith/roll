@@ -11,6 +11,7 @@ type Core struct {
 	SecretsRepo     SecretsRepo
 	IdGenerator     IdGenerator
 	secure          bool
+	rollClientId    string
 }
 
 //CoreConfig is a structure used to inject infrastructure dependency implementations into
@@ -21,6 +22,7 @@ type CoreConfig struct {
 	SecretsRepo     SecretsRepo
 	IdGenerator     IdGenerator
 	Secure          bool
+	RollClientID    string
 }
 
 //NewCore creates a new Core instance injecting dependencies from the CoreConfig argument
@@ -48,6 +50,7 @@ func NewCore(config *CoreConfig) *Core {
 		SecretsRepo:     config.SecretsRepo,
 		IdGenerator:     config.IdGenerator,
 		secure:          config.Secure,
+		rollClientId:    config.RollClientID,
 	}
 }
 
