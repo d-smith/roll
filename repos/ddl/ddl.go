@@ -8,6 +8,17 @@ import (
 	"os"
 )
 
+const (
+	//DynamoDB table name for holding admins
+	AdminTableName = "Admin"
+
+	//DynamoDB table name for storing registered application details
+	ApplicationTableName = "Application"
+
+	//DynamoDB table name for storing registered developers
+	DeveloperTableName = "Developer"
+)
+
 func DeleteTable(tableName string) {
 
 	localAddr := os.Getenv("LOCAL_DYNAMO_ADDR")
@@ -55,7 +66,7 @@ func CreateAppTable() {
 			ReadCapacityUnits:  aws.Int64(1),
 			WriteCapacityUnits: aws.Int64(1),
 		},
-		TableName: aws.String("Application"),
+		TableName: aws.String(ApplicationTableName),
 		GlobalSecondaryIndexes: []*dynamodb.GlobalSecondaryIndex{
 			{ // Required
 				IndexName: aws.String("EMail-Index"),
@@ -105,7 +116,38 @@ func CreateDevTable() {
 			ReadCapacityUnits:  aws.Int64(1),
 			WriteCapacityUnits: aws.Int64(1),
 		},
-		TableName: aws.String("Developer"),
+		TableName: aws.String(DeveloperTableName),
+	}
+
+	resp, err := svc.CreateTable(params)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Println(resp)
+}
+
+func CreateAdminTable() {
+	var svc *dynamodb.DynamoDB = dbutil.CreateDynamoDBClient()
+
+	params := &dynamodb.CreateTableInput{
+		AttributeDefinitions: []*dynamodb.AttributeDefinition{
+			{
+				AttributeName: aws.String("AdminID"),
+				AttributeType: aws.String("S"),
+			},
+		},
+		KeySchema: []*dynamodb.KeySchemaElement{
+			{
+				AttributeName: aws.String("AdminID"),
+				KeyType:       aws.String("HASH"),
+			},
+		},
+		ProvisionedThroughput: &dynamodb.ProvisionedThroughput{
+			ReadCapacityUnits:  aws.Int64(1),
+			WriteCapacityUnits: aws.Int64(1),
+		},
+		TableName: aws.String(AdminTableName),
 	}
 
 	resp, err := svc.CreateTable(params)
