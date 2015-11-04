@@ -8,6 +8,7 @@ import (
 type Core struct {
 	developerRepo   DeveloperRepo
 	ApplicationRepo ApplicationRepo
+	adminRepo       AdminRepo
 	SecretsRepo     SecretsRepo
 	IdGenerator     IdGenerator
 	secure          bool
@@ -19,6 +20,7 @@ type Core struct {
 type CoreConfig struct {
 	DeveloperRepo   DeveloperRepo
 	ApplicationRepo ApplicationRepo
+	AdminRepo       AdminRepo
 	SecretsRepo     SecretsRepo
 	IdGenerator     IdGenerator
 	Secure          bool
@@ -47,6 +49,7 @@ func NewCore(config *CoreConfig) *Core {
 	return &Core{
 		developerRepo:   config.DeveloperRepo,
 		ApplicationRepo: config.ApplicationRepo,
+		adminRepo:       config.AdminRepo,
 		SecretsRepo:     config.SecretsRepo,
 		IdGenerator:     config.IdGenerator,
 		secure:          config.Secure,
@@ -102,14 +105,22 @@ func (core *Core) RetrievePublicKeyForApp(clientID string) (string, error) {
 	return core.SecretsRepo.RetrievePublicKeyForApp(clientID)
 }
 
+//ListDevelopers returns a list of developers registered with roll
 func (core *Core) ListDevelopers() ([]Developer, error) {
 	return core.developerRepo.ListDevelopers()
 }
 
+//ListApplications returns a list of applications registered with roll
 func (core *Core) ListApplications() ([]Application, error) {
 	return core.ApplicationRepo.ListApplications()
 }
 
+//IsAdmin is a predicate used to determine if the given subject is an admin
+func (core *Core) IsAdmin(subject string) (bool, error) {
+	return core.adminRepo.IsAdmin(subject)
+}
+
+//GenerateID generates and id
 func (core *Core) GenerateID() (string, error) {
 	return core.IdGenerator.GenerateID()
 }

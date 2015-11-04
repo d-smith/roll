@@ -60,6 +60,7 @@ func NewTestCore() (*roll.Core, *roll.CoreConfig) {
 	var coreConfig = roll.CoreConfig{}
 	coreConfig.DeveloperRepo = new(mocks.DeveloperRepo)
 	coreConfig.ApplicationRepo = new(mocks.ApplicationRepo)
+	coreConfig.AdminRepo = new(mocks.AdminRepo)
 	coreConfig.SecretsRepo = new(mocks.SecretsRepo)
 	coreConfig.IdGenerator = TestIDGen{}
 	coreConfig.Secure = false
