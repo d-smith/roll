@@ -10,8 +10,8 @@ import (
 func TestAdminScopeWithNoAdminPrivileges(t *testing.T) {
 	core, coreConfig := NewTestCore()
 
-	appRepoMock := coreConfig.AdminRepo.(*mocks.AdminRepo)
-	appRepoMock.On("IsAdmin", "foobar").Return(false, nil)
+	adminRepoMock := coreConfig.AdminRepo.(*mocks.AdminRepo)
+	adminRepoMock.On("IsAdmin", "foobar").Return(false, nil)
 
 	granted, err := grantAdminScope(core, "foobar")
 	assert.Nil(t, err)
@@ -22,8 +22,8 @@ func TestAdminScopeWithNoAdminPrivileges(t *testing.T) {
 func TestAdminScopeWithAdminPrivileges(t *testing.T) {
 	core, coreConfig := NewTestCore()
 
-	appRepoMock := coreConfig.AdminRepo.(*mocks.AdminRepo)
-	appRepoMock.On("IsAdmin", "foobar").Return(true, nil)
+	adminRepoMock := coreConfig.AdminRepo.(*mocks.AdminRepo)
+	adminRepoMock.On("IsAdmin", "foobar").Return(true, nil)
 
 	granted, err := grantAdminScope(core, "foobar")
 	assert.Nil(t, err)
@@ -34,8 +34,8 @@ func TestAdminScopeWithAdminPrivileges(t *testing.T) {
 func TestAdminScopeWithRepoError(t *testing.T) {
 	core, coreConfig := NewTestCore()
 
-	appRepoMock := coreConfig.AdminRepo.(*mocks.AdminRepo)
-	appRepoMock.On("IsAdmin", "foobar").Return(true, errors.New("boom boom out go the lights"))
+	adminRepoMock := coreConfig.AdminRepo.(*mocks.AdminRepo)
+	adminRepoMock.On("IsAdmin", "foobar").Return(true, errors.New("boom boom out go the lights"))
 
 	_, err := grantAdminScope(core, "foobar")
 	assert.NotNil(t, err)

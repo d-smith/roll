@@ -209,6 +209,65 @@ func TestHandleAuthorize(t *testing.T) {
 
 }
 
+func TestHandleAuthorizeWithAdminScope(t *testing.T) {
+	core, coreConfig := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	returnVal := roll.Application{
+		DeveloperEmail:  "doug@dev.com",
+		ClientID:        "1111-2222-3333333-4444444",
+		ApplicationName: "fight club",
+		ClientSecret:    "not for browser clients",
+		RedirectURI:     "http://localhost:3000/ab",
+		LoginProvider:   "xtrac://localhost:9000",
+	}
+
+	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
+	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+
+	resp := TestHTTPGet(t, addr+"/oauth2/authorize?client_id=1111-2222-3333333-4444444&redirect_uri=http://localhost:3000/ab&response_type=token&scopes=admin", nil)
+	appRepoMock.AssertCalled(t, "RetrieveApplication", "1111-2222-3333333-4444444")
+
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	bodyStr := responseAsString(t, resp)
+	assert.True(t, strings.Contains(bodyStr, `name="client_id" value="1111-2222-3333333-4444444"`))
+	assert.True(t, strings.Contains(bodyStr, ` <h2>fight club`))
+	assert.True(t, strings.Contains(bodyStr, `name="response_type" value="token"`))
+
+}
+
+func TestHandleAuthorizeWithInvalidScope(t *testing.T) {
+	core, coreConfig := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	var redirectCalled = false
+	rs := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		redirectCalled = true
+		assert.True(t, strings.Contains(r.RequestURI, "error=access_denied&error_description=scope-problem"))
+	}))
+	defer rs.Close()
+
+	returnVal := roll.Application{
+		DeveloperEmail:  "doug@dev.com",
+		ClientID:        "1111-2222-3333333-4444444",
+		ApplicationName: "fight club",
+		ClientSecret:    "not for browser clients",
+		RedirectURI:     rs.URL + "/foo",
+		LoginProvider:   "xtrac://localhost:9000",
+	}
+
+	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
+	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+
+	TestHTTPGet(t, addr+"/oauth2/authorize?client_id=1111-2222-3333333-4444444&redirect_uri="+rs.URL+"/foo&response_type=token&scope=invalid-scope", nil)
+	appRepoMock.AssertCalled(t, "RetrieveApplication", "1111-2222-3333333-4444444")
+
+	assert.True(t, redirectCalled)
+
+}
+
 func TestHandleAuthorizeUnsupportedMethod(t *testing.T) {
 	core, _ := NewTestCore()
 	ln, addr := TestServer(t, core)
@@ -562,4 +621,175 @@ func TestAuthValidateCodeResponseAuthenticateOk(t *testing.T) {
 	assert.Nil(t, err)
 	assert.True(t, callbackInvoked)
 	assert.True(t, loginCalled)
+}
+
+func TestAuthValidateCodeResponseAuthenticateAdminScopeOk(t *testing.T) {
+
+	var loginCalled = false
+	ls := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		loginCalled = true
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer ls.Close()
+
+	//TODO - use a second callback where we serve up a script to extract the page details sent
+	//on deny and post those details to another test server.
+	var callbackInvoked = false
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		callbackInvoked = true
+	}))
+	defer ts.Close()
+
+	core, coreConfig := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	lsURL, _ := url.Parse(ls.URL)
+
+	returnVal := roll.Application{
+		DeveloperEmail:  "doug@dev.com",
+		ClientID:        "1111-2222-3333333-4444444",
+		ApplicationName: "fight club",
+		ClientSecret:    "not for browser clients",
+		RedirectURI:     ts.URL,
+		LoginProvider:   "xtrac://" + lsURL.Host,
+	}
+
+	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
+	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+
+	adminRepoMock := coreConfig.AdminRepo.(*mocks.AdminRepo)
+	adminRepoMock.On("IsAdmin", "x").Return(true, nil)
+
+	privateKey, _, err := secrets.GenerateKeyPair()
+	assert.Nil(t, err)
+
+	secretsMock := coreConfig.SecretsRepo.(*mocks.SecretsRepo)
+	secretsMock.On("RetrievePrivateKeyForApp", "1111-2222-3333333-4444444").Return(privateKey, nil)
+
+	_, err = http.PostForm(addr+"/oauth2/validate",
+		url.Values{"username": {"x"},
+			"password":      {"y"},
+			"authorize":     {"allow"},
+			"response_type": {"code"},
+			"scope":         {"admin"},
+			"client_id":     {"1111-2222-3333333-4444444"}})
+	assert.Nil(t, err)
+	assert.True(t, callbackInvoked)
+	assert.True(t, loginCalled)
+}
+
+func TestAuthValidateCodeResponseAuthenticateAdminScopeDenied(t *testing.T) {
+
+	var loginCalled = false
+	ls := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		loginCalled = true
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer ls.Close()
+
+	//TODO - use a second callback where we serve up a script to extract the page details sent
+	//on deny and post those details to another test server.
+	var callbackInvoked = false
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		callbackInvoked = true
+		assert.True(t, strings.Contains(r.RequestURI, "error=access_denied&error_description=scope-problem"))
+	}))
+	defer ts.Close()
+
+	core, coreConfig := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	lsURL, _ := url.Parse(ls.URL)
+
+	returnVal := roll.Application{
+		DeveloperEmail:  "doug@dev.com",
+		ClientID:        "1111-2222-3333333-4444444",
+		ApplicationName: "fight club",
+		ClientSecret:    "not for browser clients",
+		RedirectURI:     ts.URL + "/foo",
+		LoginProvider:   "xtrac://" + lsURL.Host,
+	}
+
+	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
+	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+
+	adminRepoMock := coreConfig.AdminRepo.(*mocks.AdminRepo)
+	adminRepoMock.On("IsAdmin", "x").Return(false, nil)
+
+	privateKey, _, err := secrets.GenerateKeyPair()
+	assert.Nil(t, err)
+
+	secretsMock := coreConfig.SecretsRepo.(*mocks.SecretsRepo)
+	secretsMock.On("RetrievePrivateKeyForApp", "1111-2222-3333333-4444444").Return(privateKey, nil)
+
+	_, err = http.PostForm(addr+"/oauth2/validate",
+		url.Values{"username": {"x"},
+			"password":      {"y"},
+			"authorize":     {"allow"},
+			"response_type": {"code"},
+			"scope":         {"admin"},
+			"client_id":     {"1111-2222-3333333-4444444"}})
+	assert.Nil(t, err)
+	assert.True(t, callbackInvoked)
+}
+
+func TestAuthValidateCodeResponseAuthenticateAdminScopeError(t *testing.T) {
+
+	var loginCalled = false
+	ls := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		loginCalled = true
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer ls.Close()
+
+	//TODO - use a second callback where we serve up a script to extract the page details sent
+	//on deny and post those details to another test server.
+	var callbackInvoked = false
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		callbackInvoked = true
+		assert.True(t, strings.Contains(r.RequestURI, "error=server_error&error_description="))
+	}))
+	defer ts.Close()
+
+	core, coreConfig := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	lsURL, _ := url.Parse(ls.URL)
+
+	returnVal := roll.Application{
+		DeveloperEmail:  "doug@dev.com",
+		ClientID:        "1111-2222-3333333-4444444",
+		ApplicationName: "fight club",
+		ClientSecret:    "not for browser clients",
+		RedirectURI:     ts.URL + "/foo",
+		LoginProvider:   "xtrac://" + lsURL.Host,
+	}
+
+	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
+	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+
+	adminRepoMock := coreConfig.AdminRepo.(*mocks.AdminRepo)
+	adminRepoMock.On("IsAdmin", "x").Return(false, errors.New("BOOM!"))
+
+	privateKey, _, err := secrets.GenerateKeyPair()
+	assert.Nil(t, err)
+
+	secretsMock := coreConfig.SecretsRepo.(*mocks.SecretsRepo)
+	secretsMock.On("RetrievePrivateKeyForApp", "1111-2222-3333333-4444444").Return(privateKey, nil)
+
+	_, err = http.PostForm(addr+"/oauth2/validate",
+		url.Values{"username": {"x"},
+			"password":      {"y"},
+			"authorize":     {"allow"},
+			"response_type": {"code"},
+			"scope":         {"admin"},
+			"client_id":     {"1111-2222-3333333-4444444"}})
+	assert.Nil(t, err)
+	assert.True(t, callbackInvoked)
 }
