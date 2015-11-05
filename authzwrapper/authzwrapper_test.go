@@ -60,7 +60,7 @@ func TestGoodToken(t *testing.T) {
 	secretsMock.On("RetrievePrivateKeyForApp", "1111-2222-3333333-4444444").Return(privateKey, nil)
 	secretsMock.On("RetrievePublicKeyForApp", "1111-2222-3333333-4444444").Return(publicKey, nil)
 
-	token, err := roll.GenerateToken("a-subject", &app, privateKey)
+	token, err := roll.GenerateToken("a-subject", "", &app, privateKey)
 	assert.Nil(t, err)
 
 	testServer := httptest.NewServer(Wrap(secretsMock, []string{}, echoHandler()))
@@ -130,7 +130,7 @@ func TestInvalidSignature(t *testing.T) {
 	secretsMock.On("RetrievePrivateKeyForApp", "1111-2222-3333333-4444444").Return(privateKey, nil)
 	secretsMock.On("RetrievePublicKeyForApp", "1111-2222-3333333-4444444").Return(publicKey, nil)
 
-	token, err := roll.GenerateToken("b-subject", &app, private2)
+	token, err := roll.GenerateToken("b-subject", "", &app, private2)
 	assert.Nil(t, err)
 
 	testServer := httptest.NewServer(Wrap(secretsMock, []string{}, echoHandler()))
@@ -166,7 +166,7 @@ func TestAuthCodeUsedForAccess(t *testing.T) {
 	secretsMock.On("RetrievePrivateKeyForApp", "1111-2222-3333333-4444444").Return(privateKey, nil)
 	secretsMock.On("RetrievePublicKeyForApp", "1111-2222-3333333-4444444").Return(publicKey, nil)
 
-	token, err := roll.GenerateCode("a-subject", &app, privateKey)
+	token, err := roll.GenerateCode("a-subject", "", &app, privateKey)
 	assert.Nil(t, err)
 
 	testServer := httptest.NewServer(Wrap(secretsMock, []string{}, echoHandler()))
