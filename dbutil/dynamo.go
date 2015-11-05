@@ -8,10 +8,10 @@ import (
 )
 
 func CreateDynamoDBClient() *dynamodb.DynamoDB {
-	//TODO - what's the best way to pick up AWS configuration?
 	var dynamoClient *dynamodb.DynamoDB
 
-	localAddr := os.Getenv("LOCAL_DYNAMO_ADDR")
+
+	localAddr := os.Getenv("LOCAL_DYNAMO_ADDR") //e.g. export LOCAL_DYNAMO_ADDR=http://localhost:8000
 	if localAddr != "" {
 		log.Printf("Using local dynamodb address - %s", localAddr)
 		dynamoClient = dynamodb.New(&aws.Config{Endpoint: aws.String(localAddr), Region: aws.String("here")})

@@ -5,6 +5,6 @@ import (
 )
 
 func main() {
-	ddl.DeleteTable("Developer")
+	ddl.DeleteTable(ddl.DeveloperTableName)
 	ddl.CreateDevTable()
 }

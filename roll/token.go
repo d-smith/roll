@@ -5,6 +5,7 @@ import (
 	"fmt"
 	jwt "github.com/dgrijalva/jwt-go"
 	"log"
+	"strings"
 	"time"
 )
 
@@ -14,9 +15,28 @@ const XtAuthCodeScope = "xtAuthCode"
 
 var idGenerator IdGenerator = UUIDIdGenerator{}
 
+func scopeStringWithoutAuthcodeScope(scope string) string {
+	if scope == "" {
+		return scope
+	}
+
+	scopeParts := strings.Fields(scope)
+	var finalScope string
+	for _, sp := range scopeParts {
+		if sp != XtAuthCodeScope {
+			if len(finalScope) != 0 {
+				finalScope += " "
+			}
+			finalScope += sp
+		}
+	}
+
+	return finalScope
+}
+
 //GenerateToken generates a signed JWT for an application using the
 //provided private key which is assocaited with the application.
-func GenerateToken(subject string, app *Application, privateKey string) (string, error) {
+func GenerateToken(subject, scope string, app *Application, privateKey string) (string, error) {
 	t := jwt.New(jwt.GetSigningMethod("RS256"))
 
 	jti, err := idGenerator.GenerateID()
@@ -30,6 +50,9 @@ func GenerateToken(subject string, app *Application, privateKey string) (string,
 	t.Claims["exp"] = time.Now().Add(24 * time.Hour).Unix()
 	t.Claims["jti"] = jti
 	t.Claims["application"] = app.ApplicationName
+
+	//Add scope to claim, removing our reserved auth code scope
+	t.Claims["scope"] = scopeStringWithoutAuthcodeScope(scope)
 
 	signKey, err := jwt.ParseRSAPrivateKeyFromPEM([]byte(privateKey))
 	if err != nil {
@@ -46,7 +69,7 @@ func GenerateToken(subject string, app *Application, privateKey string) (string,
 
 //GenerateCode generates a code for the web server callback in a 3-legged Oauth2 flow. We create
 //these as signed tokens so we can see a) if its one of ours and b) if its still valid.
-func GenerateCode(subject string, app *Application, privateKey string) (string, error) {
+func GenerateCode(subject, scope string, app *Application, privateKey string) (string, error) {
 	t := jwt.New(jwt.GetSigningMethod("RS256"))
 
 	jti, err := idGenerator.GenerateID()
@@ -58,7 +81,12 @@ func GenerateCode(subject string, app *Application, privateKey string) (string, 
 	t.Claims["aud"] = app.ClientID
 	t.Claims["jti"] = jti
 	t.Claims["exp"] = time.Now().Add(30 * time.Second).Unix()
-	t.Claims["scope"] = XtAuthCodeScope
+
+	codeScope := XtAuthCodeScope
+	if scope != "" {
+		codeScope += " " + scope
+	}
+	t.Claims["scope"] = codeScope
 
 	signKey, err := jwt.ParseRSAPrivateKeyFromPEM([]byte(privateKey))
 	if err != nil {

@@ -32,6 +32,7 @@ var Authorize = `
 
     <input type="hidden" name="client_id" value="{{.ClientID}}"/>
     <input type="hidden" name="response_type" value="token"/>
+    <input type="hidden" name="scope" value="{{.Scope}}"/>
 </form>
 </div>
 </body>
@@ -70,6 +71,7 @@ var Authorize3Leg = `
 
     <input type="hidden" name="client_id" value="{{.ClientID}}"/>
     <input type="hidden" name="response_type" value="code"/>
+    <input type="hidden" name="scope" value="{{.Scope}}"/>
 </form>
 </div>
 </body>

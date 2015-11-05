@@ -35,6 +35,7 @@ func init() {
 type authPageContext struct {
 	AppName  string
 	ClientID string
+	Scope    string
 }
 
 const (
@@ -43,6 +44,14 @@ const (
 
 	//ValidateBaseURI is the base uri for the authentication callback for the implicit grant flow
 	ValidateBaseURI = "/oauth2/validate"
+
+	oauth2Scope = "scope"
+	adminScope  = "admin"
+
+	serverErrorRedirectURLFormat          = "%s?error=server_error&error_description=%s"
+	serverErrorRedirectURLFragmentFormat  = "%s#error=server_error&error_description=%s"
+	invalidScopeRedirectURLFormat         = "%s?error=access_denied&error_description=scope-problem"
+	invalidScopeRedirectURLFragmentFormat = "%s#error=access_denied&error_description=scope-problem"
 )
 
 func handleAuthorize(core *roll.Core) http.Handler {
@@ -115,6 +124,30 @@ func executeAuthTemplate(w http.ResponseWriter, r *http.Request, pageCtx *authPa
 
 }
 
+//validateScopes validates the requested scopes. We will be strict here: anything we don't recognize
+//means validation fails.
+func validateKnownScopes(scope string) error {
+	if scope == "" {
+		log.Println("No scope content to validate")
+		return nil
+	}
+
+	//According to RFC 6749 scopes are whitespace delimited string values.
+	scopeParts := strings.Fields(scope)
+
+	//We only know about one scope, so if there's more than one it's invalid
+	if len(scopeParts) != 1 {
+		return errors.New("scope contains unknown part(s)")
+	}
+
+	if scopeParts[0] != adminScope {
+		return errors.New("admin is the only known scope")
+	}
+
+	log.Println("scope content valid")
+	return nil
+}
+
 func handleAuthZGet(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 
 	//Check the query params
@@ -130,10 +163,21 @@ func handleAuthZGet(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//Check scopes, if specified
+	scopes := r.FormValue(oauth2Scope)
+	err = validateKnownScopes(scopes)
+	if err != nil {
+		log.Println("Error validating scope", err.Error())
+		redirectURL := buildScopeErrorRedirectURL(app)
+		http.Redirect(w, r, redirectURL, http.StatusFound)
+		return
+	}
+
 	//Build and return the login page
 	pageCtx := &authPageContext{
 		AppName:  app.ApplicationName,
 		ClientID: app.ClientID,
+		Scope:    scopes,
 	}
 
 	err = executeAuthTemplate(w, r, pageCtx)
@@ -175,24 +219,28 @@ func lookupApplicationFromFormClientID(core *roll.Core, r *http.Request) (*roll.
 	return app, nil
 }
 
-func buildDeniedRedirectURL(app *roll.Application) string {
+func buildDeniedRedirectURLFragment(app *roll.Application) string {
 	return fmt.Sprintf("%s#error=access_denied", app.RedirectURI)
 }
 
-func buildRedirectURL(core *roll.Core, w http.ResponseWriter, responseType string, subject string, app *roll.Application) (string, error) {
+func buildScopeErrorRedirectURL(app *roll.Application) string {
+	return fmt.Sprintf("%s?error=access_denied&error_description=scope-problem", app.RedirectURI)
+}
+
+func buildRedirectURL(core *roll.Core, w http.ResponseWriter, responseType, subject, scope string, app *roll.Application) (string, error) {
 	log.Println("build redirect, app ctx:", app.RedirectURI)
 
 	var redirectURL string
 	switch responseType {
 	case "token":
 		//Create signed token
-		token, err := generateJWT(subject, core, app)
+		token, err := generateJWT(subject, scope, core, app)
 		if err != nil {
 			return "", err
 		}
 		redirectURL = fmt.Sprintf("%s#access_token=%s&token_type=Bearer", app.RedirectURI, token)
 	case "code":
-		token, err := generateSignedCode(core, subject, app)
+		token, err := generateSignedCode(core, subject, scope, app)
 		if err != nil {
 			return "", err
 		}
@@ -203,23 +251,23 @@ func buildRedirectURL(core *roll.Core, w http.ResponseWriter, responseType strin
 	return redirectURL, nil
 }
 
-func generateJWT(subject string, core *roll.Core, app *roll.Application) (string, error) {
+func generateJWT(subject, scope string, core *roll.Core, app *roll.Application) (string, error) {
 	privateKey, err := core.RetrievePrivateKeyForApp(app.ClientID)
 	if err != nil {
 		return "", err
 	}
 
-	token, err := roll.GenerateToken(subject, app, privateKey)
+	token, err := roll.GenerateToken(subject, scope, app, privateKey)
 	return token, err
 }
 
-func generateSignedCode(core *roll.Core, subject string, app *roll.Application) (string, error) {
+func generateSignedCode(core *roll.Core, subject, scope string, app *roll.Application) (string, error) {
 	privateKey, err := core.RetrievePrivateKeyForApp(app.ClientID)
 	if err != nil {
 		return "", err
 	}
 
-	token, err := roll.GenerateCode(subject, app, privateKey)
+	token, err := roll.GenerateCode(subject, scope, app, privateKey)
 	return token, err
 }
 
@@ -277,6 +325,52 @@ func authenticateUser(username, password string, app *roll.Application) (bool, e
 
 }
 
+func validateScopes(core *roll.Core, r *http.Request) (bool, error) {
+	scope := r.FormValue(oauth2Scope)
+	log.Println("validating scope", scope)
+	if scope == "" {
+		return true, nil
+	}
+
+	scopeParts := strings.Fields(scope)
+	if len(scopeParts) > 1 || scopeParts[0] != adminScope {
+		log.Println("scope not allowed")
+		return false, nil
+	}
+
+	subject := r.FormValue("username")
+	validAdmin, err := core.IsAdmin(subject)
+	if err != nil {
+		return false, err
+	}
+
+	return validAdmin, nil
+}
+
+func buildServerErrorRedirectURL(responseType string, app *roll.Application, errorDetail string) string {
+	var urlFormat string
+
+	if responseType == "code" {
+		urlFormat = serverErrorRedirectURLFormat
+	} else {
+		urlFormat = serverErrorRedirectURLFragmentFormat
+	}
+
+	return fmt.Sprintf(urlFormat, app.RedirectURI, errorDetail)
+}
+
+func buildInvalidScopeRedirectURL(responseType string, app *roll.Application) string {
+	var urlFormat string
+
+	if responseType == "code" {
+		urlFormat = invalidScopeRedirectURLFormat
+	} else {
+		urlFormat = invalidScopeRedirectURLFormat
+	}
+
+	return fmt.Sprintf(urlFormat, app.RedirectURI)
+}
+
 func handleAuthZValidate(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 
 	//Get the response type
@@ -295,7 +389,7 @@ func handleAuthZValidate(core *roll.Core, w http.ResponseWriter, r *http.Request
 
 	//Check if user denied authorization. Note we assume if the request was not allowed it was denied.
 	if denied(r) {
-		redirectURL := buildDeniedRedirectURL(app)
+		redirectURL := buildDeniedRedirectURLFragment(app)
 		http.Redirect(w, r, redirectURL, http.StatusFound)
 		return
 	}
@@ -310,13 +404,30 @@ func handleAuthZValidate(core *roll.Core, w http.ResponseWriter, r *http.Request
 
 	//Was the authentication successful?
 	if !authenticated {
-		redirectURL := buildDeniedRedirectURL(app)
+		redirectURL := buildDeniedRedirectURLFragment(app)
+		http.Redirect(w, r, redirectURL, http.StatusFound)
+		return
+	}
+
+	//If a scope is present, validate it.
+	log.Println("validate scope")
+	valid, err := validateScopes(core, r)
+	if err != nil {
+		log.Println("error validating scope", err.Error())
+		redirectURL := buildServerErrorRedirectURL(responseType, app, err.Error())
+		http.Redirect(w, r, redirectURL, http.StatusFound)
+		return
+	}
+
+	if !valid {
+		log.Println("scope is invalid")
+		redirectURL := buildInvalidScopeRedirectURL(responseType, app)
 		http.Redirect(w, r, redirectURL, http.StatusFound)
 		return
 	}
 
 	//Build redirect url with embedded token or code
-	redirectURL, err := buildRedirectURL(core, w, responseType, r.FormValue("username"), app)
+	redirectURL, err := buildRedirectURL(core, w, responseType, r.FormValue("username"), r.FormValue("scope"), app)
 	if err != nil {
 		log.Println("Error generating redirect url: ", err.Error())
 		respondError(w, http.StatusInternalServerError, err)

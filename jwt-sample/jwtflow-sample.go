@@ -63,8 +63,8 @@ T9276oM42khyKY36lXvLi4yjk2yHysIvO7ckuX0F/vZtQjG1zuBb
 `
 
 const (
-	clientID     = "b047f0b9-e830-4c6b-7c0c-0564bd07a0a7"
-	clientSecret = "ThWLhQYfW1s/9aXEA5W5Lszx1UoZUWebVv4j1KWPKxk="
+	clientID     = "3ca926b9-44eb-4ef2-7971-aa33b1620f78"
+	clientSecret = "VoscDd4uj22UhXrwe++RceNeDqJZ0ZZwN8PBMS1BUlM="
 )
 
 func uploadCert() {
@@ -104,7 +104,8 @@ func generateJTW() string {
 
 	token := jwt.New(jwt.GetSigningMethod("RS256"))
 	token.Claims["iss"] = clientID
-	token.Claims["sub"] = "drscan"
+	token.Claims["sub"] = "foo"
+	token.Claims["scope"] = "admin"
 
 	tokenString, err := token.SignedString(signKey)
 	if err != nil {

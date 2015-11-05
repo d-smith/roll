@@ -64,7 +64,7 @@ func TestValidAccessToken(t *testing.T) {
 	secretsMock.On("RetrievePrivateKeyForApp", "1111-2222-3333333-4444444").Return(privateKey, nil)
 	secretsMock.On("RetrievePublicKeyForApp", "1111-2222-3333333-4444444").Return(publicKey, nil)
 
-	token, err := roll.GenerateToken("a-subject", &returnVal, privateKey)
+	token, err := roll.GenerateToken("a-subject", "", &returnVal, privateKey)
 	assert.Nil(t, err)
 
 	resp, err := http.Get(addr + TokenInfoURI + "?access_token=" + token)
