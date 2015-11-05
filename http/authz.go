@@ -227,20 +227,20 @@ func buildScopeErrorRedirectURL(app *roll.Application) string {
 	return fmt.Sprintf("%s?error=access_denied&error_description=scope-problem", app.RedirectURI)
 }
 
-func buildRedirectURL(core *roll.Core, w http.ResponseWriter, responseType string, subject string, app *roll.Application) (string, error) {
+func buildRedirectURL(core *roll.Core, w http.ResponseWriter, responseType, subject, scope string, app *roll.Application) (string, error) {
 	log.Println("build redirect, app ctx:", app.RedirectURI)
 
 	var redirectURL string
 	switch responseType {
 	case "token":
 		//Create signed token
-		token, err := generateJWT(subject, core, app)
+		token, err := generateJWT(subject, scope, core, app)
 		if err != nil {
 			return "", err
 		}
 		redirectURL = fmt.Sprintf("%s#access_token=%s&token_type=Bearer", app.RedirectURI, token)
 	case "code":
-		token, err := generateSignedCode(core, subject, app)
+		token, err := generateSignedCode(core, subject, scope, app)
 		if err != nil {
 			return "", err
 		}
@@ -251,23 +251,23 @@ func buildRedirectURL(core *roll.Core, w http.ResponseWriter, responseType strin
 	return redirectURL, nil
 }
 
-func generateJWT(subject string, core *roll.Core, app *roll.Application) (string, error) {
+func generateJWT(subject, scope string, core *roll.Core, app *roll.Application) (string, error) {
 	privateKey, err := core.RetrievePrivateKeyForApp(app.ClientID)
 	if err != nil {
 		return "", err
 	}
 
-	token, err := roll.GenerateToken(subject, app, privateKey)
+	token, err := roll.GenerateToken(subject, scope, app, privateKey)
 	return token, err
 }
 
-func generateSignedCode(core *roll.Core, subject string, app *roll.Application) (string, error) {
+func generateSignedCode(core *roll.Core, subject, scope string, app *roll.Application) (string, error) {
 	privateKey, err := core.RetrievePrivateKeyForApp(app.ClientID)
 	if err != nil {
 		return "", err
 	}
 
-	token, err := roll.GenerateCode(subject, app, privateKey)
+	token, err := roll.GenerateCode(subject, scope, app, privateKey)
 	return token, err
 }
 
@@ -425,7 +425,7 @@ func handleAuthZValidate(core *roll.Core, w http.ResponseWriter, r *http.Request
 	}
 
 	//Build redirect url with embedded token or code
-	redirectURL, err := buildRedirectURL(core, w, responseType, r.FormValue("username"), app)
+	redirectURL, err := buildRedirectURL(core, w, responseType, r.FormValue("username"), r.FormValue("scope"), app)
 	if err != nil {
 		log.Println("Error generating redirect url: ", err.Error())
 		respondError(w, http.StatusInternalServerError, err)

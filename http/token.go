@@ -221,24 +221,24 @@ func validateClientDetails(core *roll.Core, ctx *authCodeContext) (*roll.Applica
 	return app, nil
 }
 
-func validateCode(secretsRepo roll.SecretsRepo, ctx *authCodeContext, clientID string) error {
+func validateAndReturnCodeToken(secretsRepo roll.SecretsRepo, ctx *authCodeContext, clientID string) (*jwt.Token, error) {
 	token, err := jwt.Parse(ctx.authCode, roll.GenerateKeyExtractionFunction(secretsRepo))
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	//Make sure the token is valid
 	if !token.Valid {
 		log.Println("Invalid token presented to service, ", token)
-		return errors.New("Invalid authorization code")
+		return nil, errors.New("Invalid authorization code")
 	}
 
 	//make sure the client_id used to validate the token matches the token aud claim
 	if clientID != token.Claims["aud"] {
-		return errors.New("token not associated client ID presented")
+		return nil, errors.New("token not associated client ID presented")
 	}
 
-	return nil
+	return token, nil
 }
 
 func handleTokenPost(core *roll.Core, w http.ResponseWriter, r *http.Request) {
@@ -266,8 +266,8 @@ func handleTokenPost(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func generateAndRespondWithAccessToken(core *roll.Core, subject string, app *roll.Application, w http.ResponseWriter) {
-	token, err := generateJWT(subject, core, app)
+func generateAndRespondWithAccessToken(core *roll.Core, subject, scope string, app *roll.Application, w http.ResponseWriter) {
+	token, err := generateJWT(subject, scope, core, app)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, err)
 		return
@@ -306,13 +306,26 @@ func handleAuthCodeGrantType(core *roll.Core, w http.ResponseWriter, r *http.Req
 	}
 
 	//Validate the code - it should be a token signed with the users' private key
-	if err = validateCode(core.SecretsRepo, codeContext, r.FormValue("client_id")); err != nil {
+	token, err := validateAndReturnCodeToken(core.SecretsRepo, codeContext, r.FormValue("client_id"))
+	if err != nil {
 		respondError(w, http.StatusUnauthorized, err)
 		return
 	}
 
+	scope, ok := token.Claims["scope"].(string)
+	if !ok {
+		respondError(w, http.StatusBadRequest, errors.New("problem with token scope"))
+		return
+	}
+
+	subject, ok := token.Claims["sub"].(string)
+	if !ok {
+		respondError(w, http.StatusBadRequest, errors.New("problem with token subject"))
+		return
+	}
+
 	//If everything is cool, generate a JWT access token
-	generateAndRespondWithAccessToken(core, codeContext.username, app, w)
+	generateAndRespondWithAccessToken(core, subject, scope, app, w)
 }
 
 func handlePasswordGrantType(core *roll.Core, w http.ResponseWriter, r *http.Request, codeContext *authCodeContext) {
@@ -348,7 +361,9 @@ func handlePasswordGrantType(core *roll.Core, w http.ResponseWriter, r *http.Req
 	}
 
 	//Create the access token
-	generateAndRespondWithAccessToken(core, codeContext.username, app, w)
+
+	//TODO  - extract and validate scope
+	generateAndRespondWithAccessToken(core, "", codeContext.username, app, w)
 
 }
 
@@ -393,6 +408,8 @@ func handleJWTGrantType(core *roll.Core, w http.ResponseWriter, r *http.Request,
 
 	//Now we can generate a token since we had the app needed to form the token
 	log.Println("generate token")
-	generateAndRespondWithAccessToken(core, subject, app, w)
+
+	//TODO - extract and validate scope
+	generateAndRespondWithAccessToken(core, "", subject, app, w)
 
 }

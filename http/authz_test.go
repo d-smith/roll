@@ -2,6 +2,7 @@ package http
 
 import (
 	"errors"
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/stretchr/testify/assert"
 	"github.com/xtraclabs/roll/roll"
 	"github.com/xtraclabs/roll/roll/mocks"
@@ -572,6 +573,17 @@ func TestAuthValidateAuthenticateOk(t *testing.T) {
 
 func TestAuthValidateCodeResponseAuthenticateOk(t *testing.T) {
 
+	core, coreConfig := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	privateKey, publicKey, err := secrets.GenerateKeyPair()
+	assert.Nil(t, err)
+
+	secretsMock := coreConfig.SecretsRepo.(*mocks.SecretsRepo)
+	secretsMock.On("RetrievePrivateKeyForApp", "1111-2222-3333333-4444444").Return(privateKey, nil)
+	secretsMock.On("RetrievePublicKeyForApp", "1111-2222-3333333-4444444").Return(publicKey, nil)
+
 	var loginCalled = false
 	ls := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		loginCalled = true
@@ -585,12 +597,14 @@ func TestAuthValidateCodeResponseAuthenticateOk(t *testing.T) {
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		callbackInvoked = true
+		code := r.FormValue("code")
+		token, err := jwt.Parse(code, roll.GenerateKeyExtractionFunction(core.SecretsRepo))
+		assert.Nil(t, err)
+		scope, ok := token.Claims["scope"].(string)
+		assert.True(t, ok)
+		assert.Equal(t, "xtAuthCode", scope)
 	}))
 	defer ts.Close()
-
-	core, coreConfig := NewTestCore()
-	ln, addr := TestServer(t, core)
-	defer ln.Close()
 
 	lsURL, _ := url.Parse(ls.URL)
 
@@ -606,12 +620,6 @@ func TestAuthValidateCodeResponseAuthenticateOk(t *testing.T) {
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
 	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
-	privateKey, _, err := secrets.GenerateKeyPair()
-	assert.Nil(t, err)
-
-	secretsMock := coreConfig.SecretsRepo.(*mocks.SecretsRepo)
-	secretsMock.On("RetrievePrivateKeyForApp", "1111-2222-3333333-4444444").Return(privateKey, nil)
-
 	_, err = http.PostForm(addr+"/oauth2/validate",
 		url.Values{"username": {"x"},
 			"password":      {"y"},
@@ -625,6 +633,17 @@ func TestAuthValidateCodeResponseAuthenticateOk(t *testing.T) {
 
 func TestAuthValidateCodeResponseAuthenticateAdminScopeOk(t *testing.T) {
 
+	core, coreConfig := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	privateKey, publicKey, err := secrets.GenerateKeyPair()
+	assert.Nil(t, err)
+
+	secretsMock := coreConfig.SecretsRepo.(*mocks.SecretsRepo)
+	secretsMock.On("RetrievePrivateKeyForApp", "1111-2222-3333333-4444444").Return(privateKey, nil)
+	secretsMock.On("RetrievePublicKeyForApp", "1111-2222-3333333-4444444").Return(publicKey, nil)
+
 	var loginCalled = false
 	ls := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		loginCalled = true
@@ -632,18 +651,18 @@ func TestAuthValidateCodeResponseAuthenticateAdminScopeOk(t *testing.T) {
 	}))
 	defer ls.Close()
 
-	//TODO - use a second callback where we serve up a script to extract the page details sent
-	//on deny and post those details to another test server.
 	var callbackInvoked = false
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		callbackInvoked = true
+		code := r.FormValue("code")
+		token, err := jwt.Parse(code, roll.GenerateKeyExtractionFunction(core.SecretsRepo))
+		assert.Nil(t, err)
+		scope, ok := token.Claims["scope"].(string)
+		assert.True(t, ok)
+		assert.Equal(t, "xtAuthCode admin", scope)
 	}))
 	defer ts.Close()
-
-	core, coreConfig := NewTestCore()
-	ln, addr := TestServer(t, core)
-	defer ln.Close()
 
 	lsURL, _ := url.Parse(ls.URL)
 
@@ -661,12 +680,6 @@ func TestAuthValidateCodeResponseAuthenticateAdminScopeOk(t *testing.T) {
 
 	adminRepoMock := coreConfig.AdminRepo.(*mocks.AdminRepo)
 	adminRepoMock.On("IsAdmin", "x").Return(true, nil)
-
-	privateKey, _, err := secrets.GenerateKeyPair()
-	assert.Nil(t, err)
-
-	secretsMock := coreConfig.SecretsRepo.(*mocks.SecretsRepo)
-	secretsMock.On("RetrievePrivateKeyForApp", "1111-2222-3333333-4444444").Return(privateKey, nil)
 
 	_, err = http.PostForm(addr+"/oauth2/validate",
 		url.Values{"username": {"x"},
