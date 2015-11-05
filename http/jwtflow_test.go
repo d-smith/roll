@@ -2,7 +2,9 @@ package http
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/stretchr/testify/assert"
 	"github.com/xtraclabs/roll/roll"
 	"github.com/xtraclabs/roll/roll/mocks"
@@ -49,7 +51,23 @@ VQIDAQAB
 
 //Look at and run https://github.com/d-smith/go-examples/tree/master/jwt/jwtkeycert to
 //see where the assertion used in this test came from.
+//Decoded assertion:
+/*
+{
+  "iss": "1111-2222-3333333-4444444",
+  "sub": "drscan"
+}
+*/
 const jwtAssertion = `eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIxMTExLTIyMjItMzMzMzMzMy00NDQ0NDQ0Iiwic3ViIjoiZHJzY2FuIn0.XpMy2bJAjfnw3wcadaehayCiWlMwBbIftlFDO_s8rUPPV31b3lqmyPoOvw4FOB_ManLIyJ13PpUobvTwadFGhbkS7B-GFFAJxv3q179qU5ZE6IwlhR80aky9icKzNWj77ozYx041-itWYWbvRxLRMORRygTPeE7T6b4VhZud18mGIeObuLim7YDR7_mZCDdjSeh734dSJBj7y3nilOm-AsmSKPkg0EZ5z_S_74LZo6x4asdKrSnUww3efo4t3si9UnFhF_cbMOekCPHkigSd57tcTqz38PX8aHkj-N8crHDup7_T150UnE4anQY8yyEErmtOpuB-imW-yjSkecfZrg`
+
+/*
+{
+  "iss": "1111-2222-3333333-4444444",
+  "scope": "a b c admin",
+  "sub": "foo"
+}
+*/
+const jwtWithAdminScope = `eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIxMTExLTIyMjItMzMzMzMzMy00NDQ0NDQ0Iiwic2NvcGUiOiJhIGIgYyBhZG1pbiIsInN1YiI6ImZvbyJ9.OEH_0Kfpi490fQI7CE57ahmPZ4Q0ZB_7bZRI5v4Za42gTKWI3R53-vUyxvZJ5Y9ctmoUE7YCqj_G2vu7ZkJnghzR3lbtuybIsrfFy24I6V2sJCmqmLKXxpiwY3g2ZckQjGQjGaS-EB2lTg9p52fokw32q5EkT9UsStjhAi06jBHKd2FpIOH-od1f7IzZI3csmAUmt4DXlPia9NqSOdjwPwQqeknzfSeB3GAJTDrGLyrIo5ACk8WsDYhLolYxb9guBzCnwZ0emr1CoWH1VOtlF0PaAeYV2yns3Ck9-pFxo7TTSVw6__em14WdcU-NQ2U4_t1CztAz1ghjVH-0qdPG4Q`
 
 func TestJWTFlowSetupMalformedPayload(t *testing.T) {
 	core, _ := NewTestCore()
@@ -354,6 +372,67 @@ func TestJWTFlowValidAssertionOkYeah(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	bodyStr := responseAsString(t, resp)
+	println(bodyStr)
+
+	var jsonResponse accessTokenResponse
+	err = json.Unmarshal([]byte(bodyStr), &jsonResponse)
+	assert.Nil(t, err)
+	assert.True(t, jsonResponse.AccessToken != "")
+	assert.True(t, jsonResponse.TokenType == "Bearer")
+
+	token, err := jwt.Parse(jsonResponse.AccessToken, roll.GenerateKeyExtractionFunction(core.SecretsRepo))
+	assert.Nil(t, err)
+	assert.Equal(t, "1111-2222-3333333-4444444", token.Claims["aud"].(string))
+	assert.Equal(t, "drscan", token.Claims["sub"].(string))
+	assert.Equal(t, "", token.Claims["scope"].(string))
+}
+
+func TestJWTFlowValidAssertionOkAdminScope(t *testing.T) {
+	core, coreConfig := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	returnVal := roll.Application{
+		DeveloperEmail:   "doug@dev.com",
+		ClientID:         "1111-2222-3333333-4444444",
+		ApplicationName:  "fight club",
+		ClientSecret:     "not for browser clients",
+		RedirectURI:      "http://localhost:3000/ab",
+		LoginProvider:    "xtrac://localhost:9000",
+		JWTFlowPublicKey: publicKey,
+	}
+
+	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
+	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+
+	privateKey, publicKey, err := secrets.GenerateKeyPair()
+	assert.Nil(t, err)
+
+	secretsMock := coreConfig.SecretsRepo.(*mocks.SecretsRepo)
+	secretsMock.On("RetrievePrivateKeyForApp", "1111-2222-3333333-4444444").Return(privateKey, nil)
+	secretsMock.On("RetrievePublicKeyForApp", "1111-2222-3333333-4444444").Return(publicKey, nil)
+
+	resp, err := http.PostForm(addr+OAuth2TokenBaseURI,
+		url.Values{"grant_type": {"urn:ietf:params:oauth:grant-type:jwt-bearer"},
+			"assertion": {jwtWithAdminScope}})
+
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	bodyStr := responseAsString(t, resp)
+	println(bodyStr)
+
+	var jsonResponse accessTokenResponse
+	err = json.Unmarshal([]byte(bodyStr), &jsonResponse)
+	assert.Nil(t, err)
+	assert.True(t, jsonResponse.AccessToken != "")
+	assert.True(t, jsonResponse.TokenType == "Bearer")
+
+	token, err := jwt.Parse(jsonResponse.AccessToken, roll.GenerateKeyExtractionFunction(core.SecretsRepo))
+	assert.Nil(t, err)
+	assert.Equal(t, "1111-2222-3333333-4444444", token.Claims["aud"].(string))
+	assert.Equal(t, "foo", token.Claims["sub"].(string))
+	assert.Equal(t, "admin", token.Claims["scope"].(string))
 }
 
 func TestJWTFlowGetResourceNotSpecified(t *testing.T) {

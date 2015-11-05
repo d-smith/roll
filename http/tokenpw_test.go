@@ -320,20 +320,6 @@ func TestPWGrantLoginOkInvalidScope(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 
-	/*body := responseAsString(t, resp)
-	var jsonResponse accessTokenResponse
-	err = json.Unmarshal([]byte(body), &jsonResponse)
-	assert.Nil(t, err)
-	assert.True(t, jsonResponse.AccessToken != "")
-	assert.True(t, jsonResponse.TokenType == "Bearer")
-
-	token, err := jwt.Parse(jsonResponse.AccessToken, roll.GenerateKeyExtractionFunction(core.SecretsRepo))
-	assert.Nil(t, err)
-	fmt.Println(token.Claims)
-	assert.Equal(t, "1111-2222-3333333-4444444", token.Claims["aud"].(string))
-	assert.Equal(t, "abc", token.Claims["sub"].(string))
-	assert.Equal(t, "admin", token.Claims["scope"].(string))
-	*/
 }
 
 func TestPWGrantAppLookupErr(t *testing.T) {

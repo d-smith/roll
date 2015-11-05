@@ -382,6 +382,24 @@ func handlePasswordGrantType(core *roll.Core, w http.ResponseWriter, r *http.Req
 
 }
 
+func filterUnsupportedClaims(scope string) string {
+	if scope == "" {
+		return scope
+	}
+
+	var supportedScope string
+
+	scopeParts := strings.Fields(scope)
+	for _, sp := range scopeParts {
+		//currently only admin is supported
+		if sp == "admin" {
+			supportedScope = sp
+		}
+	}
+
+	return supportedScope
+}
+
 func handleJWTGrantType(core *roll.Core, w http.ResponseWriter, r *http.Request, codeContext *authCodeContext) {
 	log.Println("handleJWTGrantType")
 
@@ -421,10 +439,16 @@ func handleJWTGrantType(core *roll.Core, w http.ResponseWriter, r *http.Request,
 		return
 	}
 
+	//Include scope
+	scope, ok := token.Claims["scope"].(string)
+	if !ok {
+		scope = ""
+	}
+
 	//Now we can generate a token since we had the app needed to form the token
 	log.Println("generate token")
 
 	//TODO - extract and validate scope
-	generateAndRespondWithAccessToken(core, "", subject, app, w)
+	generateAndRespondWithAccessToken(core, subject, filterUnsupportedClaims(scope), app, w)
 
 }
