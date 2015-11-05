@@ -43,6 +43,7 @@ type authCodeContext struct {
 	username     string
 	password     string
 	assertion    string
+	scope        string
 }
 
 func (acc *authCodeContext) validate() error {
@@ -123,6 +124,7 @@ func validateAndExtractFormParams(r *http.Request) (*authCodeContext, error) {
 		username:     r.FormValue("username"),
 		password:     r.FormValue("password"),
 		assertion:    r.FormValue("assertion"),
+		scope:        r.FormValue("scope"),
 	}
 
 	return acc, acc.validate()
@@ -360,10 +362,23 @@ func handlePasswordGrantType(core *roll.Core, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	//Create the access token
+	//If a scope is present, validate it.
+	log.Println("validate scope")
+	valid, err := validateScopes(core, r)
+	if err != nil {
+		log.Println("error validating scope", err.Error())
+		respondError(w, http.StatusInternalServerError, nil)
+		return
+	}
 
-	//TODO  - extract and validate scope
-	generateAndRespondWithAccessToken(core, "", codeContext.username, app, w)
+	if !valid {
+		log.Println("scope is invalid")
+		respondError(w, http.StatusUnauthorized, nil)
+		return
+	}
+
+	//Create the access token
+	generateAndRespondWithAccessToken(core, codeContext.username, codeContext.scope, app, w)
 
 }
 

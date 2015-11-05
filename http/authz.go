@@ -327,12 +327,14 @@ func authenticateUser(username, password string, app *roll.Application) (bool, e
 
 func validateScopes(core *roll.Core, r *http.Request) (bool, error) {
 	scope := r.FormValue(oauth2Scope)
+	log.Println("validating scope", scope)
 	if scope == "" {
 		return true, nil
 	}
 
 	scopeParts := strings.Fields(scope)
-	if len(scopeParts) != 1 && scopeParts[0] != adminScope {
+	if len(scopeParts) > 1 || scopeParts[0] != adminScope {
+		log.Println("scope not allowed")
 		return false, nil
 	}
 
