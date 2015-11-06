@@ -78,6 +78,10 @@ func TestHTTPGet(t assert.TestingT, addr string, body interface{}) *http.Respons
 	return testHTTPData(t, "GET", addr, false, body)
 }
 
+func TestHTTPGetWithRollSubject(t assert.TestingT, addr string, body interface{}) *http.Response {
+	return testHTTPData(t, "GET", addr, true, body)
+}
+
 func TestHTTPPut(t assert.TestingT, addr string, body interface{}) *http.Response {
 	return testHTTPData(t, "PUT", addr, false, body)
 }

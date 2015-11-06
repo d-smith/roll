@@ -17,6 +17,9 @@ const (
 
 	//DynamoDB table name for storing registered developers
 	DeveloperTableName = "Developer"
+
+	email = "EMail"
+	devid = "ID"
 )
 
 func DeleteTable(tableName string) {
@@ -102,13 +105,17 @@ func CreateDevTable() {
 	params := &dynamodb.CreateTableInput{
 		AttributeDefinitions: []*dynamodb.AttributeDefinition{
 			{
-				AttributeName: aws.String("EMail"),
+				AttributeName: aws.String(email),
+				AttributeType: aws.String("S"),
+			},
+			{
+				AttributeName: aws.String(devid),
 				AttributeType: aws.String("S"),
 			},
 		},
 		KeySchema: []*dynamodb.KeySchemaElement{
 			{
-				AttributeName: aws.String("EMail"),
+				AttributeName: aws.String(devid),
 				KeyType:       aws.String("HASH"),
 			},
 		},
@@ -117,6 +124,25 @@ func CreateDevTable() {
 			WriteCapacityUnits: aws.Int64(1),
 		},
 		TableName: aws.String(DeveloperTableName),
+		GlobalSecondaryIndexes: []*dynamodb.GlobalSecondaryIndex{
+			{ // Required
+				IndexName: aws.String("Email-Index"),
+				KeySchema: []*dynamodb.KeySchemaElement{
+					{ // Required
+						AttributeName: aws.String(email),
+						KeyType:       aws.String("HASH"),
+					},
+					// More values...
+				},
+				Projection: &dynamodb.Projection{
+					ProjectionType: aws.String("ALL"),
+				},
+				ProvisionedThroughput: &dynamodb.ProvisionedThroughput{
+					ReadCapacityUnits:  aws.Int64(1),
+					WriteCapacityUnits: aws.Int64(1),
+				},
+			},
+		},
 	}
 
 	resp, err := svc.CreateTable(params)

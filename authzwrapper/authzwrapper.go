@@ -2,20 +2,28 @@ package authzwrapper
 
 import (
 	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/gorilla/context"
 	"github.com/xtraclabs/roll/roll"
 	"log"
 	"net/http"
 	"strings"
 )
 
+type key int
+
+//Use to get the request context, from which the subject can be extracted (in both secure and unsecure modes)
+const AuthzSubject key = 0
+const AuthzAdminScope key = 1
+
 type authHandler struct {
 	handler     http.Handler
 	secretsRepo roll.SecretsRepo
+	adminRepo   roll.AdminRepo
 	whiteList   map[string]string
 }
 
 //Wrap takes a handler and decorates it with JWT bearer token validation.
-func Wrap(secretsRepo roll.SecretsRepo, whitelistedClientIDs []string, h http.Handler) http.Handler {
+func Wrap(secretsRepo roll.SecretsRepo, adminRepo roll.AdminRepo, whitelistedClientIDs []string, h http.Handler) http.Handler {
 	wl := make(map[string]string)
 	for _, cid := range whitelistedClientIDs {
 		wl[cid] = cid
@@ -24,6 +32,7 @@ func Wrap(secretsRepo roll.SecretsRepo, whitelistedClientIDs []string, h http.Ha
 	return &authHandler{
 		handler:     h,
 		secretsRepo: secretsRepo,
+		adminRepo:   adminRepo,
 		whiteList:   wl,
 	}
 }
@@ -91,11 +100,12 @@ func (ah authHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	//Check against the whitelist
 	aud, ok := token.Claims["aud"].(string)
 	if !ok {
-		log.Println("string aud claim not present in token")
+		log.Println("aud claim not present in token")
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write([]byte("Unauthorized\n"))
 		return
 	}
+
 	if !ah.whiteListOK(aud) {
 		log.Println("token failed whitelist check:", aud)
 		w.WriteHeader(http.StatusUnauthorized)
@@ -103,5 +113,29 @@ func (ah authHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	sub, ok := token.Claims["sub"].(string)
+	if !ok || sub == "" {
+		log.Println("sub claim not present in token")
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte("Unauthorized\n"))
+		return
+	}
+
+	context.Set(r, AuthzAdminScope, false)
+	scope, ok := token.Claims["scope"].(string)
+	if ok && scope == "admin" {
+		admin, err := ah.adminRepo.IsAdmin(sub)
+		if err != nil {
+			log.Println("error making admin scope determination", err.Error())
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte("Unauthorized\n"))
+			return
+		}
+
+		context.Set(r, AuthzAdminScope, admin)
+	}
+
+	context.Set(r, AuthzSubject, token.Claims["sub"])
 	ah.handler.ServeHTTP(w, r)
+	context.Clear(r)
 }

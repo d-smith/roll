@@ -1,6 +1,7 @@
 package repos
 
 import (
+	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/xtraclabs/roll/dbutil"
@@ -36,30 +37,43 @@ const (
 )
 
 //RetrieveDeveloper retrieves a developer from DynamoDB using the developer's email as the key
-func (dddr DynamoDevRepo) RetrieveDeveloper(email string) (*roll.Developer, error) {
-	params := &dynamodb.GetItemInput{
-		TableName: aws.String("Developer"),
-		Key: map[string]*dynamodb.AttributeValue{
-			"EMail": {S: aws.String(email)},
+func (dddr DynamoDevRepo) RetrieveDeveloper(email string, subjectID string, adminScope bool) (*roll.Developer, error) {
+	params := &dynamodb.QueryInput{
+		TableName:              aws.String("Developer"),
+		KeyConditionExpression: aws.String("EMail=:email"),
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":email": {S: aws.String(email)},
 		},
+		IndexName: aws.String("Email-Index"),
 	}
 
-	log.Println("Get item")
-	out, err := dddr.client.GetItem(params)
+	if !adminScope {
+		params.FilterExpression = aws.String("ID=:subjectID")
+		params.ExpressionAttributeValues = map[string]*dynamodb.AttributeValue{
+			":email":     {S: aws.String(email)},
+			":subjectID": {S: aws.String(subjectID)},
+		}
+	}
+
+	resp, err := dddr.client.Query(params)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(out.Item) == 0 {
+	if *resp.Count == 0 {
 		return nil, nil
+	}
+
+	if *resp.Count > 1 {
+		return nil, fmt.Errorf("Expected 1 result got %d instead", *resp.Count)
 	}
 
 	log.Println("Load struct with data returned from dynamo")
 	return &roll.Developer{
-		Email:     extractString(out.Item[EMail]),
-		FirstName: extractString(out.Item[FirstName]),
-		LastName:  extractString(out.Item[LastName]),
-		ID:        extractString(out.Item[ID]),
+		Email:     extractString(resp.Items[0][EMail]),
+		FirstName: extractString(resp.Items[0][FirstName]),
+		LastName:  extractString(resp.Items[0][LastName]),
+		ID:        extractString(resp.Items[0][ID]),
 	}, nil
 }
 
@@ -79,15 +93,16 @@ func (dddr DynamoDevRepo) StoreDeveloper(dev *roll.Developer) error {
 	return err
 }
 
-func (dddr DynamoDevRepo) ListDevelopers() ([]roll.Developer, error) {
+func (dddr DynamoDevRepo) ListDevelopers(subjectID string, adminScope bool) ([]roll.Developer, error) {
 	params := &dynamodb.ScanInput{
 		TableName: aws.String("Developer"),
-		AttributesToGet: []*string{
-			aws.String(EMail),
-			aws.String(FirstName),
-			aws.String(LastName),
-			aws.String(ID),
-		},
+	}
+
+	if !adminScope {
+		params.FilterExpression = aws.String("ID=:subjectID")
+		params.ExpressionAttributeValues = map[string]*dynamodb.AttributeValue{
+			":subjectID": {S: aws.String(subjectID)},
+		}
 	}
 
 	resp, err := dddr.client.Scan(params)

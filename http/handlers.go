@@ -20,13 +20,13 @@ func Handler(core *roll.Core) http.Handler {
 		}
 
 		whitelist := []string{rollClientID}
-		mux.Handle(DevelopersBaseURI, authzwrapper.Wrap(core.SecretsRepo, whitelist, handleDevelopersBase(core)))
-		mux.Handle(DevelopersURI, authzwrapper.Wrap(core.SecretsRepo, whitelist, handleDevelopers(core)))
-		mux.Handle(ApplicationsURI, authzwrapper.Wrap(core.SecretsRepo, whitelist, handleApplications(core)))
-		mux.Handle(ApplicationsBaseURI, authzwrapper.Wrap(core.SecretsRepo, whitelist, handleApplicationsBase(core)))
+		mux.Handle(DevelopersBaseURI, authzwrapper.Wrap(core.SecretsRepo, core.AdminRepo, whitelist, handleDevelopersBase(core)))
+		mux.Handle(DevelopersURI, authzwrapper.Wrap(core.SecretsRepo, core.AdminRepo, whitelist, handleDevelopers(core)))
+		mux.Handle(ApplicationsURI, authzwrapper.Wrap(core.SecretsRepo, core.AdminRepo, whitelist, handleApplications(core)))
+		mux.Handle(ApplicationsBaseURI, authzwrapper.Wrap(core.SecretsRepo, core.AdminRepo, whitelist, handleApplicationsBase(core)))
 	} else {
-		mux.Handle(DevelopersBaseURI, handleDevelopersBase(core))
-		mux.Handle(DevelopersURI, handleDevelopers(core))
+		mux.Handle(DevelopersBaseURI, authzwrapper.WrapUnsecure(handleDevelopersBase(core)))
+		mux.Handle(DevelopersURI, authzwrapper.WrapUnsecure(handleDevelopers(core)))
 		mux.Handle(ApplicationsURI, handleApplications(core))
 		mux.Handle(ApplicationsBaseURI, handleApplicationsBase(core))
 	}

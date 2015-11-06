@@ -36,6 +36,6 @@ func main() {
 	}
 
 	mux := http.NewServeMux()
-	mux.Handle("/echo", az.Wrap(repos.NewVaultSecretsRepo(), []string{}, echoHandler()))
+	mux.Handle("/echo", az.Wrap(repos.NewVaultSecretsRepo(), repos.NewDynamoAdminRepo(), []string{}, echoHandler()))
 	http.ListenAndServe(fmt.Sprintf(":%d", *port), mux)
 }

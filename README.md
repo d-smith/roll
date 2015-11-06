@@ -3,7 +3,7 @@
 Patterns and some code inspired by Hashicorp vault.
 
 <pre>
-Currently in PoC status - don't even think about using this is a production situation.
+Currently in PoC status - don't even think about using this in a production situation.
 </pre>
 
 ### Runtime set up
@@ -90,6 +90,7 @@ Still need to vendor my dependencies, but they are:
 * [Hashicorp Vault Golang API](https://github.com/hashicorp/vault/tree/master/api)
 * [JWT-go](https://github.com/dgrijalva/jwt-go)
 * [Go UUID](https://github.com/nu7hatch/gouuid)
+* Context package from the [Gorilla Web Toolkit]()
 
 Use `go get github.com/hashicorp/vault/api` to install the API portion of Vautl
 
@@ -104,6 +105,7 @@ go get -u github.com/aws/aws-sdk-go/...
 go get github.com/hashicorp/vault/api
 go get github.com/dgrijalva/jwt-go
 go get github.com/nu7hatch/gouuid
+go get github.com/gorilla/context
 </pre>
 
 ### Test Dependencies
