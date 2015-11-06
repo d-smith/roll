@@ -9,6 +9,8 @@ schemas:
     Application: !include schemas/application.json
     CreateApp: !include schemas/createapp.json
     AppCreated: !include schemas/appcreated.json
+    JWTFlowCert: !include schemas/jwtflowcert.json
+    PublicKey: !include schemas/publickey.json
 baseUri: http://localhost:3000
 securitySchemes:
     - oauth_2_0:
@@ -135,10 +137,47 @@ securitySchemes:
       Retrieve the application definition associated with the client_id. Only the roll
       application user may retrieve any application definition, all other users are
       restricted to retrieving applications registered to their identity.
+    responses:
+      200:
+        body:
+          application/json:
+            schema: Application
+      400:
+        body:
+          application/json:
+            schema: Errors
+      404:
+        body:
+          application/json:
+            schema: Errors
+      500:
+        body:
+          application/json:
+            schema: Errors
+      
+            
   put:
     securedBy: [oauth_2_0]
     description: |
       Update the application definition associated with the given client_id.
+    body:
+      application/json:
+        schema: Application
+    responses:
+      204:
+      400:
+        body:
+          application/json:
+            schema: Errors
+      404:
+        body:
+          application/json:
+            schema: Errors
+      500:
+        body:
+          application/json:
+            schema: Errors
+            
   
         
 /v1/jwtflowverts/{client_id}:
@@ -148,11 +187,51 @@ securitySchemes:
       The owner associated with the given application client_id may PUT a certificate
       to the resource, from which the public key will be extracted and used to verify
       token signatures in the OAuth2 JWT flow.
+    body:
+      application/json:
+        schema: 
+          JWTFlowCert
+    responses:
+      204:
+      400:
+        body:
+          application/json:
+            schema: Errors
+      401:
+        body:
+          application/json:
+            schema: Errors
+      404:
+        body:
+          application/json:
+            schema: Errors
+      500:
+        body:
+          application/json:
+            schema: Errors
+      
   get:
     securedBy: [oauth_2_0]
     description: |
       Retrieve the public key associated with the given client id.
-          
+    responses:
+      200:
+        body:
+          application/json:
+            schema: PublicKey
+      400:
+        body:
+          application/json:
+            schema: Errors
+      404:
+        body:
+          application/json:
+            schema: Errors
+      500:
+        body:
+          application/json:
+            schema: Errors
+            
             
             
           

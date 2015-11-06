@@ -4,16 +4,16 @@
     "title":"Developer",
     "type":"object",
     "properties": {
-      "Email": {
+      "email": {
         "type":"string"
       },
-      "FirstName": {
+      "firstName": {
         "type":"string"
       },
-      "LastName": {
+      "lastName": {
         "type":"string"
       },
-      "ID": {
+      "id": {
         "type":"string"
       }
     }

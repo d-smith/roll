@@ -1,16 +1,16 @@
 {
   "type":"object",
   "properties": {
-    "DeveloperEmail": {
+    "developerEmail": {
         "type":"string"
     },
-    "ApplicationName": {
+    "applicationName": {
       "type":"string"
     },
-    "RedirectURI": {
+    "redirectURI": {
       "type":"string"
     },
-    "LoginProvider": {
+    "loginProvider": {
       "type":"string"
     }
   }

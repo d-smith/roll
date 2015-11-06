@@ -1,0 +1,11 @@
+{
+  "type":"object",
+  "properties": {
+    "clientSecret": {
+        "type":"string"
+    },
+    "certPEM": {
+      "type":"string"
+    }
+  }
+}
