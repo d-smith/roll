@@ -24,12 +24,12 @@ var (
 )
 
 type CertPutCtx struct {
-	ClientSecret string
-	CertPEM      string
+	ClientSecret string `json:"clientSecret"`
+	CertPEM      string `json:"certPEM"`
 }
 
 type publicKeyCtx struct {
-	PublicKey string
+	PublicKey string `json:"publicKey"`
 }
 
 func handleJWTFlowCerts(core *roll.Core) http.Handler {

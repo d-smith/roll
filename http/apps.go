@@ -50,7 +50,7 @@ func handleApplications(core *roll.Core) http.Handler {
 func retrieveApplication(clientID string, core *roll.Core, w http.ResponseWriter, r *http.Request) {
 	log.Println("ret appl called", clientID)
 	if clientID == "" {
-		respondError(w, http.StatusNotFound, errors.New("Resource not specified"))
+		respondError(w, http.StatusBadRequest, errors.New("Resource not specified"))
 		return
 	}
 

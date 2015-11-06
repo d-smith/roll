@@ -1,25 +1,25 @@
 {
   "type":"object",
   "properties": {
-    "DeveloperEmail": {
+    "developerEmail": {
         "type":"string"
     },
-    "ClientID": {
+    "clientID": {
       "type":"string"
     },
-    "ApplicationName": {
+    "applicationName": {
       "type":"string"
     },
-    "ClientSecret": {
+    "clientSecret": {
       "type":"string"
     },
-    "RedirectURI": {
+    "redirectURI": {
       "type":"string"
     },
-    "LoginProvider": {
+    "loginProvider": {
       "type":"string"
     },
-    "JWTFlowPublicKey": {
+    "jwtFlowPublicKey": {
       "type":"string"
     }
   }
