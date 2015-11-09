@@ -78,8 +78,8 @@ func (core *Core) CreateApplication(app *Application) error {
 }
 
 //StoreApplication stores an application using the embedded Application repository
-func (core *Core) UpdateApplication(app *Application) error {
-	return core.ApplicationRepo.UpdateApplication(app)
+func (core *Core) UpdateApplication(app *Application, subjectID string) error {
+	return core.ApplicationRepo.UpdateApplication(app, subjectID)
 }
 
 //RetrieveApplication retrieves an application using the embedded Application repository

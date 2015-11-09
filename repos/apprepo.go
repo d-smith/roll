@@ -100,12 +100,32 @@ func (dar *DynamoAppRepo) CreateApplication(app *roll.Application) error {
 }
 
 //UpdateApplication updates an existing application definition
-func (dar *DynamoAppRepo) UpdateApplication(app *roll.Application) error {
+func (dar *DynamoAppRepo) UpdateApplication(app *roll.Application, subjectID string) error {
+
+	//Check that the app exists and the owner is performing the update
+	storedApp, err := dar.RetrieveApplication(app.ClientID)
+	if err != nil {
+		log.Println("Error retrieving app to verify ownership")
+		return err
+	}
+
+	if storedApp == nil {
+		log.Println("Application to update does not exist")
+		return roll.NoSuchApplicationError{}
+	}
+
+	if storedApp.DeveloperID != subjectID {
+		log.Println("Application updater does not own app")
+		return roll.NonOwnerUpdateError{}
+	}
+
+	log.Println("Updating", app.ClientID, "owned by", app.DeveloperID)
 
 	//Build up the non-empty attributes to update
 	updateAttributes := make(map[string]*dynamodb.AttributeValueUpdate)
 
 	if app.LoginProvider != "" {
+		log.Println("Updating login provider:", app.LoginProvider)
 		updateAttributes[LoginProvider] = &dynamodb.AttributeValueUpdate{
 			Action: aws.String(dynamodb.AttributeActionPut),
 			Value: &dynamodb.AttributeValue{
@@ -125,6 +145,7 @@ func (dar *DynamoAppRepo) UpdateApplication(app *roll.Application) error {
 	}
 
 	if app.JWTFlowPublicKey != "" {
+		log.Println("Updating public key:", app.JWTFlowPublicKey)
 		updateAttributes[JWTFlowPublicKey] = &dynamodb.AttributeValueUpdate{
 			Action: aws.String(dynamodb.AttributeActionPut),
 			Value: &dynamodb.AttributeValue{
@@ -151,7 +172,7 @@ func (dar *DynamoAppRepo) UpdateApplication(app *roll.Application) error {
 		AttributeUpdates: updateAttributes,
 	}
 
-	_, err := dar.client.UpdateItem(params)
+	_, err = dar.client.UpdateItem(params)
 
 	return err
 }

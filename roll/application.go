@@ -98,7 +98,23 @@ func (a *Application) Validate() error {
 //ApplicationRepo represents a repository abstraction for dealing with persistent Application instances.
 type ApplicationRepo interface {
 	CreateApplication(app *Application) error
-	UpdateApplication(app *Application) error
+	UpdateApplication(app *Application, subjectID string) error
 	RetrieveApplication(clientID string) (*Application, error)
 	ListApplications(subjectID string, adminScope bool) ([]Application, error)
+}
+
+//NonOwnerUpdateError is used to discriminate general repo errors from security model violations
+type NonOwnerUpdateError struct{}
+
+//Error implements the Error interface for NonOwnerUpdateError
+func (e NonOwnerUpdateError) Error() string {
+	return "Non-owner attempted update"
+}
+
+//NoSuchApplicationError is used to discriminate updates of non-existent application from repo errors
+type NoSuchApplicationError struct{}
+
+//Error implements the Error interface for NoSuchApplicationError
+func (e NoSuchApplicationError) Error() string {
+	return "No such application to update"
 }

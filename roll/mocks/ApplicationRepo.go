@@ -19,12 +19,12 @@ func (_m *ApplicationRepo) CreateApplication(app *roll.Application) error {
 
 	return r0
 }
-func (_m *ApplicationRepo) UpdateApplication(app *roll.Application) error {
-	ret := _m.Called(app)
+func (_m *ApplicationRepo) UpdateApplication(app *roll.Application, subjectID string) error {
+	ret := _m.Called(app, subjectID)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*roll.Application) error); ok {
-		r0 = rf(app)
+	if rf, ok := ret.Get(0).(func(*roll.Application, string) error); ok {
+		r0 = rf(app, subjectID)
 	} else {
 		r0 = ret.Error(0)
 	}

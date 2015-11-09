@@ -120,6 +120,14 @@ func handleCertPut(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 
 	log.Println("Putting cert for client_id", clientID)
 
+	//Extract the subject from the request header based on security mode
+	subject, _, err := subjectAndAdminScopeFromRequestCtx(r)
+	if err != nil {
+		log.Print("Error extracting subject:", err.Error())
+		respondError(w, http.StatusInternalServerError, nil)
+		return
+	}
+
 	//Parse body
 	var certCtx CertPutCtx
 	if err := parseRequest(r, &certCtx); err != nil {
@@ -130,7 +138,7 @@ func handleCertPut(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 
 	//Check body content
 	log.Println("Checking content")
-	err := checkBodyContent(certCtx)
+	err = checkBodyContent(certCtx)
 	if err != nil {
 		respondError(w, http.StatusBadRequest, err)
 		return
@@ -163,10 +171,16 @@ func handleCertPut(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 	//attributes.
 	log.Println("Update app with public key")
 	app.JWTFlowPublicKey = publicKeyPEM
-	err = core.UpdateApplication(app)
+	err = core.UpdateApplication(app, subject)
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, err)
-		return
+		switch err.(type) {
+		case roll.NonOwnerUpdateError:
+			respondError(w, http.StatusUnauthorized, err)
+		case roll.NoSuchApplicationError:
+			respondError(w, http.StatusNotFound, err)
+		default:
+			respondError(w, http.StatusInternalServerError, err)
+		}
 	}
 
 	respondOk(w, nil)
@@ -180,14 +194,18 @@ func handleGetPublicKey(core *roll.Core, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	log.Println("retrieve public key for application", clientID)
+
 	//Retrieve the app definition
 	app, err := core.RetrieveApplication(clientID)
 	if err != nil {
+		log.Println("error retrieving application")
 		respondError(w, http.StatusInternalServerError, errReadingApplicationRecord)
 		return
 	}
 
 	if app == nil {
+		log.Println("application not found")
 		respondError(w, http.StatusNotFound, nil)
 		return
 	}

@@ -115,6 +115,7 @@ func testHTTPData(t assert.TestingT, method string, addr string, rollSubject boo
 
 	req.Header.Set("Content-Type", "application/json")
 	if rollSubject {
+		log.Println("setting X-Roll-Subject to rolltest")
 		req.Header.Set("X-Roll-Subject", "rolltest")
 	}
 

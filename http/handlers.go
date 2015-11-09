@@ -24,17 +24,18 @@ func Handler(core *roll.Core) http.Handler {
 		mux.Handle(DevelopersURI, authzwrapper.Wrap(core.SecretsRepo, core.AdminRepo, whitelist, handleDevelopers(core)))
 		mux.Handle(ApplicationsURI, authzwrapper.Wrap(core.SecretsRepo, core.AdminRepo, whitelist, handleApplications(core)))
 		mux.Handle(ApplicationsBaseURI, authzwrapper.Wrap(core.SecretsRepo, core.AdminRepo, whitelist, handleApplicationsBase(core)))
+		mux.Handle(JWTFlowCertsURI, authzwrapper.Wrap(core.SecretsRepo, core.AdminRepo, whitelist, handleJWTFlowCerts(core)))
 	} else {
 		mux.Handle(DevelopersBaseURI, authzwrapper.WrapUnsecure(handleDevelopersBase(core)))
 		mux.Handle(DevelopersURI, authzwrapper.WrapUnsecure(handleDevelopers(core)))
-		mux.Handle(ApplicationsURI, handleApplications(core))
+		mux.Handle(ApplicationsURI, authzwrapper.WrapUnsecure(handleApplications(core)))
 		mux.Handle(ApplicationsBaseURI, authzwrapper.WrapUnsecure(handleApplicationsBase(core)))
+		mux.Handle(JWTFlowCertsURI, authzwrapper.WrapUnsecure(handleJWTFlowCerts(core)))
 	}
 
 	mux.Handle(AuthorizeBaseURI, handleAuthorize(core))
 	mux.Handle(ValidateBaseURI, handleValidate(core))
 	mux.Handle(OAuth2TokenBaseURI, handleToken(core))
-	mux.Handle(JWTFlowCertsURI, handleJWTFlowCerts(core))
 	mux.Handle(TokenInfoURI, handleTokenInfo(core))
 	return mux
 }

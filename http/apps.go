@@ -179,6 +179,14 @@ func handleApplicationPut(core *roll.Core, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	//Extract the subject from the request header based on security mode
+	subject, _, err := subjectAndAdminScopeFromRequestCtx(r)
+	if err != nil {
+		log.Print("Error extracting subject:", err.Error())
+		respondError(w, http.StatusInternalServerError, nil)
+		return
+	}
+
 	//Retrieve the app definition to update
 	storedApp, err := core.RetrieveApplication(clientID)
 	if err != nil {
@@ -200,11 +208,18 @@ func handleApplicationPut(core *roll.Core, w http.ResponseWriter, r *http.Reques
 
 	//Store the application definition
 	log.Println("updating app def ", app)
-	err = core.UpdateApplication(&app)
+	err = core.UpdateApplication(&app, subject)
+
 	if err != nil {
 		log.Println("Error updating definition: ", err.Error())
-		respondError(w, http.StatusInternalServerError, err)
-		return
+		switch err.(type) {
+		case roll.NonOwnerUpdateError:
+			respondError(w, http.StatusUnauthorized, err)
+		case roll.NoSuchApplicationError:
+			respondError(w, http.StatusNotFound, err)
+		default:
+			respondError(w, http.StatusInternalServerError, err)
+		}
 	}
 
 	respondOk(w, nil)
