@@ -21,15 +21,30 @@ func devPresent(id string, devs []roll.Developer) bool {
 	return false
 }
 
+func testCreateDev() *roll.Developer {
+	testDevID := strconv.Itoa(int(time.Now().Unix()))
+
+	dev := roll.Developer{
+		ID:        testDevID,
+		Email:     testDevID + "@foo.com",
+		FirstName: testDevID + "fn",
+		LastName:  testDevID + "ln",
+	}
+
+	return &dev
+}
+
 func TestDevRepoStuff(t *testing.T) {
 	devrepo := NewDynamoDevRepo()
 
 	t.Log("Store a developer")
 
-	testDevID := strconv.Itoa(int(time.Now().Unix()))
-	firstName := testDevID + "fn"
-	lastName := testDevID + "ln"
-	testEmail := testDevID + "@foo.com"
+	testDev := testCreateDev()
+
+	testDevID := testDev.ID
+	firstName := testDev.FirstName
+	lastName := testDev.LastName
+	testEmail := testDev.Email
 
 	validateRetrieveAttrs := func(retDev *roll.Developer) {
 		assert.Equal(t, testDevID, retDev.ID)

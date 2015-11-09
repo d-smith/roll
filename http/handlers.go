@@ -28,7 +28,7 @@ func Handler(core *roll.Core) http.Handler {
 		mux.Handle(DevelopersBaseURI, authzwrapper.WrapUnsecure(handleDevelopersBase(core)))
 		mux.Handle(DevelopersURI, authzwrapper.WrapUnsecure(handleDevelopers(core)))
 		mux.Handle(ApplicationsURI, handleApplications(core))
-		mux.Handle(ApplicationsBaseURI, handleApplicationsBase(core))
+		mux.Handle(ApplicationsBaseURI, authzwrapper.WrapUnsecure(handleApplicationsBase(core)))
 	}
 
 	mux.Handle(AuthorizeBaseURI, handleAuthorize(core))

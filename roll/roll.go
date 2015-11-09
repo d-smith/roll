@@ -111,8 +111,8 @@ func (core *Core) ListDevelopers(subjectID string, adminScope bool) ([]Developer
 }
 
 //ListApplications returns a list of applications registered with roll
-func (core *Core) ListApplications() ([]Application, error) {
-	return core.ApplicationRepo.ListApplications()
+func (core *Core) ListApplications(subjectID string, adminScope bool) ([]Application, error) {
+	return core.ApplicationRepo.ListApplications(subjectID, adminScope)
 }
 
 //IsAdmin is a predicate used to determine if the given subject is an admin

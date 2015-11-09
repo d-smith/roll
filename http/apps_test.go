@@ -307,13 +307,7 @@ func TestStoreAppBodyParseError(t *testing.T) {
 	buf := new(bytes.Buffer)
 	buf.WriteString(`{"this won't parse`)
 
-	req, err := http.NewRequest("POST", addr+"/v1/applications", buf)
-	checkFatal(t, err)
-
-	client := http.DefaultClient
-	resp, err := client.Do(req)
-	assert.Nil(t, err)
-
+	resp := TestHTTPPostWithRollSubject(t, addr+"/v1/applications", buf)
 	checkResponseStatus(t, resp, http.StatusBadRequest)
 
 }
@@ -342,12 +336,7 @@ func TestAppUnsupportedMethodBaseURI(t *testing.T) {
 	ln, addr := TestServer(t, core)
 	defer ln.Close()
 
-	req, err := http.NewRequest("OPTIONS", addr+"/v1/applications", nil)
-	assert.Nil(t, err)
-
-	client := http.Client{}
-	resp, err := client.Do(req)
-	assert.Nil(t, err)
+	resp := TestHTTPOptionsWithRollSubject(t, addr+"/v1/applications", nil)
 	checkResponseStatus(t, resp, http.StatusMethodNotAllowed)
 }
 
@@ -450,10 +439,15 @@ func TestGetApplicationsOK(t *testing.T) {
 		}}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("ListApplications").Return(returnVal, nil)
+	appRepoMock.On("ListApplications", "rolltest", false).Return(returnVal, nil)
 
-	resp := TestHTTPGet(t, addr+"/v1/applications", nil)
-	appRepoMock.AssertCalled(t, "ListApplications")
+	resp := TestHTTPGetWithRollSubject(t, addr+"/v1/applications", nil)
+	if !assert.Equal(t, http.StatusOK, resp.StatusCode) {
+		t.Fail()
+		return
+	}
+
+	appRepoMock.AssertCalled(t, "ListApplications", "rolltest", false)
 
 	var actual []roll.Application
 
@@ -476,10 +470,10 @@ func TestGetApplicationsReposError(t *testing.T) {
 	defer ln.Close()
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("ListApplications").Return(nil, errors.New("db error"))
+	appRepoMock.On("ListApplications", "rolltest", false).Return(nil, errors.New("db error"))
 
-	resp := TestHTTPGet(t, addr+"/v1/applications", nil)
-	appRepoMock.AssertCalled(t, "ListApplications")
+	resp := TestHTTPGetWithRollSubject(t, addr+"/v1/applications", nil)
+	appRepoMock.AssertCalled(t, "ListApplications", "rolltest", false)
 
 	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 

@@ -98,6 +98,10 @@ func TestHTTPPostWithRollSubject(t assert.TestingT, addr string, body interface{
 	return testHTTPData(t, "POST", addr, true, body)
 }
 
+func TestHTTPOptionsWithRollSubject(t assert.TestingT, addr string, body interface{}) *http.Response {
+	return testHTTPData(t, "OPTIONS", addr, true, body)
+}
+
 func testHTTPData(t assert.TestingT, method string, addr string, rollSubject bool, body interface{}) *http.Response {
 	bodyReader := new(bytes.Buffer)
 	if body != nil {

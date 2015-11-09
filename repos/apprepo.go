@@ -225,19 +225,16 @@ func (dar *DynamoAppRepo) RetrieveApplication(clientID string) (*roll.Applicatio
 	}, nil
 }
 
-func (dar *DynamoAppRepo) ListApplications() ([]roll.Application, error) {
+func (dar *DynamoAppRepo) ListApplications(subjectID string, adminScope bool) ([]roll.Application, error) {
 	params := &dynamodb.ScanInput{
 		TableName: aws.String("Application"),
-		AttributesToGet: []*string{
-			aws.String(ClientID),
-			aws.String(ApplicationName),
-			aws.String(ClientSecret),
-			aws.String(DeveloperEmail),
-			aws.String(DeveloperID),
-			aws.String(RedirectUri),
-			aws.String(LoginProvider),
-			aws.String(JWTFlowPublicKey),
-		},
+	}
+
+	if !adminScope {
+		params.FilterExpression = aws.String("DeveloperID=:subjectID")
+		params.ExpressionAttributeValues = map[string]*dynamodb.AttributeValue{
+			":subjectID": {S: aws.String(subjectID)},
+		}
 	}
 
 	resp, err := dar.client.Scan(params)

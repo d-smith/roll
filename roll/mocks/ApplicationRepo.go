@@ -52,12 +52,12 @@ func (_m *ApplicationRepo) RetrieveApplication(clientID string) (*roll.Applicati
 
 	return r0, r1
 }
-func (_m *ApplicationRepo) ListApplications() ([]roll.Application, error) {
-	ret := _m.Called()
+func (_m *ApplicationRepo) ListApplications(subjectID string, adminScope bool) ([]roll.Application, error) {
+	ret := _m.Called(subjectID, adminScope)
 
 	var r0 []roll.Application
-	if rf, ok := ret.Get(0).(func() []roll.Application); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(string, bool) []roll.Application); ok {
+		r0 = rf(subjectID, adminScope)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]roll.Application)
@@ -65,8 +65,8 @@ func (_m *ApplicationRepo) ListApplications() ([]roll.Application, error) {
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
+	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
+		r1 = rf(subjectID, adminScope)
 	} else {
 		r1 = ret.Error(1)
 	}

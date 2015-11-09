@@ -69,7 +69,13 @@ func retrieveApplication(clientID string, core *roll.Core, w http.ResponseWriter
 }
 
 func listApplications(core *roll.Core, w http.ResponseWriter, r *http.Request) {
-	apps, err := core.ListApplications()
+	subject, scope, err := subjectAndAdminScopeFromRequestCtx(r)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, nil)
+		return
+	}
+
+	apps, err := core.ListApplications(subject, scope)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, err)
 		return

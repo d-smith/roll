@@ -100,5 +100,5 @@ type ApplicationRepo interface {
 	CreateApplication(app *Application) error
 	UpdateApplication(app *Application) error
 	RetrieveApplication(clientID string) (*Application, error)
-	ListApplications() ([]Application, error)
+	ListApplications(subjectID string, adminScope bool) ([]Application, error)
 }
