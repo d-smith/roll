@@ -50,10 +50,10 @@ func TestHandleImpGrantAuthorize(t *testing.T) {
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+	appRepoMock.On("SystemRetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
 	resp := TestHTTPGet(t, addr+"/oauth2/authorize?client_id=1111-2222-3333333-4444444&redirect_uri=http://localhost:3000/ab&response_type=token", nil)
-	appRepoMock.AssertCalled(t, "RetrieveApplication", "1111-2222-3333333-4444444")
+	appRepoMock.AssertCalled(t, "SystemRetrieveApplication", "1111-2222-3333333-4444444")
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 	bodyStr := responseAsString(t, resp)
@@ -79,10 +79,10 @@ func TestHandleImpGrantAuthorizeAdminScope(t *testing.T) {
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+	appRepoMock.On("SystemRetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
 	resp := TestHTTPGet(t, addr+"/oauth2/authorize?client_id=1111-2222-3333333-4444444&redirect_uri=http://localhost:3000/ab&response_type=token&scope=admin", nil)
-	appRepoMock.AssertCalled(t, "RetrieveApplication", "1111-2222-3333333-4444444")
+	appRepoMock.AssertCalled(t, "SystemRetrieveApplication", "1111-2222-3333333-4444444")
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 	bodyStr := responseAsString(t, resp)
@@ -115,10 +115,10 @@ func TestHandleAuthorizeWithInvalidScope(t *testing.T) {
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+	appRepoMock.On("SystemRetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
 	TestHTTPGet(t, addr+"/oauth2/authorize?client_id=1111-2222-3333333-4444444&redirect_uri="+rs.URL+"/foo&response_type=token&scope=invalid-scope", nil)
-	appRepoMock.AssertCalled(t, "RetrieveApplication", "1111-2222-3333333-4444444")
+	appRepoMock.AssertCalled(t, "SystemRetrieveApplication", "1111-2222-3333333-4444444")
 
 	assert.True(t, redirectCalled)
 
@@ -139,10 +139,10 @@ func TestHandleAuthorizeBadRedirectParam(t *testing.T) {
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+	appRepoMock.On("SystemRetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
 	resp := TestHTTPGet(t, addr+"/oauth2/authorize?client_id=1111-2222-3333333-4444444&redirect_uri=not-in-the-face&response_type=token", nil)
-	appRepoMock.AssertCalled(t, "RetrieveApplication", "1111-2222-3333333-4444444")
+	appRepoMock.AssertCalled(t, "SystemRetrieveApplication", "1111-2222-3333333-4444444")
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 }
 
@@ -152,7 +152,7 @@ func TestAuthValidateBadClientId(t *testing.T) {
 	defer ln.Close()
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "111-22-33").Return(nil, nil)
+	appRepoMock.On("SystemRetrieveApplication", "111-22-33").Return(nil, nil)
 
 	resp, err := http.PostForm(addr+"/oauth2/validate",
 		url.Values{"username": {"x"},
@@ -190,7 +190,7 @@ func TestAuthValidateDenied(t *testing.T) {
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+	appRepoMock.On("SystemRetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
 	_, err := http.PostForm(addr+"/oauth2/validate",
 		url.Values{"username": {"x"},
@@ -236,7 +236,7 @@ func TestAuthValidateAuthenticateFail(t *testing.T) {
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+	appRepoMock.On("SystemRetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
 	_, err := http.PostForm(addr+"/oauth2/validate",
 		url.Values{"username": {"x"},
@@ -283,7 +283,7 @@ func TestAuthValidateAuthenticateOkSecretsFail(t *testing.T) {
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+	appRepoMock.On("SystemRetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
 	secretsMock := coreConfig.SecretsRepo.(*mocks.SecretsRepo)
 	secretsMock.On("RetrievePrivateKeyForApp", "1111-2222-3333333-4444444").Return("", errors.New("Drat"))
@@ -333,7 +333,7 @@ func TestAuthValidateAuthenticateOk(t *testing.T) {
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+	appRepoMock.On("SystemRetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
 	privateKey, _, err := secrets.GenerateKeyPair()
 	assert.Nil(t, err)
@@ -387,7 +387,7 @@ func TestImplGrantAuthValidateAuthenticateOkAdminScope(t *testing.T) {
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+	appRepoMock.On("SystemRetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
 	privateKey, pk, err := secrets.GenerateKeyPair()
 	assert.Nil(t, err)

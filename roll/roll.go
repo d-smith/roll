@@ -8,7 +8,7 @@ import (
 type Core struct {
 	developerRepo   DeveloperRepo
 	ApplicationRepo ApplicationRepo
-	adminRepo       AdminRepo
+	AdminRepo       AdminRepo
 	SecretsRepo     SecretsRepo
 	IdGenerator     IdGenerator
 	secure          bool
@@ -49,7 +49,7 @@ func NewCore(config *CoreConfig) *Core {
 	return &Core{
 		developerRepo:   config.DeveloperRepo,
 		ApplicationRepo: config.ApplicationRepo,
-		adminRepo:       config.AdminRepo,
+		AdminRepo:       config.AdminRepo,
 		SecretsRepo:     config.SecretsRepo,
 		IdGenerator:     config.IdGenerator,
 		secure:          config.Secure,
@@ -68,8 +68,8 @@ func (core *Core) StoreDeveloper(dev *Developer) error {
 }
 
 //RetrieveDeveloper retrieves a developer using the embedded Developer repository
-func (core *Core) RetrieveDeveloper(email string) (*Developer, error) {
-	return core.developerRepo.RetrieveDeveloper(email)
+func (core *Core) RetrieveDeveloper(email, subjectID string, adminScope bool) (*Developer, error) {
+	return core.developerRepo.RetrieveDeveloper(email, subjectID, adminScope)
 }
 
 //StoreApplication stores an application using the embedded Application repository
@@ -78,13 +78,19 @@ func (core *Core) CreateApplication(app *Application) error {
 }
 
 //StoreApplication stores an application using the embedded Application repository
-func (core *Core) UpdateApplication(app *Application) error {
-	return core.ApplicationRepo.UpdateApplication(app)
+func (core *Core) UpdateApplication(app *Application, subjectID string) error {
+	return core.ApplicationRepo.UpdateApplication(app, subjectID)
 }
 
 //RetrieveApplication retrieves an application using the embedded Application repository
-func (core *Core) RetrieveApplication(clientID string) (*Application, error) {
-	return core.ApplicationRepo.RetrieveApplication(clientID)
+func (core *Core) RetrieveApplication(clientID string, subjectID string, adminScope bool) (*Application, error) {
+	return core.ApplicationRepo.RetrieveApplication(clientID, subjectID, adminScope)
+}
+
+//SystemRetrieveApplication is for system level access to app data that does not need to
+//apply the user security model
+func (core *Core) SystemRetrieveApplication(clientID string) (*Application, error) {
+	return core.ApplicationRepo.SystemRetrieveApplication(clientID)
 }
 
 //StoreKeysForApp stores the private and public keys associated with an application
@@ -106,18 +112,18 @@ func (core *Core) RetrievePublicKeyForApp(clientID string) (string, error) {
 }
 
 //ListDevelopers returns a list of developers registered with roll
-func (core *Core) ListDevelopers() ([]Developer, error) {
-	return core.developerRepo.ListDevelopers()
+func (core *Core) ListDevelopers(subjectID string, adminScope bool) ([]Developer, error) {
+	return core.developerRepo.ListDevelopers(subjectID, adminScope)
 }
 
 //ListApplications returns a list of applications registered with roll
-func (core *Core) ListApplications() ([]Application, error) {
-	return core.ApplicationRepo.ListApplications()
+func (core *Core) ListApplications(subjectID string, adminScope bool) ([]Application, error) {
+	return core.ApplicationRepo.ListApplications(subjectID, adminScope)
 }
 
 //IsAdmin is a predicate used to determine if the given subject is an admin
 func (core *Core) IsAdmin(subject string) (bool, error) {
-	return core.adminRepo.IsAdmin(subject)
+	return core.AdminRepo.IsAdmin(subject)
 }
 
 //GenerateID generates and id

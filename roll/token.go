@@ -142,7 +142,7 @@ func GenerateKeyExtractionFunctionForJTWFlow(applicationRepo ApplicationRepo) jw
 		}
 
 		//Look up the application
-		app, err := applicationRepo.RetrieveApplication(clientID.(string))
+		app, err := applicationRepo.SystemRetrieveApplication(clientID.(string))
 		if err != nil {
 			return nil, err
 		}

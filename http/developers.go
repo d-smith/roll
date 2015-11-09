@@ -3,6 +3,8 @@ package http
 import (
 	"errors"
 	"fmt"
+	"github.com/gorilla/context"
+	"github.com/xtraclabs/roll/authzwrapper"
 	"github.com/xtraclabs/roll/roll"
 	"log"
 	"net/http"
@@ -42,7 +44,13 @@ func handleDevelopers(core *roll.Core) http.Handler {
 }
 
 func listDevelopers(core *roll.Core, w http.ResponseWriter, r *http.Request) {
-	devs, err := core.ListDevelopers()
+	subject, scope, err := subjectAndAdminScopeFromRequestCtx(r)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, nil)
+		return
+	}
+
+	devs, err := core.ListDevelopers(subject, scope)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, err)
 		return
@@ -52,13 +60,33 @@ func listDevelopers(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 
 }
 
+func subjectAndAdminScopeFromRequestCtx(r *http.Request) (string, bool, error) {
+	log.Println("get subject and admin scope from request")
+	subject, subjectOk := context.Get(r, authzwrapper.AuthzSubject).(string)
+	adminScope, adminOk := context.Get(r, authzwrapper.AuthzAdminScope).(bool)
+	if !subjectOk || !adminOk {
+		log.Println("error with subject or scope conversion")
+		log.Println(subject)
+		log.Println(adminScope)
+		return "", false, errors.New("System handler misconfiguration")
+	}
+
+	return subject, adminScope, nil
+}
+
 func retrieveDeveloper(email string, core *roll.Core, w http.ResponseWriter, r *http.Request) {
 	if !roll.ValidateEmail(email) {
 		respondError(w, http.StatusBadRequest, fmt.Errorf("Invalid email: %s", email))
 		return
 	}
 
-	dev, err := core.RetrieveDeveloper(email)
+	subject, scope, err := subjectAndAdminScopeFromRequestCtx(r)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, nil)
+		return
+	}
+
+	dev, err := core.RetrieveDeveloper(email, subject, scope)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, err)
 		return
@@ -103,7 +131,7 @@ func handleDeveloperPut(core *roll.Core, w http.ResponseWriter, r *http.Request)
 	dev.Email = email
 
 	//Extract the subject from the request header based on security mode
-	subject, err := subjectFromAuthHeader(core, r)
+	subject, _, err := subjectAndAdminScopeFromRequestCtx(r)
 	if err != nil {
 		log.Print("Error extracting subject:", err.Error())
 		respondError(w, http.StatusInternalServerError, nil)

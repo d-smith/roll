@@ -25,7 +25,18 @@ func URLGuard(url string) {
 	var count int
 	for {
 		log.Println("check test endpoint availability")
-		resp, err := http.Get(url)
+
+		client := http.Client{}
+
+		req,err := http.NewRequest("GET",url, nil)
+		if err != nil {
+			log.Println("Error creating request... bailing", err.Error())
+			return
+		}
+
+		req.Header.Set("X-Roll-Subject","rolltest")
+
+		resp, err := client.Do(req)
 		if err == nil && resp.StatusCode == http.StatusOK || count == limit {
 			break
 		}

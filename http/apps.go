@@ -54,7 +54,13 @@ func retrieveApplication(clientID string, core *roll.Core, w http.ResponseWriter
 		return
 	}
 
-	app, err := core.RetrieveApplication(clientID)
+	subject, scope, err := subjectAndAdminScopeFromRequestCtx(r)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, nil)
+		return
+	}
+
+	app, err := core.RetrieveApplication(clientID, subject, scope)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, err)
 		return
@@ -69,7 +75,13 @@ func retrieveApplication(clientID string, core *roll.Core, w http.ResponseWriter
 }
 
 func listApplications(core *roll.Core, w http.ResponseWriter, r *http.Request) {
-	apps, err := core.ListApplications()
+	subject, scope, err := subjectAndAdminScopeFromRequestCtx(r)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, nil)
+		return
+	}
+
+	apps, err := core.ListApplications(subject, scope)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, err)
 		return
@@ -107,7 +119,7 @@ func handleApplicationPost(core *roll.Core, w http.ResponseWriter, r *http.Reque
 	}
 
 	//Extract the subject from the request header based on security mode
-	subject, err := subjectFromAuthHeader(core, r)
+	subject, _, err := subjectAndAdminScopeFromRequestCtx(r)
 	if err != nil {
 		log.Print("Error extracting subject:", err.Error())
 		respondError(w, http.StatusInternalServerError, nil)
@@ -173,8 +185,16 @@ func handleApplicationPut(core *roll.Core, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	//Extract the subject from the request header based on security mode
+	subject, adminScope, err := subjectAndAdminScopeFromRequestCtx(r)
+	if err != nil {
+		log.Print("Error extracting subject:", err.Error())
+		respondError(w, http.StatusInternalServerError, nil)
+		return
+	}
+
 	//Retrieve the app definition to update
-	storedApp, err := core.RetrieveApplication(clientID)
+	storedApp, err := core.RetrieveApplication(clientID, subject, adminScope)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, err)
 		return
@@ -194,11 +214,18 @@ func handleApplicationPut(core *roll.Core, w http.ResponseWriter, r *http.Reques
 
 	//Store the application definition
 	log.Println("updating app def ", app)
-	err = core.UpdateApplication(&app)
+	err = core.UpdateApplication(&app, subject)
+
 	if err != nil {
 		log.Println("Error updating definition: ", err.Error())
-		respondError(w, http.StatusInternalServerError, err)
-		return
+		switch err.(type) {
+		case roll.NonOwnerUpdateError:
+			respondError(w, http.StatusUnauthorized, err)
+		case roll.NoSuchApplicationError:
+			respondError(w, http.StatusNotFound, err)
+		default:
+			respondError(w, http.StatusInternalServerError, err)
+		}
 	}
 
 	respondOk(w, nil)

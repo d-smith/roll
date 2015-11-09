@@ -31,7 +31,8 @@ func echoHandler() http.HandlerFunc {
 
 func TestNoToken(t *testing.T) {
 	secretsRepo := new(mocks.SecretsRepo)
-	testServer := httptest.NewServer(Wrap(secretsRepo, []string{}, echoHandler()))
+	adminRepo := new(mocks.AdminRepo)
+	testServer := httptest.NewServer(Wrap(secretsRepo, adminRepo, []string{}, echoHandler()))
 	defer testServer.Close()
 
 	resp, err := http.Post(testServer.URL, "text/plain", nil)
@@ -60,10 +61,12 @@ func TestGoodToken(t *testing.T) {
 	secretsMock.On("RetrievePrivateKeyForApp", "1111-2222-3333333-4444444").Return(privateKey, nil)
 	secretsMock.On("RetrievePublicKeyForApp", "1111-2222-3333333-4444444").Return(publicKey, nil)
 
+	adminRepo := new(mocks.AdminRepo)
+
 	token, err := roll.GenerateToken("a-subject", "", &app, privateKey)
 	assert.Nil(t, err)
 
-	testServer := httptest.NewServer(Wrap(secretsMock, []string{}, echoHandler()))
+	testServer := httptest.NewServer(Wrap(secretsMock, adminRepo, []string{}, echoHandler()))
 	defer testServer.Close()
 
 	client := http.Client{}
@@ -77,9 +80,38 @@ func TestGoodToken(t *testing.T) {
 
 }
 
+func TestUnsecureWithSubjectHeader(t *testing.T) {
+	testServer := httptest.NewServer(WrapUnsecure(echoHandler()))
+	defer testServer.Close()
+
+	client := http.Client{}
+	req, err := http.NewRequest("POST", testServer.URL, nil)
+	assert.Nil(t, err)
+	req.Header.Add("X-Roll-Subject", "foobar")
+
+	resp, err := client.Do(req)
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+}
+
+func TestUnsecureMissingSubjectHeader(t *testing.T) {
+	testServer := httptest.NewServer(WrapUnsecure(echoHandler()))
+	defer testServer.Close()
+
+	client := http.Client{}
+	req, err := http.NewRequest("POST", testServer.URL, nil)
+	assert.Nil(t, err)
+
+	resp, err := client.Do(req)
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+}
+
 func TestMalformedToken(t *testing.T) {
 	secretsRepo := new(mocks.SecretsRepo)
-	testServer := httptest.NewServer(Wrap(secretsRepo, []string{}, echoHandler()))
+	adminRepo := new(mocks.AdminRepo)
+
+	testServer := httptest.NewServer(Wrap(secretsRepo, adminRepo, []string{}, echoHandler()))
 	defer testServer.Close()
 
 	client := http.Client{}
@@ -94,7 +126,8 @@ func TestMalformedToken(t *testing.T) {
 
 func TestNonBearerToken(t *testing.T) {
 	secretsRepo := new(mocks.SecretsRepo)
-	testServer := httptest.NewServer(Wrap(secretsRepo, []string{}, echoHandler()))
+	adminRepo := new(mocks.AdminRepo)
+	testServer := httptest.NewServer(Wrap(secretsRepo, adminRepo, []string{}, echoHandler()))
 	defer testServer.Close()
 
 	client := http.Client{}
@@ -130,10 +163,12 @@ func TestInvalidSignature(t *testing.T) {
 	secretsMock.On("RetrievePrivateKeyForApp", "1111-2222-3333333-4444444").Return(privateKey, nil)
 	secretsMock.On("RetrievePublicKeyForApp", "1111-2222-3333333-4444444").Return(publicKey, nil)
 
+	adminRepo := new(mocks.AdminRepo)
+
 	token, err := roll.GenerateToken("b-subject", "", &app, private2)
 	assert.Nil(t, err)
 
-	testServer := httptest.NewServer(Wrap(secretsMock, []string{}, echoHandler()))
+	testServer := httptest.NewServer(Wrap(secretsMock, adminRepo, []string{}, echoHandler()))
 	defer testServer.Close()
 
 	client := http.Client{}
@@ -166,10 +201,12 @@ func TestAuthCodeUsedForAccess(t *testing.T) {
 	secretsMock.On("RetrievePrivateKeyForApp", "1111-2222-3333333-4444444").Return(privateKey, nil)
 	secretsMock.On("RetrievePublicKeyForApp", "1111-2222-3333333-4444444").Return(publicKey, nil)
 
+	adminRepo := new(mocks.AdminRepo)
+
 	token, err := roll.GenerateCode("a-subject", "", &app, privateKey)
 	assert.Nil(t, err)
 
-	testServer := httptest.NewServer(Wrap(secretsMock, []string{}, echoHandler()))
+	testServer := httptest.NewServer(Wrap(secretsMock, adminRepo, []string{}, echoHandler()))
 	defer testServer.Close()
 
 	client := http.Client{}

@@ -111,7 +111,7 @@ func init() {
 }
 
 func retrieveAppDefinition(clientID string, app interface{}) {
-	resp := rollhttp.TestHTTPGet(T, "http://localhost:3000/v1/applications/"+clientID, nil)
+	resp := rollhttp.TestHTTPGetWithRollSubject(T, "http://localhost:3000/v1/applications/"+clientID, nil)
 	assert.Equal(T, http.StatusOK, resp.StatusCode)
 
 	defer resp.Body.Close()

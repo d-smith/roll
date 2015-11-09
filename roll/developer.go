@@ -67,7 +67,7 @@ func (d *Developer) Validate() error {
 
 //DeveloperRepo represents a repository abstraction for dealing with persistent Developer instances.
 type DeveloperRepo interface {
-	RetrieveDeveloper(email string) (*Developer, error)
+	RetrieveDeveloper(email, subjectID string, adminScope bool) (*Developer, error)
 	StoreDeveloper(*Developer) error
-	ListDevelopers() ([]Developer, error)
+	ListDevelopers(subjectID string, adminScope bool) ([]Developer, error)
 }

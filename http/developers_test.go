@@ -69,12 +69,7 @@ func TestStoreDevBodyParseError(t *testing.T) {
 	buf := new(bytes.Buffer)
 	buf.WriteString(`{"this won't parse`)
 
-	req, err := http.NewRequest("PUT", addr+"/v1/developers/foo@dev.com", buf)
-	checkFatal(t, err)
-
-	client := http.DefaultClient
-	resp, err := client.Do(req)
-	assert.Nil(t, err)
+	resp := TestHTTPPutWithRollSubject(t, addr+"/v1/developers/foo@dev.com", buf)
 
 	checkResponseStatus(t, resp, http.StatusBadRequest)
 
@@ -101,7 +96,7 @@ func TestGetDeveloperInvalidEmailResource(t *testing.T) {
 	ln, addr := TestServer(t, core)
 	defer ln.Close()
 
-	resp := TestHTTPGet(t, addr+"/v1/developers/<script/>", nil)
+	resp := TestHTTPGetWithRollSubject(t, addr+"/v1/developers/<script/>", nil)
 	checkResponseStatus(t, resp, http.StatusBadRequest)
 }
 
@@ -110,21 +105,21 @@ func TestDeveloperUnsupportedMethod(t *testing.T) {
 	ln, addr := TestServer(t, core)
 	defer ln.Close()
 
-	resp, err := http.Post(addr+"/v1/developers/1111-2222-3333333-4444444", "application/json", nil)
-	assert.Nil(t, err)
+	resp := TestHTTPPostWithRollSubject(t, addr+"/v1/developers/1111-2222-3333333-4444444", nil)
 	checkResponseStatus(t, resp, http.StatusMethodNotAllowed)
 }
 
-func TestGetDeveloper(t *testing.T) {
+func TestGetDeveloperOk(t *testing.T) {
 	core, coreConfig := NewTestCore()
 	ln, addr := TestServer(t, core)
 	defer ln.Close()
 
 	devRepoMock := coreConfig.DeveloperRepo.(*mocks.DeveloperRepo)
-	devRepoMock.On("RetrieveDeveloper", "joe@dev.com").Return(&roll.Developer{FirstName: "Joe", LastName: "Dev", Email: "joe@dev.com"}, nil)
+	devRepoMock.On("RetrieveDeveloper", "joe@dev.com", "rolltest", false).Return(&roll.Developer{FirstName: "Joe", LastName: "Dev", Email: "joe@dev.com"}, nil)
 
-	resp := TestHTTPGet(t, addr+"/v1/developers/joe@dev.com", nil)
-	devRepoMock.AssertCalled(t, "RetrieveDeveloper", "joe@dev.com")
+	resp := TestHTTPGetWithRollSubject(t, addr+"/v1/developers/joe@dev.com", nil)
+	devRepoMock.AssertCalled(t, "RetrieveDeveloper", "joe@dev.com", "rolltest", false)
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 	var actual roll.Developer
 
@@ -135,7 +130,25 @@ func TestGetDeveloper(t *testing.T) {
 
 }
 
-func TestGetDevelopers(t *testing.T) {
+func TestGetDeveloperMissingRequestContext(t *testing.T) {
+	core, _ := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	resp := TestHTTPGet(t, addr+"/v1/developers/joe@dev.com", nil)
+	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+}
+
+func TestGetDevelopersListMissingRequestContext(t *testing.T) {
+	core, _ := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	resp := TestHTTPGet(t, addr+"/v1/developers", nil)
+	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+}
+
+func TestGetDevelopersOk(t *testing.T) {
 	core, coreConfig := NewTestCore()
 	ln, addr := TestServer(t, core)
 	defer ln.Close()
@@ -145,10 +158,10 @@ func TestGetDevelopers(t *testing.T) {
 		roll.Developer{FirstName: "Joe", LastName: "Dev", Email: "joe@dev.com"},
 		roll.Developer{FirstName: "Jill", LastName: "Dev", Email: "jill@dev.com"},
 	}
-	devRepoMock.On("ListDevelopers").Return(devs, nil)
+	devRepoMock.On("ListDevelopers", "rolltest", false).Return(devs, nil)
 
-	resp := TestHTTPGet(t, addr+"/v1/developers", nil)
-	devRepoMock.AssertCalled(t, "ListDevelopers")
+	resp := TestHTTPGetWithRollSubject(t, addr+"/v1/developers", nil)
+	devRepoMock.AssertCalled(t, "ListDevelopers", "rolltest", false)
 
 	var actual []roll.Developer
 	checkResponseBody(t, resp, &actual)
@@ -175,10 +188,10 @@ func TestGetDevelopersDBError(t *testing.T) {
 	defer ln.Close()
 
 	devRepoMock := coreConfig.DeveloperRepo.(*mocks.DeveloperRepo)
-	devRepoMock.On("ListDevelopers").Return(nil, errors.New("db error"))
+	devRepoMock.On("ListDevelopers", "rolltest", false).Return(nil, errors.New("db error"))
 
-	resp := TestHTTPGet(t, addr+"/v1/developers", nil)
-	devRepoMock.AssertCalled(t, "ListDevelopers")
+	resp := TestHTTPGetWithRollSubject(t, addr+"/v1/developers", nil)
+	devRepoMock.AssertCalled(t, "ListDevelopers", "rolltest", false)
 
 	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 }
@@ -189,10 +202,10 @@ func TestGetDeveloperRetrieveError(t *testing.T) {
 	defer ln.Close()
 
 	devRepoMock := coreConfig.DeveloperRepo.(*mocks.DeveloperRepo)
-	devRepoMock.On("RetrieveDeveloper", "joe@dev.com").Return(nil, errors.New("retrieve error"))
+	devRepoMock.On("RetrieveDeveloper", "joe@dev.com", "rolltest", false).Return(nil, errors.New("retrieve error"))
 
-	resp := TestHTTPGet(t, addr+"/v1/developers/joe@dev.com", nil)
-	devRepoMock.AssertCalled(t, "RetrieveDeveloper", "joe@dev.com")
+	resp := TestHTTPGetWithRollSubject(t, addr+"/v1/developers/joe@dev.com", nil)
+	devRepoMock.AssertCalled(t, "RetrieveDeveloper", "joe@dev.com", "rolltest", false)
 
 	checkResponseStatus(t, resp, http.StatusInternalServerError)
 }
@@ -203,10 +216,10 @@ func TestGetNonExistentDeveloper(t *testing.T) {
 	defer ln.Close()
 
 	devRepoMock := coreConfig.DeveloperRepo.(*mocks.DeveloperRepo)
-	devRepoMock.On("RetrieveDeveloper", "joe@dev.com").Return(nil, nil)
+	devRepoMock.On("RetrieveDeveloper", "joe@dev.com", "rolltest", false).Return(nil, nil)
 
-	resp := TestHTTPGet(t, addr+"/v1/developers/joe@dev.com", nil)
-	devRepoMock.AssertCalled(t, "RetrieveDeveloper", "joe@dev.com")
+	resp := TestHTTPGetWithRollSubject(t, addr+"/v1/developers/joe@dev.com", nil)
+	devRepoMock.AssertCalled(t, "RetrieveDeveloper", "joe@dev.com", "rolltest", false)
 
 	checkResponseStatus(t, resp, http.StatusNotFound)
 
@@ -218,10 +231,10 @@ func TestCheckResponseStatus(t *testing.T) {
 	defer ln.Close()
 
 	devRepoMock := coreConfig.DeveloperRepo.(*mocks.DeveloperRepo)
-	devRepoMock.On("RetrieveDeveloper", "joe@dev.com").Return(nil, nil)
+	devRepoMock.On("RetrieveDeveloper", "joe@dev.com", "rolltest", false).Return(nil, nil)
 
-	resp := TestHTTPGet(t, addr+"/v1/developers/joe@dev.com", nil)
-	devRepoMock.AssertCalled(t, "RetrieveDeveloper", "joe@dev.com")
+	resp := TestHTTPGetWithRollSubject(t, addr+"/v1/developers/joe@dev.com", nil)
+	devRepoMock.AssertCalled(t, "RetrieveDeveloper", "joe@dev.com", "rolltest", false)
 
 	ok := checkResponseStatus(nil, resp, http.StatusOK)
 	assert.False(t, ok)

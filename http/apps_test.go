@@ -103,16 +103,16 @@ func TestUpdateAppOK(t *testing.T) {
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "111-222-333").Return(&app, nil)
-	appRepoMock.On("UpdateApplication", &app2).Return(nil)
+	appRepoMock.On("RetrieveApplication", "111-222-333", "rolltest", false).Return(&app, nil)
+	appRepoMock.On("UpdateApplication", &app2, "rolltest").Return(nil)
 
 	secretsRepoMock := coreConfig.SecretsRepo.(*mocks.SecretsRepo)
 	secretsRepoMock.On("StoreKeysForApp",
 		mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(nil).Once()
 
 	resp := TestHTTPPutWithRollSubject(t, addr+"/v1/applications/111-222-333", app2)
-	appRepoMock.AssertCalled(t, "RetrieveApplication", "111-222-333")
-	appRepoMock.AssertCalled(t, "UpdateApplication", &app2)
+	appRepoMock.AssertCalled(t, "RetrieveApplication", "111-222-333", "rolltest", false)
+	appRepoMock.AssertCalled(t, "UpdateApplication", &app2, "rolltest")
 	secretsRepoMock.AssertNotCalled(t, "StoreKeysForApp")
 
 	checkResponseStatus(t, resp, http.StatusNoContent)
@@ -142,16 +142,16 @@ func TestUpdateAppStoreFault(t *testing.T) {
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "111-222-333").Return(&app, nil)
-	appRepoMock.On("UpdateApplication", &app2).Return(errors.New("boom!"))
+	appRepoMock.On("RetrieveApplication", "111-222-333", "rolltest", false).Return(&app, nil)
+	appRepoMock.On("UpdateApplication", &app2, "rolltest").Return(errors.New("boom!"))
 
 	secretsRepoMock := coreConfig.SecretsRepo.(*mocks.SecretsRepo)
 	secretsRepoMock.On("StoreKeysForApp",
 		mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(nil).Once()
 
 	resp := TestHTTPPutWithRollSubject(t, addr+"/v1/applications/111-222-333", app2)
-	appRepoMock.AssertCalled(t, "RetrieveApplication", "111-222-333")
-	appRepoMock.AssertCalled(t, "UpdateApplication", &app2)
+	appRepoMock.AssertCalled(t, "RetrieveApplication", "111-222-333", "rolltest", false)
+	appRepoMock.AssertCalled(t, "UpdateApplication", &app2, "rolltest")
 	secretsRepoMock.AssertNotCalled(t, "StoreKeysForApp")
 
 	checkResponseStatus(t, resp, http.StatusInternalServerError)
@@ -172,7 +172,7 @@ func TestUpdateAppRetrieveFault(t *testing.T) {
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(nil, errors.New("kaboom"))
+	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444", "rolltest", false).Return(nil, errors.New("kaboom"))
 
 	resp := TestHTTPPutWithRollSubject(t, addr+"/v1/applications/1111-2222-3333333-4444444", app)
 
@@ -194,11 +194,50 @@ func TestUpdateAppNotFound(t *testing.T) {
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(nil, nil)
+	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444", "rolltest", false).Return(nil, nil)
 
 	resp := TestHTTPPutWithRollSubject(t, addr+"/v1/applications/1111-2222-3333333-4444444", app)
 
 	checkResponseStatus(t, resp, http.StatusNotFound)
+}
+
+func TestUpdateAppNotOwner(t *testing.T) {
+	core, coreConfig := NewTestCore()
+	ln, addr := TestServer(t, core)
+	defer ln.Close()
+
+	app := roll.Application{
+		ApplicationName: "ambivilant birds",
+		ClientID:        "111-222-333",
+		DeveloperEmail:  "doug@dev.com",
+		RedirectURI:     "http://localhost:3000/ab",
+		LoginProvider:   "xtrac://localhost:9000",
+		DeveloperID:     "rolltest",
+	}
+
+	app2 := roll.Application{
+		ApplicationName: "foos",
+		ClientID:        "111-222-333",
+		DeveloperEmail:  "doug@dev.com",
+		RedirectURI:     "http://localhost:3000/ab",
+		LoginProvider:   "xtrac://localhost:9000",
+		DeveloperID:     "rolltest",
+	}
+
+	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
+	appRepoMock.On("RetrieveApplication", "111-222-333", "rolltest", false).Return(&app, nil)
+	appRepoMock.On("UpdateApplication", &app2, "rolltest").Return(roll.NonOwnerUpdateError{})
+
+	secretsRepoMock := coreConfig.SecretsRepo.(*mocks.SecretsRepo)
+	secretsRepoMock.On("StoreKeysForApp",
+		mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(nil).Once()
+
+	resp := TestHTTPPutWithRollSubject(t, addr+"/v1/applications/111-222-333", app2)
+	appRepoMock.AssertCalled(t, "RetrieveApplication", "111-222-333", "rolltest", false)
+	appRepoMock.AssertCalled(t, "UpdateApplication", &app2, "rolltest")
+	secretsRepoMock.AssertNotCalled(t, "StoreKeysForApp")
+
+	checkResponseStatus(t, resp, http.StatusUnauthorized)
 }
 
 type BadIDGenerator struct{}
@@ -288,13 +327,7 @@ func TestUpdateAppNoResource(t *testing.T) {
 	err := enc.Encode(app)
 	checkFatal(t, err)
 
-	req, err := http.NewRequest("PUT", addr+"/v1/applications/", bodyReader)
-	checkFatal(t, err)
-
-	client := http.DefaultClient
-	resp, err := client.Do(req)
-	assert.Nil(t, err)
-
+	resp := TestHTTPPutWithRollSubject(t, addr+"/v1/applications/", bodyReader)
 	checkResponseStatus(t, resp, http.StatusBadRequest)
 
 }
@@ -307,13 +340,7 @@ func TestStoreAppBodyParseError(t *testing.T) {
 	buf := new(bytes.Buffer)
 	buf.WriteString(`{"this won't parse`)
 
-	req, err := http.NewRequest("POST", addr+"/v1/applications", buf)
-	checkFatal(t, err)
-
-	client := http.DefaultClient
-	resp, err := client.Do(req)
-	assert.Nil(t, err)
-
+	resp := TestHTTPPostWithRollSubject(t, addr+"/v1/applications", buf)
 	checkResponseStatus(t, resp, http.StatusBadRequest)
 
 }
@@ -326,13 +353,7 @@ func TestUpdateAppBodyParseError(t *testing.T) {
 	buf := new(bytes.Buffer)
 	buf.WriteString(`{"this won't parse`)
 
-	req, err := http.NewRequest("PUT", addr+"/v1/applications/11-22-33", buf)
-	checkFatal(t, err)
-
-	client := http.DefaultClient
-	resp, err := client.Do(req)
-	assert.Nil(t, err)
-
+	resp := TestHTTPPutWithRollSubject(t, addr+"/v1/applications/11-22-33", buf)
 	checkResponseStatus(t, resp, http.StatusBadRequest)
 
 }
@@ -342,12 +363,7 @@ func TestAppUnsupportedMethodBaseURI(t *testing.T) {
 	ln, addr := TestServer(t, core)
 	defer ln.Close()
 
-	req, err := http.NewRequest("OPTIONS", addr+"/v1/applications", nil)
-	assert.Nil(t, err)
-
-	client := http.Client{}
-	resp, err := client.Do(req)
-	assert.Nil(t, err)
+	resp := TestHTTPOptionsWithRollSubject(t, addr+"/v1/applications", nil)
 	checkResponseStatus(t, resp, http.StatusMethodNotAllowed)
 }
 
@@ -356,12 +372,7 @@ func TestAppUnsupportedMethodExtendedURI(t *testing.T) {
 	ln, addr := TestServer(t, core)
 	defer ln.Close()
 
-	req, err := http.NewRequest("OPTIONS", addr+"/v1/applications/", nil)
-	assert.Nil(t, err)
-
-	client := http.Client{}
-	resp, err := client.Do(req)
-	assert.Nil(t, err)
+	resp := TestHTTPOptionsWithRollSubject(t, addr+"/v1/applications/", nil)
 	checkResponseStatus(t, resp, http.StatusMethodNotAllowed)
 }
 
@@ -401,14 +412,14 @@ func TestGetApplication(t *testing.T) {
 
 	t.Log("set up mock app repo")
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444", "rolltest", false).Return(&returnVal, nil)
 
 	t.Log("get get get get get")
-	resp := TestHTTPGet(t, addr+"/v1/applications/1111-2222-3333333-4444444", nil)
+	resp := TestHTTPGetWithRollSubject(t, addr+"/v1/applications/1111-2222-3333333-4444444", nil)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 	t.Log("assert get was called with the input client id")
-	appRepoMock.AssertCalled(t, "RetrieveApplication", "1111-2222-3333333-4444444")
+	appRepoMock.AssertCalled(t, "RetrieveApplication", "1111-2222-3333333-4444444", "rolltest", false)
 
 	var actual roll.Application
 
@@ -450,10 +461,15 @@ func TestGetApplicationsOK(t *testing.T) {
 		}}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("ListApplications").Return(returnVal, nil)
+	appRepoMock.On("ListApplications", "rolltest", false).Return(returnVal, nil)
 
-	resp := TestHTTPGet(t, addr+"/v1/applications", nil)
-	appRepoMock.AssertCalled(t, "ListApplications")
+	resp := TestHTTPGetWithRollSubject(t, addr+"/v1/applications", nil)
+	if !assert.Equal(t, http.StatusOK, resp.StatusCode) {
+		t.Fail()
+		return
+	}
+
+	appRepoMock.AssertCalled(t, "ListApplications", "rolltest", false)
 
 	var actual []roll.Application
 
@@ -476,10 +492,10 @@ func TestGetApplicationsReposError(t *testing.T) {
 	defer ln.Close()
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("ListApplications").Return(nil, errors.New("db error"))
+	appRepoMock.On("ListApplications", "rolltest", false).Return(nil, errors.New("db error"))
 
-	resp := TestHTTPGet(t, addr+"/v1/applications", nil)
-	appRepoMock.AssertCalled(t, "ListApplications")
+	resp := TestHTTPGetWithRollSubject(t, addr+"/v1/applications", nil)
+	appRepoMock.AssertCalled(t, "ListApplications", "rolltest", false)
 
 	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 
@@ -491,10 +507,10 @@ func TestRetrieveOfNonexistantApp(t *testing.T) {
 	defer ln.Close()
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(nil, nil)
+	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444", "rolltest", false).Return(nil, nil)
 
-	resp := TestHTTPGet(t, addr+"/v1/applications/1111-2222-3333333-4444444", nil)
-	appRepoMock.AssertCalled(t, "RetrieveApplication", "1111-2222-3333333-4444444")
+	resp := TestHTTPGetWithRollSubject(t, addr+"/v1/applications/1111-2222-3333333-4444444", nil)
+	appRepoMock.AssertCalled(t, "RetrieveApplication", "1111-2222-3333333-4444444", "rolltest", false)
 
 	checkResponseStatus(t, resp, http.StatusNotFound)
 }
@@ -505,10 +521,10 @@ func TestErrorOnAppRetrieve(t *testing.T) {
 	defer ln.Close()
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(nil, errors.New("big problem"))
+	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444", "rolltest", false).Return(nil, errors.New("big problem"))
 
-	resp := TestHTTPGet(t, addr+"/v1/applications/1111-2222-3333333-4444444", nil)
-	appRepoMock.AssertCalled(t, "RetrieveApplication", "1111-2222-3333333-4444444")
+	resp := TestHTTPGetWithRollSubject(t, addr+"/v1/applications/1111-2222-3333333-4444444", nil)
+	appRepoMock.AssertCalled(t, "RetrieveApplication", "1111-2222-3333333-4444444", "rolltest", false)
 
 	checkResponseStatus(t, resp, http.StatusInternalServerError)
 }

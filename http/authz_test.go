@@ -48,7 +48,7 @@ func TestInputParamsValid(t *testing.T) {
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+	appRepoMock.On("SystemRetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
 	req, _ := http.NewRequest("POST", "/?client_id=1111-2222-3333333-4444444&redirect_uri=http://localhost:3000/ab&response_type=token", nil)
 
@@ -74,7 +74,7 @@ func TestInputParamsMissingResponseType(t *testing.T) {
 func TestInputParamsMissingClientID(t *testing.T) {
 	core, coreConfig := NewTestCore()
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "").Return(nil, nil)
+	appRepoMock.On("SystemRetrieveApplication", "").Return(nil, nil)
 
 	req, _ := http.NewRequest("POST", "/?redirect_uri=http://localhost:3000/ab&response_type=code", nil)
 	app, err := validateInputParams(core, req)
@@ -87,7 +87,7 @@ func TestInputParamsNoSuchClientId(t *testing.T) {
 	core, coreConfig := NewTestCore()
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(nil, errors.New("whoops"))
+	appRepoMock.On("SystemRetrieveApplication", "1111-2222-3333333-4444444").Return(nil, errors.New("whoops"))
 
 	req, _ := http.NewRequest("POST", "/?client_id=1111-2222-3333333-4444444&redirect_uri=http://localhost:3000/ab&response_type=token", nil)
 
@@ -109,7 +109,7 @@ func TestInputParamsInvalidRedirectURI(t *testing.T) {
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+	appRepoMock.On("SystemRetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
 	req, _ := http.NewRequest("POST", "/?client_id=1111-2222-3333333-4444444&redirect_uri=bogus&response_type=token", nil)
 	app, err := validateInputParams(core, req)
@@ -198,7 +198,7 @@ func TestAuthValidateMissingParams(t *testing.T) {
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+	appRepoMock.On("SystemRetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
 	resp, err := http.PostForm(addr+"/oauth2/validate",
 		url.Values{"username": {},
@@ -224,7 +224,7 @@ func TestAuthValidateBadResponseType(t *testing.T) {
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+	appRepoMock.On("SystemRetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
 	resp, err := http.PostForm(addr+"/oauth2/validate",
 		url.Values{"username": {"x"},
@@ -285,7 +285,7 @@ func TestAuthValidateCodeResponseAuthenticateOk(t *testing.T) {
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+	appRepoMock.On("SystemRetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
 	_, err = http.PostForm(addr+"/oauth2/validate",
 		url.Values{"username": {"x"},
@@ -343,7 +343,7 @@ func TestAuthValidateCodeResponseAuthenticateAdminScopeOk(t *testing.T) {
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+	appRepoMock.On("SystemRetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
 	adminRepoMock := coreConfig.AdminRepo.(*mocks.AdminRepo)
 	adminRepoMock.On("IsAdmin", "x").Return(true, nil)
@@ -395,7 +395,7 @@ func TestAuthValidateCodeResponseAuthenticateAdminScopeDenied(t *testing.T) {
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+	appRepoMock.On("SystemRetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
 	adminRepoMock := coreConfig.AdminRepo.(*mocks.AdminRepo)
 	adminRepoMock.On("IsAdmin", "x").Return(false, nil)
@@ -452,7 +452,7 @@ func TestAuthValidateCodeResponseAuthenticateAdminScopeError(t *testing.T) {
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+	appRepoMock.On("SystemRetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
 	adminRepoMock := coreConfig.AdminRepo.(*mocks.AdminRepo)
 	adminRepoMock.On("IsAdmin", "x").Return(false, errors.New("BOOM!"))

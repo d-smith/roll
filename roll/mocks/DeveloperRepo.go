@@ -7,12 +7,12 @@ type DeveloperRepo struct {
 	mock.Mock
 }
 
-func (_m *DeveloperRepo) RetrieveDeveloper(email string) (*roll.Developer, error) {
-	ret := _m.Called(email)
+func (_m *DeveloperRepo) RetrieveDeveloper(email string, subjectID string, adminScope bool) (*roll.Developer, error) {
+	ret := _m.Called(email, subjectID, adminScope)
 
 	var r0 *roll.Developer
-	if rf, ok := ret.Get(0).(func(string) *roll.Developer); ok {
-		r0 = rf(email)
+	if rf, ok := ret.Get(0).(func(string, string, bool) *roll.Developer); ok {
+		r0 = rf(email, subjectID, adminScope)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*roll.Developer)
@@ -20,8 +20,8 @@ func (_m *DeveloperRepo) RetrieveDeveloper(email string) (*roll.Developer, error
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(email)
+	if rf, ok := ret.Get(1).(func(string, string, bool) error); ok {
+		r1 = rf(email, subjectID, adminScope)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -40,12 +40,12 @@ func (_m *DeveloperRepo) StoreDeveloper(_a0 *roll.Developer) error {
 
 	return r0
 }
-func (_m *DeveloperRepo) ListDevelopers() ([]roll.Developer, error) {
-	ret := _m.Called()
+func (_m *DeveloperRepo) ListDevelopers(subjectID string, adminScope bool) ([]roll.Developer, error) {
+	ret := _m.Called(subjectID, adminScope)
 
 	var r0 []roll.Developer
-	if rf, ok := ret.Get(0).(func() []roll.Developer); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(string, bool) []roll.Developer); ok {
+		r0 = rf(subjectID, adminScope)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]roll.Developer)
@@ -53,8 +53,8 @@ func (_m *DeveloperRepo) ListDevelopers() ([]roll.Developer, error) {
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
+	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
+		r1 = rf(subjectID, adminScope)
 	} else {
 		r1 = ret.Error(1)
 	}

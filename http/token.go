@@ -131,14 +131,6 @@ func validateAndExtractFormParams(r *http.Request) (*authCodeContext, error) {
 
 }
 
-func subjectFromAuthHeader(core *roll.Core, r *http.Request) (string, error) {
-	if core.Secure() {
-		return subjectFromBearerToken(core, r)
-	} else {
-		return subjectFromUnsecuredHeader(core, r)
-	}
-}
-
 func subjectFromBearerToken(core *roll.Core, r *http.Request) (string, error) {
 	//Check for header presence
 	authzHeader := r.Header.Get("Authorization")
@@ -173,20 +165,8 @@ func subjectFromBearerToken(core *roll.Core, r *http.Request) (string, error) {
 	return subject, nil
 }
 
-func subjectFromUnsecuredHeader(core *roll.Core, r *http.Request) (string, error) {
-	log.Println("get subject from unsecured header")
-	subject := r.Header.Get("X-Roll-Subject")
-
-	//Is the subject something other than an empty string?
-	if subject == "" {
-		return "", errors.New("empty subject claim")
-	}
-
-	return subject, nil
-}
-
 func lookupApplication(core *roll.Core, clientID string) (*roll.Application, error) {
-	app, err := core.RetrieveApplication(clientID)
+	app, err := core.SystemRetrieveApplication(clientID)
 	if err != nil {
 		log.Println("Error retrieving app data: ", err.Error())
 		return nil, ErrRetrievingAppData

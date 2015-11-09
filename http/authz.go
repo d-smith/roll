@@ -86,7 +86,7 @@ func validateInputParams(core *roll.Core, r *http.Request) (*roll.Application, e
 
 	//Client id is application key
 	clientID := r.FormValue("client_id")
-	app, err := core.RetrieveApplication(clientID)
+	app, err := core.SystemRetrieveApplication(clientID)
 	if err != nil {
 		return nil, err
 	}
@@ -205,7 +205,7 @@ func denied(r *http.Request) bool {
 }
 
 func lookupApplicationFromFormClientID(core *roll.Core, r *http.Request) (*roll.Application, error) {
-	app, err := core.RetrieveApplication(r.Form["client_id"][0])
+	app, err := core.SystemRetrieveApplication(r.Form["client_id"][0])
 	if err != nil {
 		return nil, err
 	}
@@ -213,8 +213,6 @@ func lookupApplicationFromFormClientID(core *roll.Core, r *http.Request) (*roll.
 	if app == nil {
 		return nil, errors.New("Invalid client id")
 	}
-
-	//TODO - separate error handling for internal error and invalid client id
 
 	return app, nil
 }

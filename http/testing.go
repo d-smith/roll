@@ -78,6 +78,10 @@ func TestHTTPGet(t assert.TestingT, addr string, body interface{}) *http.Respons
 	return testHTTPData(t, "GET", addr, false, body)
 }
 
+func TestHTTPGetWithRollSubject(t assert.TestingT, addr string, body interface{}) *http.Response {
+	return testHTTPData(t, "GET", addr, true, body)
+}
+
 func TestHTTPPut(t assert.TestingT, addr string, body interface{}) *http.Response {
 	return testHTTPData(t, "PUT", addr, false, body)
 }
@@ -94,6 +98,10 @@ func TestHTTPPostWithRollSubject(t assert.TestingT, addr string, body interface{
 	return testHTTPData(t, "POST", addr, true, body)
 }
 
+func TestHTTPOptionsWithRollSubject(t assert.TestingT, addr string, body interface{}) *http.Response {
+	return testHTTPData(t, "OPTIONS", addr, true, body)
+}
+
 func testHTTPData(t assert.TestingT, method string, addr string, rollSubject bool, body interface{}) *http.Response {
 	bodyReader := new(bytes.Buffer)
 	if body != nil {
@@ -107,6 +115,7 @@ func testHTTPData(t assert.TestingT, method string, addr string, rollSubject boo
 
 	req.Header.Set("Content-Type", "application/json")
 	if rollSubject {
+		log.Println("setting X-Roll-Subject to rolltest")
 		req.Header.Set("X-Roll-Subject", "rolltest")
 	}
 
