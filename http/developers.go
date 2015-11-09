@@ -131,7 +131,7 @@ func handleDeveloperPut(core *roll.Core, w http.ResponseWriter, r *http.Request)
 	dev.Email = email
 
 	//Extract the subject from the request header based on security mode
-	subject, err := subjectFromAuthHeader(core, r)
+	subject, _, err := subjectAndAdminScopeFromRequestCtx(r)
 	if err != nil {
 		log.Print("Error extracting subject:", err.Error())
 		respondError(w, http.StatusInternalServerError, nil)

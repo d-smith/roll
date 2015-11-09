@@ -113,7 +113,7 @@ func handleApplicationPost(core *roll.Core, w http.ResponseWriter, r *http.Reque
 	}
 
 	//Extract the subject from the request header based on security mode
-	subject, err := subjectFromAuthHeader(core, r)
+	subject, _, err := subjectAndAdminScopeFromRequestCtx(r)
 	if err != nil {
 		log.Print("Error extracting subject:", err.Error())
 		respondError(w, http.StatusInternalServerError, nil)

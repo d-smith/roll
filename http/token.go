@@ -131,14 +131,6 @@ func validateAndExtractFormParams(r *http.Request) (*authCodeContext, error) {
 
 }
 
-func subjectFromAuthHeader(core *roll.Core, r *http.Request) (string, error) {
-	if core.Secure() {
-		return subjectFromBearerToken(core, r)
-	} else {
-		return subjectFromUnsecuredHeader(core, r)
-	}
-}
-
 func subjectFromBearerToken(core *roll.Core, r *http.Request) (string, error) {
 	//Check for header presence
 	authzHeader := r.Header.Get("Authorization")
