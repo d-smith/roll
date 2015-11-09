@@ -31,7 +31,28 @@ func (_m *ApplicationRepo) UpdateApplication(app *roll.Application, subjectID st
 
 	return r0
 }
-func (_m *ApplicationRepo) RetrieveApplication(clientID string) (*roll.Application, error) {
+func (_m *ApplicationRepo) RetrieveApplication(clientID string, subjectID string, adminScope bool) (*roll.Application, error) {
+	ret := _m.Called(clientID, subjectID, adminScope)
+
+	var r0 *roll.Application
+	if rf, ok := ret.Get(0).(func(string, string, bool) *roll.Application); ok {
+		r0 = rf(clientID, subjectID, adminScope)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*roll.Application)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, bool) error); ok {
+		r1 = rf(clientID, subjectID, adminScope)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+func (_m *ApplicationRepo) SystemRetrieveApplication(clientID string) (*roll.Application, error) {
 	ret := _m.Called(clientID)
 
 	var r0 *roll.Application

@@ -83,8 +83,14 @@ func (core *Core) UpdateApplication(app *Application, subjectID string) error {
 }
 
 //RetrieveApplication retrieves an application using the embedded Application repository
-func (core *Core) RetrieveApplication(clientID string) (*Application, error) {
-	return core.ApplicationRepo.RetrieveApplication(clientID)
+func (core *Core) RetrieveApplication(clientID string, subjectID string, adminScope bool) (*Application, error) {
+	return core.ApplicationRepo.RetrieveApplication(clientID, subjectID, adminScope)
+}
+
+//SystemRetrieveApplication is for system level access to app data that does not need to
+//apply the user security model
+func (core *Core) SystemRetrieveApplication(clientID string) (*Application, error) {
+	return core.ApplicationRepo.SystemRetrieveApplication(clientID)
 }
 
 //StoreKeysForApp stores the private and public keys associated with an application

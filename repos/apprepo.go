@@ -53,15 +53,18 @@ func (dae *DuplicateAppdefError) Error() string {
 
 //CreateApplication stores an application definition in DynamoDB
 func (dar *DynamoAppRepo) CreateApplication(app *roll.Application) error {
+	log.Println("create application")
 
 	//Make sure we are not creating a new application definition for an existing
 	//application name/developer email combination
 	existing, err := dar.RetrieveAppByNameAndDevEmail(app.ApplicationName, app.DeveloperEmail)
 	if err != nil {
+		log.Println("Internal error attempting to check for duplicate app", err.Error())
 		return err
 	}
 
 	if existing != nil {
+		log.Println("Duplicate app definition found")
 		return NewDuplicationAppdefError(app.ApplicationName, app.DeveloperEmail)
 	}
 
@@ -103,7 +106,7 @@ func (dar *DynamoAppRepo) CreateApplication(app *roll.Application) error {
 func (dar *DynamoAppRepo) UpdateApplication(app *roll.Application, subjectID string) error {
 
 	//Check that the app exists and the owner is performing the update
-	storedApp, err := dar.RetrieveApplication(app.ClientID)
+	storedApp, err := dar.SystemRetrieveApplication(app.ClientID)
 	if err != nil {
 		log.Println("Error retrieving app to verify ownership")
 		return err
@@ -215,7 +218,46 @@ func (dar *DynamoAppRepo) RetrieveAppByNameAndDevEmail(appName, email string) (*
 //RetrieveApplication retrieves an application definition from DynamoDB. Note a nil
 //pointer is returned if a successful call to dynamodb does not find an application
 //stored for the given clientID
-func (dar *DynamoAppRepo) RetrieveApplication(clientID string) (*roll.Application, error) {
+func (dar *DynamoAppRepo) RetrieveApplication(clientID string, subjectID string, adminScope bool) (*roll.Application, error) {
+	params := &dynamodb.GetItemInput{
+		TableName: aws.String("Application"),
+		Key: map[string]*dynamodb.AttributeValue{
+			ClientID: {S: aws.String(clientID)},
+		},
+	}
+
+	log.Println("Retrieve application", clientID)
+	out, err := dar.client.GetItem(params)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(out.Item) == 0 {
+		return nil, nil
+	}
+
+	log.Println("Load struct with data returned from dynamo")
+	app := &roll.Application{
+		ClientID:         extractString(out.Item[ClientID]),
+		ApplicationName:  extractString(out.Item[ApplicationName]),
+		ClientSecret:     extractString(out.Item[ClientSecret]),
+		DeveloperEmail:   extractString(out.Item[DeveloperEmail]),
+		DeveloperID:      extractString(out.Item[DeveloperID]),
+		RedirectURI:      extractString(out.Item[RedirectUri]),
+		LoginProvider:    extractString(out.Item[LoginProvider]),
+		JWTFlowPublicKey: extractString(out.Item[JWTFlowPublicKey]),
+	}
+
+	if !adminScope && app.DeveloperID != subjectID {
+		return nil, roll.NotAuthorizedToReadApp{}
+	}
+
+	return app, nil
+}
+
+//SystemRetrieveApplication is used for system level access of application records where the user
+//security model does not need to be applied.
+func (dar *DynamoAppRepo) SystemRetrieveApplication(clientID string) (*roll.Application, error) {
 	params := &dynamodb.GetItemInput{
 		TableName: aws.String("Application"),
 		Key: map[string]*dynamodb.AttributeValue{

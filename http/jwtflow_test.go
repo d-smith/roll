@@ -119,7 +119,7 @@ func TestJWTFlowSetupAppLookupError(t *testing.T) {
 	defer ln.Close()
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(nil, errors.New("Drat"))
+	appRepoMock.On("SystemRetrieveApplication", "1111-2222-3333333-4444444").Return(nil, errors.New("Drat"))
 
 	requestBody := CertPutCtx{
 		ClientSecret: "foo",
@@ -138,7 +138,7 @@ func TestJWTFlowSetupAppNotFound(t *testing.T) {
 	defer ln.Close()
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(nil, nil)
+	appRepoMock.On("SystemRetrieveApplication", "1111-2222-3333333-4444444").Return(nil, nil)
 
 	requestBody := CertPutCtx{
 		ClientSecret: "foo",
@@ -164,7 +164,7 @@ func TestJWTFlowSetupInvalidClientSecret(t *testing.T) {
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+	appRepoMock.On("SystemRetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
 	requestBody := CertPutCtx{
 		ClientSecret: "foo",
@@ -191,7 +191,7 @@ func TestJWTFlowSetupInvalidCertPEM(t *testing.T) {
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+	appRepoMock.On("SystemRetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
 	requestBody := CertPutCtx{
 		ClientSecret: "foo",
@@ -227,7 +227,7 @@ func TestJWTFlowSetupAppUpdateError(t *testing.T) {
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+	appRepoMock.On("SystemRetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 	appRepoMock.On("UpdateApplication", &storeVal, "rolltest").Return(errors.New("Ummm"))
 
 	requestBody := CertPutCtx{
@@ -265,7 +265,7 @@ func TestJWTFlowSetupAppUpdateOk(t *testing.T) {
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+	appRepoMock.On("SystemRetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 	appRepoMock.On("UpdateApplication", &storeVal, "rolltest").Return(nil)
 
 	requestBody := CertPutCtx{
@@ -309,7 +309,7 @@ func TestJWTFlowValidAssertionAppLookupError(t *testing.T) {
 	defer ln.Close()
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(nil, errors.New("Drat"))
+	appRepoMock.On("SystemRetrieveApplication", "1111-2222-3333333-4444444").Return(nil, errors.New("Drat"))
 
 	resp, err := http.PostForm(addr+OAuth2TokenBaseURI,
 		url.Values{"grant_type": {"urn:ietf:params:oauth:grant-type:jwt-bearer"},
@@ -325,7 +325,7 @@ func TestJWTFlowValidAssertionAppLookupReturnsNil(t *testing.T) {
 	defer ln.Close()
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(nil, nil)
+	appRepoMock.On("SystemRetrieveApplication", "1111-2222-3333333-4444444").Return(nil, nil)
 
 	resp, err := http.PostForm(addr+OAuth2TokenBaseURI,
 		url.Values{"grant_type": {"urn:ietf:params:oauth:grant-type:jwt-bearer"},
@@ -351,7 +351,7 @@ func TestJWTFlowValidAssertionOkYeah(t *testing.T) {
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+	appRepoMock.On("SystemRetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
 	privateKey, publicKey, err := secrets.GenerateKeyPair()
 	assert.Nil(t, err)
@@ -398,7 +398,7 @@ func TestJWTFlowValidAssertionOkAdminScope(t *testing.T) {
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+	appRepoMock.On("SystemRetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
 	privateKey, publicKey, err := secrets.GenerateKeyPair()
 	assert.Nil(t, err)
@@ -444,7 +444,7 @@ func TestJWTFlowGetCertNotFound(t *testing.T) {
 	defer ln.Close()
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(nil, nil)
+	appRepoMock.On("SystemRetrieveApplication", "1111-2222-3333333-4444444").Return(nil, nil)
 
 	resp := TestHTTPGetWithRollSubject(t, addr+JWTFlowCertsURI+"1111-2222-3333333-4444444", nil)
 	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
@@ -456,7 +456,7 @@ func TestJWTFlowGetCertRetrievalError(t *testing.T) {
 	defer ln.Close()
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(nil, errors.New("Drat"))
+	appRepoMock.On("SystemRetrieveApplication", "1111-2222-3333333-4444444").Return(nil, errors.New("Drat"))
 
 	resp := TestHTTPGetWithRollSubject(t, addr+JWTFlowCertsURI+"1111-2222-3333333-4444444", nil)
 	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
@@ -478,7 +478,7 @@ func TestJWTFlowGetCertOK(t *testing.T) {
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+	appRepoMock.On("SystemRetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
 	resp := TestHTTPGetWithRollSubject(t, addr+JWTFlowCertsURI+"1111-2222-3333333-4444444", nil)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)

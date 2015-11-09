@@ -99,7 +99,8 @@ func (a *Application) Validate() error {
 type ApplicationRepo interface {
 	CreateApplication(app *Application) error
 	UpdateApplication(app *Application, subjectID string) error
-	RetrieveApplication(clientID string) (*Application, error)
+	RetrieveApplication(clientID string, subjectID string, adminScope bool) (*Application, error)
+	SystemRetrieveApplication(clientID string) (*Application, error)
 	ListApplications(subjectID string, adminScope bool) ([]Application, error)
 }
 
@@ -117,4 +118,12 @@ type NoSuchApplicationError struct{}
 //Error implements the Error interface for NoSuchApplicationError
 func (e NoSuchApplicationError) Error() string {
 	return "No such application to update"
+}
+
+//NotAuthorizedToReadApp is used to discriminate repo access errors from security model errors
+type NotAuthorizedToReadApp struct{}
+
+//Error implements the Error interface for NotAuthorizedToReadApp
+func (e NotAuthorizedToReadApp) Error() string {
+	return "Not authorized to read application definition"
 }

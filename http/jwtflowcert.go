@@ -49,7 +49,7 @@ func handleJWTFlowCerts(core *roll.Core) http.Handler {
 
 func validateClientSecret(core *roll.Core, r *http.Request, clientID, clientSecret string) (*roll.Application, error) {
 
-	app, err := core.RetrieveApplication(clientID)
+	app, err := core.SystemRetrieveApplication(clientID)
 	if err != nil {
 		return nil, errReadingApplicationRecord
 	}
@@ -196,8 +196,9 @@ func handleGetPublicKey(core *roll.Core, w http.ResponseWriter, r *http.Request)
 
 	log.Println("retrieve public key for application", clientID)
 
-	//Retrieve the app definition
-	app, err := core.RetrieveApplication(clientID)
+	//Retrieve the app definition. Note that here since we are only returning publically
+	//available information, we do not have to apply the data security model
+	app, err := core.SystemRetrieveApplication(clientID)
 	if err != nil {
 		log.Println("error retrieving application")
 		respondError(w, http.StatusInternalServerError, errReadingApplicationRecord)

@@ -108,7 +108,7 @@ func TestPWGrantLoginFailure(t *testing.T) {
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+	appRepoMock.On("SystemRetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
 	resp, err := http.PostForm(addr+OAuth2TokenBaseURI,
 		url.Values{"grant_type": {"password"},
@@ -137,7 +137,7 @@ func TestPWGrantLoginCallError(t *testing.T) {
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+	appRepoMock.On("SystemRetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
 	resp, err := http.PostForm(addr+OAuth2TokenBaseURI,
 		url.Values{"grant_type": {"password"},
@@ -174,7 +174,7 @@ func TestPWGrantLoginOk(t *testing.T) {
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+	appRepoMock.On("SystemRetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
 	privateKey, publicKey, err := secrets.GenerateKeyPair()
 	assert.Nil(t, err)
@@ -233,7 +233,7 @@ func TestPWGrantLoginOkAdminScope(t *testing.T) {
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+	appRepoMock.On("SystemRetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
 	privateKey, publicKey, err := secrets.GenerateKeyPair()
 	assert.Nil(t, err)
@@ -296,7 +296,7 @@ func TestPWGrantLoginOkInvalidScope(t *testing.T) {
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+	appRepoMock.On("SystemRetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
 	privateKey, publicKey, err := secrets.GenerateKeyPair()
 	assert.Nil(t, err)
@@ -328,7 +328,7 @@ func TestPWGrantAppLookupErr(t *testing.T) {
 	defer ln.Close()
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(nil, errors.New("Drat"))
+	appRepoMock.On("SystemRetrieveApplication", "1111-2222-3333333-4444444").Return(nil, errors.New("Drat"))
 
 	resp, err := http.PostForm(addr+OAuth2TokenBaseURI,
 		url.Values{"grant_type": {"password"},
@@ -358,7 +358,7 @@ func TestPWGrantInvalidClientSecret(t *testing.T) {
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("RetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+	appRepoMock.On("SystemRetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
 
 	resp, err := http.PostForm(addr+OAuth2TokenBaseURI,
 		url.Values{"grant_type": {"password"},
