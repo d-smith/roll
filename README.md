@@ -166,19 +166,19 @@ go run rollmain.go -port 3000 -unsecure
 <pre>
 curl -v -X PUT -d '
 {
-"email":"doug@dev.com",
+"email":"test@dev.com",
 "firstName":"Doug",
 "lastName":"Dev"
-}' -H 'X-Roll-Subject: foo' localhost:3000/v1/developers/doug@dev.com
+}' -H 'X-Roll-Subject: portal-admin' localhost:3000/v1/developers/test@dev.com
 </pre>
 
 <pre>
 curl -X POST -d '{
-"applicationName":"App No. 5",
-"developerEmail":"doug@dev.com",
+"applicationName":"dev portal",
+"developerEmail":"test@dev.com",
 "redirectURI":"http://localhost:2000/oauth2_callback",
 "loginProvider":"xtrac://localhost:2000"
-}' localhost:3000/v1/applications
+}' -H 'X-Roll-Subject: portal-admin' localhost:3000/v1/applications
 {"client_id":"1d703e17-fc84-42eb-65b6-9dcb7700b282"}
 
 curl localhost:3000/v1/applications/1d703e17-fc84-42eb-65b6-9dcb7700b282
@@ -190,6 +190,8 @@ curl --data "client_id=1d703e17-fc84-42eb-65b6-9dcb7700b282" --data "grant_type=
 
 
 #####Secured
+
+Note - use admins.go in repos/util to seed admin users - required to use a scope of admin.
 
 <pre>
 export ROLL_CLIENTID=1d703e17-fc84-42eb-65b6-9dcb7700b282
@@ -231,6 +233,12 @@ curl -X POST -d '{
 }' -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBsaWNhdGlvbiI6IkFwcCBOby4gNSIsImF1ZCI6IjFkNzAzZTE3LWZjODQtNDJlYi02NWI2LTlkY2I3NzAwYjI4MiIsImV4cCI6MTQ0NjY3MTc1NSwiaWF0IjoxNDQ2NTg1MzU1LCJqdGkiOiJkNTI3M2E3My02NjBjLTQ4YjEtNTk3Yy04NTY4YmJlZDRlYzQiLCJzdWIiOiJuZXdkZXYifQ.Ov2GZt3i276lUlgSv14CxEmwkH_eMVPprbhlUel6NOupevSuBVKHmyTJA6s-MbgPM3rOnfMH1Bjoswab9oYT9DG6eCHQB35_dPbAePG4iF2HfeRutGC2vmOGAymSlZ9NXYsIbBKrRxTW2vzsPqMwqEjcAGmnkli7yoFOnTDuLGQ' localhost:3000/v1/applications
 
 curl -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBsaWNhdGlvbiI6IkFwcCBOby4gNSIsImF1ZCI6IjFkNzAzZTE3LWZjODQtNDJlYi02NWI2LTlkY2I3NzAwYjI4MiIsImV4cCI6MTQ0NjY3MTc1NSwiaWF0IjoxNDQ2NTg1MzU1LCJqdGkiOiJkNTI3M2E3My02NjBjLTQ4YjEtNTk3Yy04NTY4YmJlZDRlYzQiLCJzdWIiOiJuZXdkZXYifQ.Ov2GZt3i276lUlgSv14CxEmwkH_eMVPprbhlUel6NOupevSuBVKHmyTJA6s-MbgPM3rOnfMH1Bjoswab9oYT9DG6eCHQB35_dPbAePG4iF2HfeRutGC2vmOGAymSlZ9NXYsIbBKrRxTW2vzsPqMwqEjcAGmnkli7yoFOnTDuLGQ' localhost:3000/v1/applications/3ca926b9-44eb-4ef2-7971-aa33b1620f78
+</pre>
+
+<pre>
+curl --data "client_id=17cd3cfb-af5c-4bba-6e68-bb7b0d401844" --data scope=admin --data "grant_type=password" --data-urlencode "client_secret=YlKGomrjQAn0FIQS0wddzh0KyzHRjjTuALBrJgYi6hI=" --data "username=portal-admin" --data "password=passw0rd" localhost:3000/oauth2/token
+
+curl -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBsaWNhdGlvbiI6ImRldiBwb3J0YWwiLCJhdWQiOiIxN2NkM2NmYi1hZjVjLTRiYmEtNmU2OC1iYjdiMGQ0MDE4NDQiLCJleHAiOjE0NDcxOTIxNjEsImlhdCI6MTQ0NzEwNTc2MSwianRpIjoiNmJlMjllNTAtNjdlNC00YmU0LTU2MmEtNjNjYmExYTRkYmIxIiwic2NvcGUiOiJhZG1pbiIsInN1YiI6InBvcnRhbC1hZG1pbiJ9.IdYZFKTq_-RdwUkZrYum1gWPwwscQWchCxf3AOVY-1cbRN7_ISXwEPC-31iA0JXr-a-G73i2fInYkk4cu8Btg1I4VwSr0a1YqnsariDuvoEd5Mxb74wbEaqB4kYNgF27skWq8L3QGCP0YxPR3feS9ZyQQTaIGFlHp3vXPO45iZc' localhost:3000/v1/applications
 </pre>
 
 ##### Previous Example
