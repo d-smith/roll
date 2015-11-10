@@ -63,12 +63,15 @@ T9276oM42khyKY36lXvLi4yjk2yHysIvO7ckuX0F/vZtQjG1zuBb
 `
 
 const (
-	clientID     = "3ca926b9-44eb-4ef2-7971-aa33b1620f78"
-	clientSecret = "VoscDd4uj22UhXrwe++RceNeDqJZ0ZZwN8PBMS1BUlM="
+	clientID       = "fb3a11ed-3b44-4d4f-58ed-42e7ed96b677"
+	clientSecret   = "HjDCBnUMszn47Vr5/59Q53k94hf7hLbLVfZGTeMWme4="
+	baseJWTCertURL = "http://localhost:3000/v1/jwtflowcerts/"
+	tokenURL       = "http://localhost:3000/oauth2/token"
+	authToken      = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBsaWNhdGlvbiI6ImRldiBwb3J0YWwiLCJhdWQiOiJkNDJkNDQzMi1lNzQwLTRiMzAtNWQ4Mi04NmU2YjU4NmMwMmEiLCJleHAiOjE0NDcyNzc2ODcsImlhdCI6MTQ0NzE5MTI4NywianRpIjoiY2YzMjVkMzgtZGFmYy00MmIwLTcxNDQtMzcxOTA5ZWJhOTJkIiwic2NvcGUiOiIiLCJzdWIiOiJmb28ifQ.S2_XM8xMtgF_2yUWfo_2xZ9Tcbz9SqN7VkE2uJC6DIGXK-SbmAgFgNdc2tVf7eMmdou8u7wJdsk0mcRYN-PDDLvF9D4T-zTmW0SqXQ-kdq8BskaaunoDoVepESKO5YAWYPw1zteTq7xk7oApbTD1kCWr9DMKAhT6KjhtB3TF5fk"
 )
 
 func uploadCert() {
-	fmt.Println("Uploading cert")
+	fmt.Println("Uploading cert to", baseJWTCertURL+clientID)
 	fmt.Println(certPEM)
 
 	payload := rollhttp.CertPutCtx{
@@ -83,7 +86,8 @@ func uploadCert() {
 		log.Fatal(err)
 	}
 
-	req, err := http.NewRequest("PUT", "http://localhost:3000/v1/jwtflowcerts/"+clientID, bodyReader)
+	req, err := http.NewRequest("PUT", baseJWTCertURL+clientID, bodyReader)
+	req.Header.Set("Authorization", "Bearer "+authToken)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -117,7 +121,7 @@ func generateJTW() string {
 }
 
 func tradeTokenForToken(token string) string {
-	resp, err := http.PostForm("http://localhost:3000/oauth2/token",
+	resp, err := http.PostForm(tokenURL,
 		url.Values{"grant_type": {"urn:ietf:params:oauth:grant-type:jwt-bearer"},
 			"assertion": {token}})
 	if err != nil {
