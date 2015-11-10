@@ -246,6 +246,9 @@ func buildRedirectURL(core *roll.Core, w http.ResponseWriter, responseType, subj
 	default:
 		panic(errors.New("unexpected response type in buildRedirectURL: " + responseType))
 	}
+
+	log.Println("redirect url", redirectURL)
+
 	return redirectURL, nil
 }
 
