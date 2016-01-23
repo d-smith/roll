@@ -1,5 +1,22 @@
 # Change Log
 
+## [v0.2.0](https://github.com/xtraclabs/roll/tree/v0.2.0) (2015-11-16)
+[Full Changelog](https://github.com/xtraclabs/roll/compare/0.1.0...v0.2.0)
+
+**Closed issues:**
+
+- Align JWT flow set up resource with recent changes to application resource [\#5](https://github.com/xtraclabs/roll/issues/5)
+- README.md missing docker client dependency [\#4](https://github.com/xtraclabs/roll/issues/4)
+
+**Merged pull requests:**
+
+- Minor updates while writing some internal docs [\#15](https://github.com/xtraclabs/roll/pull/15) ([d-smith](https://github.com/d-smith))
+- Admin scope svcs [\#14](https://github.com/xtraclabs/roll/pull/14) ([d-smith](https://github.com/d-smith))
+- Updated RAML description of roll services [\#12](https://github.com/xtraclabs/roll/pull/12) ([d-smith](https://github.com/d-smith))
+- Feature admin scope [\#11](https://github.com/xtraclabs/roll/pull/11) ([d-smith](https://github.com/d-smith))
+- Secured roll [\#9](https://github.com/xtraclabs/roll/pull/9) ([d-smith](https://github.com/d-smith))
+- Jwt refactor [\#6](https://github.com/xtraclabs/roll/pull/6) ([d-smith](https://github.com/d-smith))
+
 ## [0.1.0](https://github.com/xtraclabs/roll/tree/0.1.0) (2015-10-23)
 **Merged pull requests:**
 
