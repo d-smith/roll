@@ -24,7 +24,7 @@ backend "file" {
 }
 
 listener "tcp" {
-  address = "127.0.0.1:8200"
+  address = "0.0.0.0:8200"
   tls_disable = 1
 }
 </pre>
@@ -123,7 +123,24 @@ go get github.com/samalba/dockerclient
 </pre>
 
 Running the integration tests requires docker-machine to be installed. You also need AWS credentials and, if
-behind an http_proxy, set your http_proxy environment variable appropriately.
+behind an http_proxy, set your http_proxy and no_proxy environment variables appropriately.
+
+### Trying things out
+
+Below are some older instructions (this documentation is in the process of being rewritten).
+
+In a nutshell, you need to:
+
+1. Boot roll in unsecure mode
+2. Seed a roll application - see seed.js in the [Roll Setup](https://github.com/xtraclabs/rollsetup) repository.
+3. Register a sample application for use with rollsample and rollecho in trying out the grants as outlined below. See
+register.js in the [Roll Setup](https://github.com/xtraclabs/rollsetup) repository.
+3. Reboot roll in secure mode, using the application client_id obtained in the previous step.
+4. Start the [rollsample](https://github.com/xtraclabs/rollsample) and 
+[rollecho](https://github.com/xtraclabs/rollecho) applications. Roll sample is a  sample application that obtains auth tokens
+ via roll, and roll echo is a service that requires an auth token associated with the sample application for
+ admission.
+5. Do the flows as explained below.
 
 ### Trying out the Implicit Grant Flow
 
@@ -174,18 +191,18 @@ curl -v -X PUT -d '
 
 <pre>
 curl -X POST -d '{
-"applicationName":"dev portal",
+"applicationName":"secured dev portal",
 "developerEmail":"test@dev.com",
 "redirectURI":"http://localhost:2000/oauth2_callback",
 "loginProvider":"xtrac://localhost:2000"
 }' -H 'X-Roll-Subject: portal-admin' localhost:3000/v1/applications
-{"client_id":"1d703e17-fc84-42eb-65b6-9dcb7700b282"}
+{"client_id":"14fc366b-9138-46af-4bf7-c47579911028"}
 
-curl localhost:3000/v1/applications/1d703e17-fc84-42eb-65b6-9dcb7700b282
-{"developerEmail":"doug@dev.com","clientID":"1d703e17-fc84-42eb-65b6-9dcb7700b282","applicationName":"App No. 5","clientSecret":"IXwRPoYjUsGV36N9mrk9E1yLYpHNGk3iwBKoQwOMYaY=","redirectURI":"http://localhost:2000/oauth2_callback","loginProvider":"xtrac://localhost:2000","jwtFlowPublicKey":""}
+curl  -H 'X-Roll-Subject: portal-admin' localhost:3000/v1/applications/14fc366b-9138-46af-4bf7-c47579911028
+{"developerEmail":"test@dev.com","DeveloperID":"portal-admin","clientID":"14fc366b-9138-46af-4bf7-c47579911028","applicationName":"secured dev portal","clientSecret":"wW2vFB3aWjOkcj9LoONIpmT+VQ3/KoS8GiRom0yqReo=","redirectURI":"http://localhost:2000/oauth2_callback","loginProvider":"xtrac://localhost:2000","jwtFlowPublicKey":""}
 
-curl --data "client_id=1d703e17-fc84-42eb-65b6-9dcb7700b282" --data "grant_type=password" --data-urlencode "client_secret=IXwRPoYjUsGV36N9mrk9E1yLYpHNGk3iwBKoQwOMYaY=" --data "username=foo" --data "password=passw0rd" localhost:3000/oauth2/token
-{"access_token":"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBsaWNhdGlvbiI6IkFwcCBOby4gNSIsImF1ZCI6IjFkNzAzZTE3LWZjODQtNDJlYi02NWI2LTlkY2I3NzAwYjI4MiIsImV4cCI6MTQ0NjY3MTU2MiwiaWF0IjoxNDQ2NTg1MTYyLCJqdGkiOiI1MmI2OTY1Yi1hNWJlLTQ1YWEtNmY1Ny1iODBhYzU2NWQxNGUiLCJzdWIiOiJmb28ifQ.M5Tiw0jnbv5WbVsRRBTxud9bXoPge5Yg4jqoT0TGQ-g1MQVL7qE7jq5x9Sm6q5jZtlsSGCmoCBh7IvmACCvIOA5ch-DDAVLyviIq57DG6EIkiQDCoD-Vyhtb9g-kHPHlkoyNY5Lu9Lc-R44Etln635zvD8YFNWvgaV9mX_CG3aA","token_type":"Bearer"}
+curl --data "client_id=14fc366b-9138-46af-4bf7-c47579911028" --data "grant_type=password" --data-urlencode "client_secret=wW2vFB3aWjOkcj9LoONIpmT+VQ3/KoS8GiRom0yqReo=" --data "username=foo" --data "password=passw0rd" localhost:3000/oauth2/token
+{"access_token":"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBsaWNhdGlvbiI6InNlY3VyZWQgZGV2IHBvcnRhbCIsImF1ZCI6IjE0ZmMzNjZiLTkxMzgtNDZhZi00YmY3LWM0NzU3OTkxMTAyOCIsImV4cCI6MTQ1MjI4ODc3NCwiaWF0IjoxNDUyMjAyMzc0LCJqdGkiOiJkNWQ1ZWNhYy05ZWU3LTQ0YzctNmZjYS1kMDBhN2RjZTQ3ZmYiLCJzY29wZSI6IiIsInN1YiI6ImZvbyJ9.mgPyalqccJpA_IC2-JB3WcdqpRbxb2ZDkdNAeTqaNnMgxCbw1z6BIjOdpmHiZYc51g5zbTWUJl6XZsyv1Ul3u0U8kpfhjmg12VqN1mxVbsx3Z6wVXKRAaFN85rnoE-h4TaXRJcqq5wXzBXz1QT0qX8462VJN4cYaHo-MmHydTtU","token_type":"Bearer"}
 </pre>
 
 
@@ -209,18 +226,18 @@ curl -v -X PUT -d '
 < HTTP/1.1 401 Unauthorized
 
 
-curl --data "client_id=1d703e17-fc84-42eb-65b6-9dcb7700b282" --data "grant_type=password" --data-urlencode "client_secret=IXwRPoYjUsGV36N9mrk9E1yLYpHNGk3iwBKoQwOMYaY=" --data "username=newdev" --data "password=passw0rd" localhost:3000/oauth2/token
-{"access_token":"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBsaWNhdGlvbiI6IkFwcCBOby4gNSIsImF1ZCI6IjFkNzAzZTE3LWZjODQtNDJlYi02NWI2LTlkY2I3NzAwYjI4MiIsImV4cCI6MTQ0NjY3MTc1NSwiaWF0IjoxNDQ2NTg1MzU1LCJqdGkiOiJkNTI3M2E3My02NjBjLTQ4YjEtNTk3Yy04NTY4YmJlZDRlYzQiLCJzdWIiOiJuZXdkZXYifQ.Ov2GZt3i276lUlgSv14CxEmwkH_eMVPprbhlUel6NOupevSuBVKHmyTJA6s-MbgPM3rOnfMH1Bjoswab9oYT9DG6eCHQB35_dPbAePG4iF2HfeRutGC2vmOGAymSlZ9NXYsIbBKrRxTW2vzsPqMwqEjcAGmnkli7yoFOnTDuLGQ","token_type":"Bearer"}
+curl --data "client_id=14fc366b-9138-46af-4bf7-c47579911028" --data "grant_type=password" --data-urlencode "client_secret=wW2vFB3aWjOkcj9LoONIpmT+VQ3/KoS8GiRom0yqReo=" --data "username=newdev" --data "password=passw0rd" localhost:3000/oauth2/token
+{"access_token":"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBsaWNhdGlvbiI6InNlY3VyZWQgZGV2IHBvcnRhbCIsImF1ZCI6IjY3YmZmYzQwLWVlZDItNDE0ZC01OWUzLWNhZTgyYzg3YzUyMCIsImV4cCI6MTQ1MjI4Njk4NiwiaWF0IjoxNDUyMjAwNTg2LCJqdGkiOiJjYWI2ZjE3OC0xNzA3LTQ2NDMtNGU3Mi03OWUzMDM1NDQwY2QiLCJzY29wZSI6IiIsInN1YiI6Im5ld2RldiJ9.lDWPsru75l-KdchoTZQE63LWaNX6f2dRwXlgWqLXXvbcd76R05zOKutOGUDQadtTTTudoRP4KQ2YHqxttPtVlnk9VSajJEuCysTdfslyegoTsc7qcy3vjxIc17FH6mclP8aqcgjyR20_L33GC7HVKe5CPRjOr615afVZF9GvXNs","token_type":"Bearer"}
 
 curl -v -X PUT -d '
 {
 "email":"new-dev@dev.com",
 "firstName":"Doug",
 "lastName":"Dev"
-}' -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBsaWNhdGlvbiI6IkFwcCBOby4gNSIsImF1ZCI6IjFkNzAzZTE3LWZjODQtNDJlYi02NWI2LTlkY2I3NzAwYjI4MiIsImV4cCI6MTQ0NjY3MTc1NSwiaWF0IjoxNDQ2NTg1MzU1LCJqdGkiOiJkNTI3M2E3My02NjBjLTQ4YjEtNTk3Yy04NTY4YmJlZDRlYzQiLCJzdWIiOiJuZXdkZXYifQ.Ov2GZt3i276lUlgSv14CxEmwkH_eMVPprbhlUel6NOupevSuBVKHmyTJA6s-MbgPM3rOnfMH1Bjoswab9oYT9DG6eCHQB35_dPbAePG4iF2HfeRutGC2vmOGAymSlZ9NXYsIbBKrRxTW2vzsPqMwqEjcAGmnkli7yoFOnTDuLGQ' localhost:3000/v1/developers/new-dev@dev.com
+}' -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBsaWNhdGlvbiI6InNlY3VyZWQgZGV2IHBvcnRhbCIsImF1ZCI6IjE0ZmMzNjZiLTkxMzgtNDZhZi00YmY3LWM0NzU3OTkxMTAyOCIsImV4cCI6MTQ1MjI4ODkwMSwiaWF0IjoxNDUyMjAyNTAxLCJqdGkiOiJiNjdmYTFiOS1kM2VlLTQyYTMtNDIzNS03Yzg4YmMyNTFmYWYiLCJzY29wZSI6IiIsInN1YiI6Im5ld2RldiJ9.EReJee2p__3KCvzFIj7esj5rGZy0BSWzQ24gwDDA4yFehCcvfPlWMP3M4_31tQeNJjgzo4PxfyfIvHTfKvbZy3h4OJru7Rk9ECkgMHx3yM-mWVKGvGJ3xdHnPcAbT8ArDcQRthS_So5KYJ5I3hq_swc7rOH0wdoF0FDMjD2fuP8' localhost:3000/v1/developers/new-dev@dev.com
 
 
-curl -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBsaWNhdGlvbiI6IkFwcCBOby4gNSIsImF1ZCI6IjFkNzAzZTE3LWZjODQtNDJlYi02NWI2LTlkY2I3NzAwYjI4MiIsImV4cCI6MTQ0NjY3MTc1NSwiaWF0IjoxNDQ2NTg1MzU1LCJqdGkiOiJkNTI3M2E3My02NjBjLTQ4YjEtNTk3Yy04NTY4YmJlZDRlYzQiLCJzdWIiOiJuZXdkZXYifQ.Ov2GZt3i276lUlgSv14CxEmwkH_eMVPprbhlUel6NOupevSuBVKHmyTJA6s-MbgPM3rOnfMH1Bjoswab9oYT9DG6eCHQB35_dPbAePG4iF2HfeRutGC2vmOGAymSlZ9NXYsIbBKrRxTW2vzsPqMwqEjcAGmnkli7yoFOnTDuLGQ' localhost:3000/v1/developers/new-dev@dev.com
+curl -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBsaWNhdGlvbiI6InNlY3VyZWQgZGV2IHBvcnRhbCIsImF1ZCI6IjE0ZmMzNjZiLTkxMzgtNDZhZi00YmY3LWM0NzU3OTkxMTAyOCIsImV4cCI6MTQ1MjI4ODkwMSwiaWF0IjoxNDUyMjAyNTAxLCJqdGkiOiJiNjdmYTFiOS1kM2VlLTQyYTMtNDIzNS03Yzg4YmMyNTFmYWYiLCJzY29wZSI6IiIsInN1YiI6Im5ld2RldiJ9.EReJee2p__3KCvzFIj7esj5rGZy0BSWzQ24gwDDA4yFehCcvfPlWMP3M4_31tQeNJjgzo4PxfyfIvHTfKvbZy3h4OJru7Rk9ECkgMHx3yM-mWVKGvGJ3xdHnPcAbT8ArDcQRthS_So5KYJ5I3hq_swc7rOH0wdoF0FDMjD2fuP8' localhost:3000/v1/developers/new-dev@dev.com
 
 </pre>
 
@@ -230,15 +247,18 @@ curl -X POST -d '{
 "developerEmail":"new-dev@dev.com",
 "redirectURI":"http://localhost:2000/oauth2_callback",
 "loginProvider":"xtrac://localhost:2000"
-}' -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBsaWNhdGlvbiI6IkFwcCBOby4gNSIsImF1ZCI6IjFkNzAzZTE3LWZjODQtNDJlYi02NWI2LTlkY2I3NzAwYjI4MiIsImV4cCI6MTQ0NjY3MTc1NSwiaWF0IjoxNDQ2NTg1MzU1LCJqdGkiOiJkNTI3M2E3My02NjBjLTQ4YjEtNTk3Yy04NTY4YmJlZDRlYzQiLCJzdWIiOiJuZXdkZXYifQ.Ov2GZt3i276lUlgSv14CxEmwkH_eMVPprbhlUel6NOupevSuBVKHmyTJA6s-MbgPM3rOnfMH1Bjoswab9oYT9DG6eCHQB35_dPbAePG4iF2HfeRutGC2vmOGAymSlZ9NXYsIbBKrRxTW2vzsPqMwqEjcAGmnkli7yoFOnTDuLGQ' localhost:3000/v1/applications
+}' -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBsaWNhdGlvbiI6InNlY3VyZWQgZGV2IHBvcnRhbCIsImF1ZCI6IjE0ZmMzNjZiLTkxMzgtNDZhZi00YmY3LWM0NzU3OTkxMTAyOCIsImV4cCI6MTQ1MjI4ODkwMSwiaWF0IjoxNDUyMjAyNTAxLCJqdGkiOiJiNjdmYTFiOS1kM2VlLTQyYTMtNDIzNS03Yzg4YmMyNTFmYWYiLCJzY29wZSI6IiIsInN1YiI6Im5ld2RldiJ9.EReJee2p__3KCvzFIj7esj5rGZy0BSWzQ24gwDDA4yFehCcvfPlWMP3M4_31tQeNJjgzo4PxfyfIvHTfKvbZy3h4OJru7Rk9ECkgMHx3yM-mWVKGvGJ3xdHnPcAbT8ArDcQRthS_So5KYJ5I3hq_swc7rOH0wdoF0FDMjD2fuP8' localhost:3000/v1/applications
+{"client_id":"aaf9404c-ac51-4720-6097-f80c5404773d"}
 
-curl -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBsaWNhdGlvbiI6IkFwcCBOby4gNSIsImF1ZCI6IjFkNzAzZTE3LWZjODQtNDJlYi02NWI2LTlkY2I3NzAwYjI4MiIsImV4cCI6MTQ0NjY3MTc1NSwiaWF0IjoxNDQ2NTg1MzU1LCJqdGkiOiJkNTI3M2E3My02NjBjLTQ4YjEtNTk3Yy04NTY4YmJlZDRlYzQiLCJzdWIiOiJuZXdkZXYifQ.Ov2GZt3i276lUlgSv14CxEmwkH_eMVPprbhlUel6NOupevSuBVKHmyTJA6s-MbgPM3rOnfMH1Bjoswab9oYT9DG6eCHQB35_dPbAePG4iF2HfeRutGC2vmOGAymSlZ9NXYsIbBKrRxTW2vzsPqMwqEjcAGmnkli7yoFOnTDuLGQ' localhost:3000/v1/applications/3ca926b9-44eb-4ef2-7971-aa33b1620f78
+curl -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBsaWNhdGlvbiI6InNlY3VyZWQgZGV2IHBvcnRhbCIsImF1ZCI6IjE0ZmMzNjZiLTkxMzgtNDZhZi00YmY3LWM0NzU3OTkxMTAyOCIsImV4cCI6MTQ1MjI4ODkwMSwiaWF0IjoxNDUyMjAyNTAxLCJqdGkiOiJiNjdmYTFiOS1kM2VlLTQyYTMtNDIzNS03Yzg4YmMyNTFmYWYiLCJzY29wZSI6IiIsInN1YiI6Im5ld2RldiJ9.EReJee2p__3KCvzFIj7esj5rGZy0BSWzQ24gwDDA4yFehCcvfPlWMP3M4_31tQeNJjgzo4PxfyfIvHTfKvbZy3h4OJru7Rk9ECkgMHx3yM-mWVKGvGJ3xdHnPcAbT8ArDcQRthS_So5KYJ5I3hq_swc7rOH0wdoF0FDMjD2fuP8' localhost:3000/v1/applications/aaf9404c-ac51-4720-6097-f80c5404773d
+{"developerEmail":"new-dev@dev.com","DeveloperID":"newdev","clientID":"aaf9404c-ac51-4720-6097-f80c5404773d","applicationName":"App No. 5","clientSecret":"JqBUEAYXOxook/VzwqiqyiKPirJ5mBXZkOerrhAfId8=","redirectURI":"http://localhost:2000/oauth2_callback","loginProvider":"xtrac://localhost:2000","jwtFlowPublicKey":""}
 </pre>
 
 <pre>
-curl --data "client_id=17cd3cfb-af5c-4bba-6e68-bb7b0d401844" --data scope=admin --data "grant_type=password" --data-urlencode "client_secret=YlKGomrjQAn0FIQS0wddzh0KyzHRjjTuALBrJgYi6hI=" --data "username=portal-admin" --data "password=passw0rd" localhost:3000/oauth2/token
+curl --data "client_id=aaf9404c-ac51-4720-6097-f80c5404773d" --data scope=admin --data "grant_type=password" --data-urlencode "client_secret=JqBUEAYXOxook/VzwqiqyiKPirJ5mBXZkOerrhAfId8=" --data "username=portal-admin" --data "password=passw0rd" localhost:3000/oauth2/token
+{"access_token":"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBsaWNhdGlvbiI6IkFwcCBOby4gNSIsImF1ZCI6ImFhZjk0MDRjLWFjNTEtNDcyMC02MDk3LWY4MGM1NDA0NzczZCIsImV4cCI6MTQ1MjI4OTUwOSwiaWF0IjoxNDUyMjAzMTA5LCJqdGkiOiIzODMxMDVhNy1kODMwLTRkZjgtNzQwNy1iMmMyZjZiYzFkMjAiLCJzY29wZSI6ImFkbWluIiwic3ViIjoicG9ydGFsLWFkbWluIn0.k8LgLK1OPDCeN8XzByS80UePhhB16CdnXPBIGdG6lRbJ97qyPMticFNuzvPCQq2ZKJ4Qp1gvIDYEFcq6iawWcMLdl_tuyhGT-wkq3_yeZq2bk2aKmbkws4azKhNOv8Ih-bYg4E7PjVuowplkyUvUqm7_tBqKElFQW-3kYBYkyyk","token_type":"Bearer"}
 
-curl -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBsaWNhdGlvbiI6ImRldiBwb3J0YWwiLCJhdWQiOiIxN2NkM2NmYi1hZjVjLTRiYmEtNmU2OC1iYjdiMGQ0MDE4NDQiLCJleHAiOjE0NDcxOTIxNjEsImlhdCI6MTQ0NzEwNTc2MSwianRpIjoiNmJlMjllNTAtNjdlNC00YmU0LTU2MmEtNjNjYmExYTRkYmIxIiwic2NvcGUiOiJhZG1pbiIsInN1YiI6InBvcnRhbC1hZG1pbiJ9.IdYZFKTq_-RdwUkZrYum1gWPwwscQWchCxf3AOVY-1cbRN7_ISXwEPC-31iA0JXr-a-G73i2fInYkk4cu8Btg1I4VwSr0a1YqnsariDuvoEd5Mxb74wbEaqB4kYNgF27skWq8L3QGCP0YxPR3feS9ZyQQTaIGFlHp3vXPO45iZc' localhost:3000/v1/applications
+curl -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBsaWNhdGlvbiI6InNlY3VyZWQgZGV2IHBvcnRhbCIsImF1ZCI6IjE0ZmMzNjZiLTkxMzgtNDZhZi00YmY3LWM0NzU3OTkxMTAyOCIsImV4cCI6MTQ1MjI4ODc3NCwiaWF0IjoxNDUyMjAyMzc0LCJqdGkiOiJkNWQ1ZWNhYy05ZWU3LTQ0YzctNmZjYS1kMDBhN2RjZTQ3ZmYiLCJzY29wZSI6IiIsInN1YiI6ImZvbyJ9.mgPyalqccJpA_IC2-JB3WcdqpRbxb2ZDkdNAeTqaNnMgxCbw1z6BIjOdpmHiZYc51g5zbTWUJl6XZsyv1Ul3u0U8kpfhjmg12VqN1mxVbsx3Z6wVXKRAaFN85rnoE-h4TaXRJcqq5wXzBXz1QT0qX8462VJN4cYaHo-MmHydTtU' localhost:3000/v1/applications
 </pre>
 
 ##### Previous Example

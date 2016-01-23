@@ -63,11 +63,11 @@ T9276oM42khyKY36lXvLi4yjk2yHysIvO7ckuX0F/vZtQjG1zuBb
 `
 
 const (
-	clientID       = "fb3a11ed-3b44-4d4f-58ed-42e7ed96b677"
-	clientSecret   = "HjDCBnUMszn47Vr5/59Q53k94hf7hLbLVfZGTeMWme4="
+	clientID       = "d80c9758-f965-4286-7003-e5af065d8082"
+	clientSecret   = "4suKio+75Vsm2o+i8H8dEjxVbXhoB81G+rJolRw8+XU="
 	baseJWTCertURL = "http://localhost:3000/v1/jwtflowcerts/"
 	tokenURL       = "http://localhost:3000/oauth2/token"
-	authToken      = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBsaWNhdGlvbiI6ImRldiBwb3J0YWwiLCJhdWQiOiJkNDJkNDQzMi1lNzQwLTRiMzAtNWQ4Mi04NmU2YjU4NmMwMmEiLCJleHAiOjE0NDcyNzc2ODcsImlhdCI6MTQ0NzE5MTI4NywianRpIjoiY2YzMjVkMzgtZGFmYy00MmIwLTcxNDQtMzcxOTA5ZWJhOTJkIiwic2NvcGUiOiIiLCJzdWIiOiJmb28ifQ.S2_XM8xMtgF_2yUWfo_2xZ9Tcbz9SqN7VkE2uJC6DIGXK-SbmAgFgNdc2tVf7eMmdou8u7wJdsk0mcRYN-PDDLvF9D4T-zTmW0SqXQ-kdq8BskaaunoDoVepESKO5YAWYPw1zteTq7xk7oApbTD1kCWr9DMKAhT6KjhtB3TF5fk"
+	authToken      = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBsaWNhdGlvbiI6ImRldiBwb3J0YWwiLCJhdWQiOiI3ZDg4MDFkNS0xNTRjLTQ2MGItNTIwNi00OGU0NDg1ZTk5ZmYiLCJleHAiOjE0NTIzNjkwMDgsImlhdCI6MTQ1MjI4MjYwOCwianRpIjoiMGJhMjFmMzgtNjI4YS00OTBjLTQ0MzQtNDIzZGU4ODIzMDdmIiwic2NvcGUiOiIiLCJzdWIiOiJmb28ifQ.ZnNfdAAQsMY-xcuHfqVxHc4oR8Xw26uGvKCmz32tJCeeKC-1DgxzR_py-UFJlAdXiE3YdBYd-SyBJ9y8QctHiNRMaHs6ZjU6VTEgUsLcyYYO9hhvOx_BdY1B86zjQ3MScdgIs2D7CQUcNEG3nk1xzBp0vdc0wGvW40UUHh8erVU"
 )
 
 func uploadCert() {

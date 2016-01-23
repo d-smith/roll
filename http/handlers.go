@@ -16,7 +16,7 @@ func Handler(core *roll.Core) http.Handler {
 	if core.Secure() {
 		rollClientID := os.Getenv("ROLL_CLIENTID")
 		if rollClientID == "" {
-			panic(errors.New("Cannot run in secure mode without a client ID to white list"))
+			panic(errors.New("Cannot run in secure mode without a client ID to white list (from ROLL_CLIENTID env variable)"))
 		}
 
 		whitelist := []string{rollClientID}
