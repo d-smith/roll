@@ -19,6 +19,8 @@ type Application struct {
 	RedirectURI      string `json:"redirectURI"`
 	LoginProvider    string `json:"loginProvider"`
 	JWTFlowPublicKey string `json:"jwtFlowPublicKey"`
+	JWTFlowIssuer    string `json:"jwtFlowIssuer`
+	JWTFlowAudience  string `json:"jwtFlowAudience"`
 }
 
 var appName = regexp.MustCompile(`^([a-zA-Z'-.0-9]\s*)+$`)
@@ -101,6 +103,7 @@ type ApplicationRepo interface {
 	UpdateApplication(app *Application, subjectID string) error
 	RetrieveApplication(clientID string, subjectID string, adminScope bool) (*Application, error)
 	SystemRetrieveApplication(clientID string) (*Application, error)
+	SystemRetrieveApplicationByJWTFlowAudience(audience string) (*Application, error)
 	ListApplications(subjectID string, adminScope bool) ([]Application, error)
 }
 
@@ -126,4 +129,22 @@ type NotAuthorizedToReadApp struct{}
 //Error implements the Error interface for NotAuthorizedToReadApp
 func (e NotAuthorizedToReadApp) Error() string {
 	return "Not authorized to read application definition"
+}
+
+//MissingJWTFlowIssuer is used to discriminate the error where a cert to support the
+//JWT flow is uploaded without specifying the Issuer associated with the cert
+type MissingJWTFlowIssuer struct{}
+
+//Error implements the Error interface for MissingJWTFlowIssuer
+func (e MissingJWTFlowIssuer) Error() string {
+	return "Must provide JWTFlowIssuer when JWTFlowPublicKey is provided"
+}
+
+//MissingJWTFlowAudience is used to discriminate the error where a cert to support the
+//JWT flow is uploaded without specifying the audience associated with the cert
+type MissingJWTFlowAudience struct{}
+
+//Error implements the Error interface for MissingJWTFlowIssuer
+func (e MissingJWTFlowAudience) Error() string {
+	return "Must provide JWTFlowAudience when JWTFlowPublicKey is provided"
 }

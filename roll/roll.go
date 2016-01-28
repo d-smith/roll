@@ -77,7 +77,7 @@ func (core *Core) CreateApplication(app *Application) error {
 	return core.ApplicationRepo.CreateApplication(app)
 }
 
-//StoreApplication stores an application using the embedded Application repository
+//UpdateApplication stores an application using the embedded Application repository
 func (core *Core) UpdateApplication(app *Application, subjectID string) error {
 	return core.ApplicationRepo.UpdateApplication(app, subjectID)
 }
@@ -85,6 +85,11 @@ func (core *Core) UpdateApplication(app *Application, subjectID string) error {
 //RetrieveApplication retrieves an application using the embedded Application repository
 func (core *Core) RetrieveApplication(clientID string, subjectID string, adminScope bool) (*Application, error) {
 	return core.ApplicationRepo.RetrieveApplication(clientID, subjectID, adminScope)
+}
+
+//SystemRetrieveApplicationByJWTFlowAudience retrieves an application by foreign token aud claim
+func (core *Core) SystemRetrieveApplicationByJWTFlowAudience(audience string) (*Application, error) {
+	return core.ApplicationRepo.SystemRetrieveApplicationByJWTFlowAudience(audience)
 }
 
 //SystemRetrieveApplication is for system level access to app data that does not need to

@@ -136,19 +136,20 @@ func GenerateKeyExtractionFunctionForJTWFlow(applicationRepo ApplicationRepo) jw
 		}
 
 		//The api key is carried in iss
-		clientID := token.Claims["iss"]
-		if clientID == "" {
-			return nil, errors.New("api key not found in iss claim")
+		clientID := token.Claims["aud"]
+		if clientID == nil {
+			return nil, errors.New("Foreign token does not include aud claim")
 		}
 
 		//Look up the application
-		app, err := applicationRepo.SystemRetrieveApplication(clientID.(string))
+		app, err := applicationRepo.SystemRetrieveApplicationByJWTFlowAudience(clientID.(string))
 		if err != nil {
 			return nil, err
 		}
 
 		if app == nil {
-			return nil, errors.New("No app definition associated with iss found")
+			log.Println("No app definition associated with audience found: ", clientID.(string))
+			return nil, errors.New("No app definition associated with aud found")
 		}
 
 		//Grab the public key from the app definition

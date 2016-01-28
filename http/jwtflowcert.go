@@ -26,6 +26,8 @@ var (
 type CertPutCtx struct {
 	ClientSecret string `json:"clientSecret"`
 	CertPEM      string `json:"certPEM"`
+	CertIssuer   string `json:"issuer`
+	CertAudience string `json:"audience"`
 }
 
 type publicKeyCtx struct {
@@ -107,6 +109,14 @@ func checkBodyContent(certCtx CertPutCtx) error {
 		return errors.New("Request has empty CertPEM")
 	}
 
+	if certCtx.CertIssuer == "" {
+		return errors.New("Request has empty Issuer")
+	}
+
+	if certCtx.CertAudience == "" {
+		return errors.New("Request has empty audience")
+	}
+
 	return nil
 }
 
@@ -140,6 +150,7 @@ func handleCertPut(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 	log.Println("Checking content")
 	err = checkBodyContent(certCtx)
 	if err != nil {
+		log.Println("Problem with content: ", err.Error())
 		respondError(w, http.StatusBadRequest, err)
 		return
 	}
@@ -169,8 +180,10 @@ func handleCertPut(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 
 	//Update the app with the public key. Note here we are adding the cert to the retrieved application
 	//attributes.
-	log.Println("Update app with public key")
+	log.Println("Update app with signing key, etc")
 	app.JWTFlowPublicKey = publicKeyPEM
+	app.JWTFlowIssuer = certCtx.CertIssuer
+	app.JWTFlowAudience = certCtx.CertAudience
 	err = core.UpdateApplication(app, subject)
 	if err != nil {
 		switch err.(type) {
@@ -178,9 +191,15 @@ func handleCertPut(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 			respondError(w, http.StatusUnauthorized, err)
 		case roll.NoSuchApplicationError:
 			respondError(w, http.StatusNotFound, err)
+		case roll.MissingJWTFlowIssuer:
+			respondError(w, http.StatusBadRequest, err)
+		case roll.MissingJWTFlowAudience:
+			respondError(w, http.StatusBadRequest, err)
 		default:
 			respondError(w, http.StatusInternalServerError, err)
 		}
+
+		return
 	}
 
 	respondOk(w, nil)

@@ -1,6 +1,7 @@
 package repos
 
 import (
+	"errors"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
@@ -8,6 +9,19 @@ import (
 	"github.com/xtraclabs/roll/roll"
 	"github.com/xtraclabs/roll/secrets"
 	"log"
+)
+
+const (
+	ClientID         = "ClientID"
+	ApplicationName  = "ApplicationName"
+	ClientSecret     = "ClientSecret"
+	DeveloperEmail   = "DeveloperEmail"
+	DeveloperID      = "DeveloperID"
+	RedirectUri      = "RedirectUri"
+	LoginProvider    = "LoginProvider"
+	JWTFlowPublicKey = "JWTFlowPublicKey"
+	JWTFlowIssuer    = "JWTFlowIssuer"
+	JWTFlowAudience  = "JWTFlowAudience"
 )
 
 //DynamoAppRepo presents a repository interface for storing and retrieving application definitions,
@@ -34,17 +48,6 @@ func NewDuplicationAppdefError(appName, devEmail string) *DuplicateAppdefError {
 		DeveloperEmail:  devEmail,
 	}
 }
-
-const (
-	ClientID         = "ClientID"
-	ApplicationName  = "ApplicationName"
-	ClientSecret     = "ClientSecret"
-	DeveloperEmail   = "DeveloperEmail"
-	DeveloperID      = "DeveloperID"
-	RedirectUri      = "RedirectUri"
-	LoginProvider    = "LoginProvider"
-	JWTFlowPublicKey = "JWTFlowPublicKey"
-)
 
 func (dae *DuplicateAppdefError) Error() string {
 	return fmt.Sprintf("Application definition exists for application name %s and developer email %s",
@@ -87,8 +90,26 @@ func (dar *DynamoAppRepo) CreateApplication(app *roll.Application) error {
 	}
 
 	if app.JWTFlowPublicKey != "" {
+		if app.JWTFlowIssuer == "" {
+			log.Println("JWTFlowPlublic submitted without JWTFlowIssuer")
+			return roll.MissingJWTFlowIssuer{}
+		}
+
+		if app.JWTFlowAudience == "" {
+			log.Println("JWTFlowPublic submitted without JWTFlowAudience")
+			return roll.MissingJWTFlowAudience{}
+		}
+
 		appAttrs[JWTFlowPublicKey] = &dynamodb.AttributeValue{
 			S: aws.String(app.JWTFlowPublicKey),
+		}
+
+		appAttrs[JWTFlowIssuer] = &dynamodb.AttributeValue{
+			S: aws.String(app.JWTFlowIssuer),
+		}
+
+		appAttrs[JWTFlowAudience] = &dynamodb.AttributeValue{
+			S: aws.String(app.JWTFlowAudience),
 		}
 	}
 
@@ -118,7 +139,7 @@ func (dar *DynamoAppRepo) UpdateApplication(app *roll.Application, subjectID str
 	}
 
 	if storedApp.DeveloperID != subjectID {
-		log.Println("Application updater does not own app")
+		log.Println("Application updater does not own app (" + subjectID + ")")
 		return roll.NonOwnerUpdateError{}
 	}
 
@@ -148,11 +169,38 @@ func (dar *DynamoAppRepo) UpdateApplication(app *roll.Application, subjectID str
 	}
 
 	if app.JWTFlowPublicKey != "" {
+
+		if app.JWTFlowIssuer == "" {
+			log.Println("JWTFlowPlublic submitted without JWTFlowIssuer")
+			return roll.MissingJWTFlowIssuer{}
+		}
+
+		if app.JWTFlowAudience == "" {
+			log.Println("JWTFlowPublic submitted without JWTFlowAudience")
+			return roll.MissingJWTFlowAudience{}
+		}
+
 		log.Println("Updating public key:", app.JWTFlowPublicKey)
 		updateAttributes[JWTFlowPublicKey] = &dynamodb.AttributeValueUpdate{
 			Action: aws.String(dynamodb.AttributeActionPut),
 			Value: &dynamodb.AttributeValue{
 				S: aws.String(app.JWTFlowPublicKey),
+			},
+		}
+
+		log.Println("Updating public key issuer:", app.JWTFlowIssuer)
+		updateAttributes[JWTFlowIssuer] = &dynamodb.AttributeValueUpdate{
+			Action: aws.String(dynamodb.AttributeActionPut),
+			Value: &dynamodb.AttributeValue{
+				S: aws.String(app.JWTFlowIssuer),
+			},
+		}
+
+		log.Println("Updating public key audience:", app.JWTFlowAudience)
+		updateAttributes[JWTFlowAudience] = &dynamodb.AttributeValueUpdate{
+			Action: aws.String(dynamodb.AttributeActionPut),
+			Value: &dynamodb.AttributeValue{
+				S: aws.String(app.JWTFlowAudience),
 			},
 		}
 	}
@@ -212,6 +260,8 @@ func (dar *DynamoAppRepo) RetrieveAppByNameAndDevEmail(appName, email string) (*
 		RedirectURI:      extractString(resp.Items[0][RedirectUri]),
 		LoginProvider:    extractString(resp.Items[0][LoginProvider]),
 		JWTFlowPublicKey: extractString(resp.Items[0][JWTFlowPublicKey]),
+		JWTFlowIssuer:    extractString(resp.Items[0][JWTFlowIssuer]),
+		JWTFlowAudience:  extractString(resp.Items[0][JWTFlowAudience]),
 	}, nil
 }
 
@@ -246,6 +296,8 @@ func (dar *DynamoAppRepo) RetrieveApplication(clientID string, subjectID string,
 		RedirectURI:      extractString(out.Item[RedirectUri]),
 		LoginProvider:    extractString(out.Item[LoginProvider]),
 		JWTFlowPublicKey: extractString(out.Item[JWTFlowPublicKey]),
+		JWTFlowIssuer:    extractString(out.Item[JWTFlowIssuer]),
+		JWTFlowAudience:  extractString(out.Item[JWTFlowAudience]),
 	}
 
 	if !adminScope && app.DeveloperID != subjectID {
@@ -285,7 +337,34 @@ func (dar *DynamoAppRepo) SystemRetrieveApplication(clientID string) (*roll.Appl
 		RedirectURI:      extractString(out.Item[RedirectUri]),
 		LoginProvider:    extractString(out.Item[LoginProvider]),
 		JWTFlowPublicKey: extractString(out.Item[JWTFlowPublicKey]),
+		JWTFlowIssuer:    extractString(out.Item[JWTFlowIssuer]),
+		JWTFlowAudience:  extractString(out.Item[JWTFlowAudience]),
 	}, nil
+}
+
+func (dar *DynamoAppRepo) SystemRetrieveApplicationByJWTFlowAudience(audience string) (*roll.Application, error) {
+	apps, err := dar.ListApplications("", true)
+	if err != nil {
+		return nil, err
+	}
+
+	var filtered []roll.Application
+	for _, a := range apps {
+		if a.JWTFlowAudience == audience {
+			filtered = append(filtered, a)
+		}
+	}
+
+	switch len(filtered) {
+	case 0:
+		return nil, nil
+	case 1:
+		return &filtered[0], nil
+	default:
+		//TODO - add validation so this can't occur
+		return nil, errors.New("Internal error - multiple apps associated with audience")
+	}
+
 }
 
 func (dar *DynamoAppRepo) ListApplications(subjectID string, adminScope bool) ([]roll.Application, error) {
@@ -317,6 +396,8 @@ func (dar *DynamoAppRepo) ListApplications(subjectID string, adminScope bool) ([
 			RedirectURI:      extractString(item[RedirectUri]),
 			LoginProvider:    extractString(item[LoginProvider]),
 			JWTFlowPublicKey: extractString(item[JWTFlowPublicKey]),
+			JWTFlowIssuer:    extractString(item[JWTFlowIssuer]),
+			JWTFlowAudience:  extractString(item[JWTFlowAudience]),
 		}
 
 		apps = append(apps, application)

@@ -73,6 +73,27 @@ func (_m *ApplicationRepo) SystemRetrieveApplication(clientID string) (*roll.App
 
 	return r0, r1
 }
+func (_m *ApplicationRepo) SystemRetrieveApplicationByJWTFlowAudience(audience string) (*roll.Application, error) {
+	ret := _m.Called(audience)
+
+	var r0 *roll.Application
+	if rf, ok := ret.Get(0).(func(string) *roll.Application); ok {
+		r0 = rf(audience)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*roll.Application)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(audience)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
 func (_m *ApplicationRepo) ListApplications(subjectID string, adminScope bool) ([]roll.Application, error) {
 	ret := _m.Called(subjectID, adminScope)
 

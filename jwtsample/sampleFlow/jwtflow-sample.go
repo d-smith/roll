@@ -1,15 +1,8 @@
 package main
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	jwt "github.com/dgrijalva/jwt-go"
-	rollhttp "github.com/xtraclabs/roll/http"
-	"io/ioutil"
-	"log"
-	"net/http"
-	"net/url"
+	"github.com/xtraclabs/roll/jwtsample"
 )
 
 const certPEM = `
@@ -67,80 +60,19 @@ const (
 	clientSecret   = "4suKio+75Vsm2o+i8H8dEjxVbXhoB81G+rJolRw8+XU="
 	baseJWTCertURL = "http://localhost:3000/v1/jwtflowcerts/"
 	tokenURL       = "http://localhost:3000/oauth2/token"
-	authToken      = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBsaWNhdGlvbiI6ImRldiBwb3J0YWwiLCJhdWQiOiI3ZDg4MDFkNS0xNTRjLTQ2MGItNTIwNi00OGU0NDg1ZTk5ZmYiLCJleHAiOjE0NTIzNjkwMDgsImlhdCI6MTQ1MjI4MjYwOCwianRpIjoiMGJhMjFmMzgtNjI4YS00OTBjLTQ0MzQtNDIzZGU4ODIzMDdmIiwic2NvcGUiOiIiLCJzdWIiOiJmb28ifQ.ZnNfdAAQsMY-xcuHfqVxHc4oR8Xw26uGvKCmz32tJCeeKC-1DgxzR_py-UFJlAdXiE3YdBYd-SyBJ9y8QctHiNRMaHs6ZjU6VTEgUsLcyYYO9hhvOx_BdY1B86zjQ3MScdgIs2D7CQUcNEG3nk1xzBp0vdc0wGvW40UUHh8erVU"
+	authToken      = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBsaWNhdGlvbiI6InNhbXBsZSBkZXYgYXBwIiwiYXVkIjoiZDgwYzk3NTgtZjk2NS00Mjg2LTcwMDMtZTVhZjA2NWQ4MDgyIiwiZXhwIjoxNDU0MDc3NjE0LCJpYXQiOjE0NTM5OTEyMTQsImp0aSI6IjM5YzIzZTZiLWRjYmEtNDVmOC01OTA4LTcyYmEzZTZlZTllNyIsInNjb3BlIjoiIiwic3ViIjoidXNlciJ9.AelDKwAoJny_hbgLzeRZYbfLyNVi9A2csMIp8pYirp6EbSp-n7akvgmKKV3Rn_ZiElZRbkg4safXVRVXCT-pirHAn_7pzwI2HthNaqWIKLdjASo-PkZmlEgv_9Sbprpn9JTsQfgVUXNjnaKqNWSWYd3qCb43TrK-9TMYewKYaVQ"
 )
 
-func uploadCert() {
-	fmt.Println("Uploading cert to", baseJWTCertURL+clientID)
-	fmt.Println(certPEM)
-
-	payload := rollhttp.CertPutCtx{
-		ClientSecret: clientSecret,
-		CertPEM:      certPEM,
-	}
-
-	bodyReader := new(bytes.Buffer)
-	enc := json.NewEncoder(bodyReader)
-	err := enc.Encode(&payload)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	req, err := http.NewRequest("PUT", baseJWTCertURL+clientID, bodyReader)
-	req.Header.Set("Authorization", "Bearer "+authToken)
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if resp.StatusCode != http.StatusNoContent {
-		log.Fatal("Did not receive an OK for cert upload, got ", resp.StatusCode)
-	}
-}
-
-func generateJTW() string {
-	signKey, err := jwt.ParseRSAPrivateKeyFromPEM([]byte(keyPEM))
-	if err != nil {
-		log.Fatal("Unable to parse the key PEM")
-	}
-
-	token := jwt.New(jwt.GetSigningMethod("RS256"))
-	token.Claims["iss"] = clientID
-	token.Claims["sub"] = "foo"
-	token.Claims["scope"] = "admin"
-
-	tokenString, err := token.SignedString(signKey)
-	if err != nil {
-		log.Fatal("Unable to sign token: ", err.Error())
-	}
-
-	return tokenString
-
-}
-
-func tradeTokenForToken(token string) string {
-	resp, err := http.PostForm(tokenURL,
-		url.Values{"grant_type": {"urn:ietf:params:oauth:grant-type:jwt-bearer"},
-			"assertion": {token}})
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return string(body)
-}
-
 func main() {
-	uploadCert()
-	tokenString := generateJTW()
+	rollCtx := jwtsample.RollContext{
+		BaseJWTCertURL: baseJWTCertURL,
+		ClientID:       clientID,
+		ClientSecret:   clientSecret,
+		CertPEM:        certPEM,
+	}
+	jwtsample.UploadCert(rollCtx, authToken)
+	tokenString := jwtsample.GenerateJWT(keyPEM, clientID)
 	fmt.Println("\nUse ", tokenString, " to obtain access token")
-	jwtResponse := tradeTokenForToken(tokenString)
+	jwtResponse := jwtsample.TradeTokenForToken(tokenString, tokenURL)
 	fmt.Println("\n", jwtResponse)
 }

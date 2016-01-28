@@ -54,20 +54,22 @@ VQIDAQAB
 //Decoded assertion:
 /*
 {
+  "aud": "captive",
   "iss": "1111-2222-3333333-4444444",
   "sub": "drscan"
 }
 */
-const jwtAssertion = `eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIxMTExLTIyMjItMzMzMzMzMy00NDQ0NDQ0Iiwic3ViIjoiZHJzY2FuIn0.XpMy2bJAjfnw3wcadaehayCiWlMwBbIftlFDO_s8rUPPV31b3lqmyPoOvw4FOB_ManLIyJ13PpUobvTwadFGhbkS7B-GFFAJxv3q179qU5ZE6IwlhR80aky9icKzNWj77ozYx041-itWYWbvRxLRMORRygTPeE7T6b4VhZud18mGIeObuLim7YDR7_mZCDdjSeh734dSJBj7y3nilOm-AsmSKPkg0EZ5z_S_74LZo6x4asdKrSnUww3efo4t3si9UnFhF_cbMOekCPHkigSd57tcTqz38PX8aHkj-N8crHDup7_T150UnE4anQY8yyEErmtOpuB-imW-yjSkecfZrg`
+const jwtAssertion = `eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJjYXB0aXZlIiwiaXNzIjoiMTExMS0yMjIyLTMzMzMzMzMtNDQ0NDQ0NCIsInNjb3BlIjoiYSBiIGMgbm90YWRtaW4iLCJzdWIiOiJmb28ifQ.hVQ__RRprRNd09WK58GFZDw0pJEf5GebSPOs_fWXarZJEZN3UyTJKMNdjVOZVgwA5tJBp_hngsI8o4-ni5vhAPRNIXwAJhq2CuLGcy_F552FcW6xpSa3VM3rZgXXFmHq2_VurKrLwi0rX1I8Hax40mkwM797IOmzRyp89zfEQFpBybSJlYaGkcBdwpym2NSL7yrCBvWKZkidms3SgTOvh3XEF6FrXDWJrZuYGFjm0bStoYRvg_Zfy6JlkPOzHaCD5dIkdajqs3E5LP6bkBsSXK7m1228mFneQMxmi_CPhDqoIR3qpodptlt1gkLporBrVYbOk5dUBRmx3Of_D37knQ`
 
 /*
 {
+  "aud": "captive"
   "iss": "1111-2222-3333333-4444444",
   "scope": "a b c admin",
   "sub": "foo"
 }
 */
-const jwtWithAdminScope = `eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIxMTExLTIyMjItMzMzMzMzMy00NDQ0NDQ0Iiwic2NvcGUiOiJhIGIgYyBhZG1pbiIsInN1YiI6ImZvbyJ9.OEH_0Kfpi490fQI7CE57ahmPZ4Q0ZB_7bZRI5v4Za42gTKWI3R53-vUyxvZJ5Y9ctmoUE7YCqj_G2vu7ZkJnghzR3lbtuybIsrfFy24I6V2sJCmqmLKXxpiwY3g2ZckQjGQjGaS-EB2lTg9p52fokw32q5EkT9UsStjhAi06jBHKd2FpIOH-od1f7IzZI3csmAUmt4DXlPia9NqSOdjwPwQqeknzfSeB3GAJTDrGLyrIo5ACk8WsDYhLolYxb9guBzCnwZ0emr1CoWH1VOtlF0PaAeYV2yns3Ck9-pFxo7TTSVw6__em14WdcU-NQ2U4_t1CztAz1ghjVH-0qdPG4Q`
+const jwtWithAdminScope = `eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJjYXB0aXZlIiwiaXNzIjoiMTExMS0yMjIyLTMzMzMzMzMtNDQ0NDQ0NCIsInNjb3BlIjoiYSBiIGMgYWRtaW4iLCJzdWIiOiJmb28ifQ.btsdQGbqk_5bOGlbBFXKVbrM1hInsH_EDnvXaOlpvq5Za96UZIRK1-gm5fkuAeCTW90rHKo1wxxMF4DF-nqlq9-TYy-YqP4Otnlrg3vDZ_8L1p4fiFHu1ktKPa4pOIVOWD74Vme2qa6xKlgGIzhVsZhZWxv-qFrwMjzSR9XZEJcw_KlYHQ89RgMNbeNL8gQ0kZpuWlmjBZkDtLM6hHJqL46HTCTLpcxzj-GfOMjzXT8MbzfxOJGKXhJH9lAhHKKYP5FwGiU0oEoQJ5OylnIrHinmwOypbXMIKl9ASYyp-0QLAuUcCIFzitf-coCwiESc3rq9Uka1om83X3KdVW-dmg`
 
 func TestJWTFlowSetupMalformedPayload(t *testing.T) {
 	core, _ := NewTestCore()
@@ -89,6 +91,8 @@ func TestJWTFlowSetupMissingClientSecret(t *testing.T) {
 	requestBody := CertPutCtx{
 		ClientSecret: "",
 		CertPEM:      "yeah",
+		CertIssuer:   "joe",
+		CertAudience: "susie",
 	}
 
 	resp := TestHTTPPutWithRollSubject(t, addr+JWTFlowCertsURI+"123", requestBody)
@@ -105,6 +109,8 @@ func TestJWTFlowSetupMissingCertPEM(t *testing.T) {
 	requestBody := CertPutCtx{
 		ClientSecret: "password123",
 		CertPEM:      "",
+		CertIssuer:   "joe",
+		CertAudience: "susie",
 	}
 
 	resp := TestHTTPPutWithRollSubject(t, addr+JWTFlowCertsURI+"123", requestBody)
@@ -124,6 +130,8 @@ func TestJWTFlowSetupAppLookupError(t *testing.T) {
 	requestBody := CertPutCtx{
 		ClientSecret: "foo",
 		CertPEM:      "xxxxxx",
+		CertIssuer:   "joe",
+		CertAudience: "susie",
 	}
 
 	resp := TestHTTPPutWithRollSubject(t, addr+JWTFlowCertsURI+"1111-2222-3333333-4444444", requestBody)
@@ -143,6 +151,8 @@ func TestJWTFlowSetupAppNotFound(t *testing.T) {
 	requestBody := CertPutCtx{
 		ClientSecret: "foo",
 		CertPEM:      "xxxxxx",
+		CertIssuer:   "joe",
+		CertAudience: "susie",
 	}
 
 	resp := TestHTTPPutWithRollSubject(t, addr+JWTFlowCertsURI+"1111-2222-3333333-4444444", requestBody)
@@ -169,6 +179,8 @@ func TestJWTFlowSetupInvalidClientSecret(t *testing.T) {
 	requestBody := CertPutCtx{
 		ClientSecret: "foo",
 		CertPEM:      "xxxxxx",
+		CertIssuer:   "joe",
+		CertAudience: "susie",
 	}
 
 	resp := TestHTTPPutWithRollSubject(t, addr+JWTFlowCertsURI+"1111-2222-3333333-4444444", requestBody)
@@ -196,6 +208,8 @@ func TestJWTFlowSetupInvalidCertPEM(t *testing.T) {
 	requestBody := CertPutCtx{
 		ClientSecret: "foo",
 		CertPEM:      "xxxxxx",
+		CertIssuer:   "joe",
+		CertAudience: "susie",
 	}
 
 	resp := TestHTTPPutWithRollSubject(t, addr+JWTFlowCertsURI+"1111-2222-3333333-4444444", requestBody)
@@ -224,6 +238,8 @@ func TestJWTFlowSetupAppUpdateError(t *testing.T) {
 		RedirectURI:      "http://localhost:3000/ab",
 		LoginProvider:    "xtrac://localhost:9000",
 		JWTFlowPublicKey: publicKey,
+		JWTFlowIssuer:    "joe",
+		JWTFlowAudience:  "susie",
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
@@ -233,6 +249,8 @@ func TestJWTFlowSetupAppUpdateError(t *testing.T) {
 	requestBody := CertPutCtx{
 		ClientSecret: "foo",
 		CertPEM:      certPEM,
+		CertIssuer:   "joe",
+		CertAudience: "susie",
 	}
 
 	resp := TestHTTPPutWithRollSubject(t, addr+JWTFlowCertsURI+"1111-2222-3333333-4444444", requestBody)
@@ -262,6 +280,8 @@ func TestJWTFlowSetupAppUpdateOk(t *testing.T) {
 		RedirectURI:      "http://localhost:3000/ab",
 		LoginProvider:    "xtrac://localhost:9000",
 		JWTFlowPublicKey: publicKey,
+		JWTFlowIssuer:    "joe",
+		JWTFlowAudience:  "susie",
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
@@ -271,6 +291,8 @@ func TestJWTFlowSetupAppUpdateOk(t *testing.T) {
 	requestBody := CertPutCtx{
 		ClientSecret: "foo",
 		CertPEM:      certPEM,
+		CertIssuer:   "joe",
+		CertAudience: "susie",
 	}
 
 	resp := TestHTTPPutWithRollSubject(t, addr+JWTFlowCertsURI+"1111-2222-3333333-4444444", requestBody)
@@ -309,7 +331,7 @@ func TestJWTFlowValidAssertionAppLookupError(t *testing.T) {
 	defer ln.Close()
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("SystemRetrieveApplication", "1111-2222-3333333-4444444").Return(nil, errors.New("Drat"))
+	appRepoMock.On("SystemRetrieveApplicationByJWTFlowAudience", "captive").Return(nil, errors.New("Drat"))
 
 	resp, err := http.PostForm(addr+OAuth2TokenBaseURI,
 		url.Values{"grant_type": {"urn:ietf:params:oauth:grant-type:jwt-bearer"},
@@ -325,7 +347,7 @@ func TestJWTFlowValidAssertionAppLookupReturnsNil(t *testing.T) {
 	defer ln.Close()
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("SystemRetrieveApplication", "1111-2222-3333333-4444444").Return(nil, nil)
+	appRepoMock.On("SystemRetrieveApplicationByJWTFlowAudience", "captive").Return(nil, nil)
 
 	resp, err := http.PostForm(addr+OAuth2TokenBaseURI,
 		url.Values{"grant_type": {"urn:ietf:params:oauth:grant-type:jwt-bearer"},
@@ -348,10 +370,12 @@ func TestJWTFlowValidAssertionOkYeah(t *testing.T) {
 		RedirectURI:      "http://localhost:3000/ab",
 		LoginProvider:    "xtrac://localhost:9000",
 		JWTFlowPublicKey: publicKey,
+		JWTFlowIssuer:    "joe",
+		JWTFlowAudience:  "captive",
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("SystemRetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+	appRepoMock.On("SystemRetrieveApplicationByJWTFlowAudience", "captive").Return(&returnVal, nil)
 
 	privateKey, publicKey, err := secrets.GenerateKeyPair()
 	assert.Nil(t, err)
@@ -378,7 +402,7 @@ func TestJWTFlowValidAssertionOkYeah(t *testing.T) {
 	token, err := jwt.Parse(jsonResponse.AccessToken, roll.GenerateKeyExtractionFunction(core.SecretsRepo))
 	assert.Nil(t, err)
 	assert.Equal(t, "1111-2222-3333333-4444444", token.Claims["aud"].(string))
-	assert.Equal(t, "drscan", token.Claims["sub"].(string))
+	assert.Equal(t, "foo", token.Claims["sub"].(string))
 	assert.Equal(t, "", token.Claims["scope"].(string))
 }
 
@@ -398,7 +422,7 @@ func TestJWTFlowValidAssertionOkAdminScope(t *testing.T) {
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)
-	appRepoMock.On("SystemRetrieveApplication", "1111-2222-3333333-4444444").Return(&returnVal, nil)
+	appRepoMock.On("SystemRetrieveApplicationByJWTFlowAudience", "captive").Return(&returnVal, nil)
 
 	privateKey, publicKey, err := secrets.GenerateKeyPair()
 	assert.Nil(t, err)

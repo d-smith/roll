@@ -180,6 +180,21 @@ func lookupApplication(core *roll.Core, clientID string) (*roll.Application, err
 	return app, nil
 }
 
+func lookupApplicatioByAudience(core *roll.Core, audience string) (*roll.Application, error) {
+	app, err := core.SystemRetrieveApplicationByJWTFlowAudience(audience)
+	if err != nil {
+		log.Println("Error retrieving app data: ", err.Error())
+		return nil, ErrRetrievingAppData
+	}
+
+	if app == nil {
+		log.Println("invalid client id")
+		return nil, errors.New("Invalid client id")
+	}
+
+	return app, nil
+}
+
 func validateClientDetails(core *roll.Core, ctx *authCodeContext) (*roll.Application, error) {
 	app, err := lookupApplication(core, ctx.clientID)
 	if err != nil {
@@ -394,7 +409,7 @@ func handleJWTGrantType(core *roll.Core, w http.ResponseWriter, r *http.Request,
 
 	//Grab the app definition based on iss carries the api key/client_id
 	log.Println("look up application definition")
-	app, err := lookupApplication(core, token.Claims["iss"].(string))
+	app, err := lookupApplicatioByAudience(core, token.Claims["aud"].(string))
 	if err != nil {
 		switch err {
 		case ErrInvalidClientDetails:
