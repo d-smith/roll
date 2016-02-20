@@ -91,6 +91,7 @@ Still need to vendor my dependencies, but they are:
 * [JWT-go](https://github.com/dgrijalva/jwt-go)
 * [Go UUID](https://github.com/nu7hatch/gouuid)
 * Context package from the [Gorilla Web Toolkit]()
+* [Go MySQL Driver](github.com/go-sql-driver/mysql)
 
 Use `go get github.com/hashicorp/vault/api` to install the API portion of Vautl
 
@@ -106,6 +107,7 @@ go get github.com/hashicorp/vault/api
 go get github.com/dgrijalva/jwt-go
 go get github.com/nu7hatch/gouuid
 go get github.com/gorilla/context
+go get github.com/go-sql-driver/mysql
 </pre>
 
 ### Test Dependencies
