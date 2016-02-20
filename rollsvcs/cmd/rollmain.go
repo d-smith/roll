@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/xtraclabs/roll/dbutil"
 	"github.com/xtraclabs/roll/roll"
 	"github.com/xtraclabs/roll/rollsvcs"
 	"log"
@@ -16,6 +17,24 @@ _   _                                     ___  ___          _
 | |_| | | | \__ \  __/ (__| |_| | | |  __/ | |  | | (_) | (_| |  __/
  \___/|_| |_|___/\___|\___|\__,_|_|  \___| \_|  |_/\___/ \__,_|\___|
 `
+
+func createUnsecureDynamoDBConfig() *roll.CoreConfig {
+	log.Println(unsecureBanner)
+	return rollsvcs.DefaultUnsecureConfig()
+}
+
+func createDynamoDBConfig() *roll.CoreConfig {
+	return rollsvcs.DefaultConfig()
+}
+
+func createUnsecureMariaDBConfig() *roll.CoreConfig {
+	log.Println(unsecureBanner)
+	return rollsvcs.MariaDBConfig()
+}
+
+func creatMariaDBConfig() *roll.CoreConfig {
+	return nil
+}
 
 func main() {
 
@@ -31,7 +50,13 @@ func main() {
 
 	if *unsecureMode == true {
 		log.Println(unsecureBanner)
-		coreConfig = rollsvcs.DefaultUnsecureConfig()
+		if dbutil.UseMariaDB() {
+			log.Println("Using maria db")
+			coreConfig = rollsvcs.MariaDBConfig()
+		} else {
+			log.Println("Using dynamo db")
+			coreConfig = rollsvcs.DefaultUnsecureConfig()
+		}
 	} else {
 		coreConfig = rollsvcs.DefaultConfig()
 	}
