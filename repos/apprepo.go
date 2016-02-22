@@ -54,6 +54,22 @@ func (dae *DuplicateAppdefError) Error() string {
 		dae.ApplicationName, dae.DeveloperEmail)
 }
 
+func CheckJWTCertParts(app *roll.Application) error {
+	if app.JWTFlowPublicKey != "" {
+		if app.JWTFlowIssuer == "" {
+			log.Println("JWTFlowPlublic submitted without JWTFlowIssuer")
+			return roll.MissingJWTFlowIssuer{}
+		}
+
+		if app.JWTFlowAudience == "" {
+			log.Println("JWTFlowPublic submitted without JWTFlowAudience")
+			return roll.MissingJWTFlowAudience{}
+		}
+		return nil
+	}
+	return nil
+}
+
 //CreateApplication stores an application definition in DynamoDB
 func (dar *DynamoAppRepo) CreateApplication(app *roll.Application) error {
 	log.Println("create application")
@@ -89,16 +105,11 @@ func (dar *DynamoAppRepo) CreateApplication(app *roll.Application) error {
 		LoginProvider:   {S: aws.String(app.LoginProvider)},
 	}
 
-	if app.JWTFlowPublicKey != "" {
-		if app.JWTFlowIssuer == "" {
-			log.Println("JWTFlowPlublic submitted without JWTFlowIssuer")
-			return roll.MissingJWTFlowIssuer{}
-		}
+	if err := CheckJWTCertParts(app); err != nil {
+		return err
+	}
 
-		if app.JWTFlowAudience == "" {
-			log.Println("JWTFlowPublic submitted without JWTFlowAudience")
-			return roll.MissingJWTFlowAudience{}
-		}
+	if app.JWTFlowPublicKey != "" {
 
 		appAttrs[JWTFlowPublicKey] = &dynamodb.AttributeValue{
 			S: aws.String(app.JWTFlowPublicKey),

@@ -27,7 +27,8 @@ create or replace table rolldb.application (
     jwtFlowAudience varchar(256),
     jwtFlowIssuer varchar(256),
     jwtFlowPublicKey varchar(2048),
-    primary key(applicationName, developerEmail)
+    primary key(applicationName, developerEmail),
+    unique(clientId)
 );
 
 grant select, update, insert, delete
