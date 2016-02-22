@@ -67,7 +67,7 @@ func (ar *MariaDBAppRepo) CreateApplication(app *roll.Application) error {
 		log.Println(err)
 		sqlErr := err.(*mysql.MySQLError)
 		switch sqlErr.Number {
-		case 1021:
+		case 1062:
 			log.Println("Duplicate app definition found")
 			return repos.NewDuplicationAppdefError(app.ApplicationName, app.DeveloperEmail)
 		default:
@@ -249,7 +249,7 @@ func (ar *MariaDBAppRepo) ListApplications(subjectID string, adminScope bool) ([
 		redirectUri,jwtFlowAudience, jwtFlowIssuer, jwtFlowPublicKey from application where developerId = ?
 		`
 
-		rows, err = ar.db.Query(nonAdminSelect)
+		rows, err = ar.db.Query(nonAdminSelect, subjectID)
 	}
 
 	if err != nil {
