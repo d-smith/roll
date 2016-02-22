@@ -26,7 +26,7 @@ func NewMBDAppRepo() *MariaDBAppRepo {
 }
 
 func (ar *MariaDBAppRepo) CreateApplication(app *roll.Application) error {
-	//Generate a client secret is needed
+	//Generate a client secret as needed
 	if app.ClientSecret == "" {
 		clientSecret, err := secrets.GenerateClientSecret()
 		if err != nil {
@@ -41,8 +41,8 @@ func (ar *MariaDBAppRepo) CreateApplication(app *roll.Application) error {
 	}
 
 	//Insert the app
-	const appSql = `insert into rolldb.application(applicationName, clientId, developerEmail, developerId, loginProvider,
-	redirectUri,jwtFlowAudience, jwtFlowIssuer, jwtFlowPublicKey) values(?,?,?,?,?,?,?,?,?)
+	const appSql = `insert into rolldb.application(applicationName, clientId, clientSecret, developerEmail, developerId, loginProvider,
+	redirectUri,jwtFlowAudience, jwtFlowIssuer, jwtFlowPublicKey) values(?,?,?,?,?,?,?,?,?,?)
 	`
 	stmt, err := ar.db.Prepare(appSql)
 	if err != nil {
@@ -53,6 +53,7 @@ func (ar *MariaDBAppRepo) CreateApplication(app *roll.Application) error {
 	_, err = stmt.Exec(
 		app.ApplicationName,
 		app.ClientID,
+		app.ClientSecret,
 		app.DeveloperEmail,
 		app.DeveloperID,
 		app.LoginProvider,
@@ -145,9 +146,26 @@ func (ar *MariaDBAppRepo) UpdateApplication(app *roll.Application, subjectID str
 
 }
 
+func (ar *MariaDBAppRepo) delete(app *roll.Application) error {
+	db := ar.db
+
+	stmt, err := db.Prepare("delete from application where applicationName = ? and developerEmail = ?")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(app.ApplicationName, app.DeveloperEmail)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (ar *MariaDBAppRepo) RetrieveAppByNameAndDevEmail(appName, email string) (*roll.Application, error) {
 	const appSql = `
-	select applicationName, clientId, developerEmail, developerId, loginProvider,
+	select applicationName, clientId, clientSecret, developerEmail, developerId, loginProvider,
 	redirectUri,jwtFlowAudience, jwtFlowIssuer, jwtFlowPublicKey from application where applicationName = ?
 	and developerEmail = ?
 	`
@@ -155,11 +173,15 @@ func (ar *MariaDBAppRepo) RetrieveAppByNameAndDevEmail(appName, email string) (*
 	var app roll.Application
 	err := ar.db.QueryRow(appSql,
 		appName, email).Scan(
-		&app.ApplicationName, &app.ClientID, &app.DeveloperEmail, &app.DeveloperID, &app.LoginProvider,
+		&app.ApplicationName, &app.ClientID, &app.ClientSecret, &app.DeveloperEmail, &app.DeveloperID, &app.LoginProvider,
 		&app.RedirectURI, &app.JWTFlowAudience, &app.JWTFlowIssuer, &app.JWTFlowPublicKey,
 	)
 
-	return &app, err
+	if err != nil {
+		return nil, err
+	}
+
+	return &app, nil
 }
 
 func (ar *MariaDBAppRepo) RetrieveApplication(clientID string, subjectID string, adminScope bool) (*roll.Application, error) {
@@ -179,14 +201,14 @@ func (ar *MariaDBAppRepo) RetrieveApplication(clientID string, subjectID string,
 //security model does not need to be applied.
 func (ar *MariaDBAppRepo) SystemRetrieveApplication(clientID string) (*roll.Application, error) {
 	const appSql = `
-	select applicationName, clientId, developerEmail, developerId, loginProvider,
+	select applicationName, clientId, clientSecret, developerEmail, developerId, loginProvider,
 	redirectUri,jwtFlowAudience, jwtFlowIssuer, jwtFlowPublicKey from application where clientId = ?
 	`
 
 	var app roll.Application
 	err := ar.db.QueryRow(appSql,
 		clientID).Scan(
-		&app.ApplicationName, &app.ClientID, &app.DeveloperEmail, &app.DeveloperID, &app.LoginProvider,
+		&app.ApplicationName, &app.ClientID, &app.ClientSecret, &app.DeveloperEmail, &app.DeveloperID, &app.LoginProvider,
 		&app.RedirectURI, &app.JWTFlowAudience, &app.JWTFlowIssuer, &app.JWTFlowPublicKey,
 	)
 
@@ -195,14 +217,14 @@ func (ar *MariaDBAppRepo) SystemRetrieveApplication(clientID string) (*roll.Appl
 
 func (ar *MariaDBAppRepo) SystemRetrieveApplicationByJWTFlowAudience(audience string) (*roll.Application, error) {
 	const appSql = `
-	select applicationName, clientId, developerEmail, developerId, loginProvider,
+	select applicationName, clientId, clientSecret, developerEmail, developerId, loginProvider,
 	redirectUri,jwtFlowAudience, jwtFlowIssuer, jwtFlowPublicKey from application where jwtFlowAudience = ?
 	`
 
 	var app roll.Application
 	err := ar.db.QueryRow(appSql,
 		audience).Scan(
-		&app.ApplicationName, &app.ClientID, &app.DeveloperEmail, &app.DeveloperID, &app.LoginProvider,
+		&app.ApplicationName, &app.ClientID, &app.ClientSecret, &app.DeveloperEmail, &app.DeveloperID, &app.LoginProvider,
 		&app.RedirectURI, &app.JWTFlowAudience, &app.JWTFlowIssuer, &app.JWTFlowPublicKey,
 	)
 

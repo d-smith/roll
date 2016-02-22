@@ -98,6 +98,23 @@ func adminListDevs(db *sql.DB) ([]roll.Developer, error) {
 
 }
 
+func (dr *MBDDevRepo) deleteDeveloper(email string) error {
+	db := dr.db
+
+	stmt, err := db.Prepare("delete from developer where email = ?")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(email)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func devListDevs(db *sql.DB, subject string) ([]roll.Developer, error) {
 	rows, err := db.Query("select firstName, lastName, id, email from developer where id = ?", subject)
 	if err != nil {

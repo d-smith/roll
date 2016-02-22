@@ -20,6 +20,7 @@ to rolluser;
 create or replace table rolldb.application (
     applicationName varchar(150) not null,
     clientId varchar(100) not null,
+    clientSecret varchar(256) not null,
     developerEmail varchar(256) not null,
     developerId varchar(256) not null,
     loginProvider varchar(256) not null,
