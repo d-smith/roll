@@ -14,10 +14,6 @@ func TestRetrieveNonexistentApp(t *testing.T) {
 	app, err := appRepo.RetrieveAppByNameAndDevEmail("xx", "yy")
 	assert.NotNil(t, err)
 	assert.Nil(t, app)
-
-	apps, err := appRepo.ListApplications("foo", true)
-	assert.Nil(t, err)
-	assert.Equal(t, 0, len(apps))
 }
 
 func TestAddAndRetrieveApp(t *testing.T) {
@@ -71,6 +67,10 @@ func TestAddAndRetrieveApp(t *testing.T) {
 		assert.Equal(t, app.LoginProvider, retapp.LoginProvider)
 		assert.Equal(t, app.RedirectURI, retapp.RedirectURI)
 	}
+
+	retapp, err = appRepo.SystemRetrieveApplication(app.ClientID)
+	assert.Nil(t, err)
+	assert.Equal(t, app.ClientID, retapp.ClientID)
 
 	retapp, err = appRepo.RetrieveApplication(app.ClientID, "huh", false)
 	assert.NotNil(t, err)

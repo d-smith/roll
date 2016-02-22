@@ -29,11 +29,11 @@ func createDynamoDBConfig() *roll.CoreConfig {
 
 func createUnsecureMariaDBConfig() *roll.CoreConfig {
 	log.Println(unsecureBanner)
-	return rollsvcs.MariaDBConfig()
+	return rollsvcs.MariaDBUnsecureConfig()
 }
 
-func creatMariaDBConfig() *roll.CoreConfig {
-	return nil
+func createMariaDBConfig() *roll.CoreConfig {
+	return rollsvcs.MariaDBSecureConfig()
 }
 
 func main() {
@@ -52,13 +52,19 @@ func main() {
 		log.Println(unsecureBanner)
 		if dbutil.UseMariaDB() {
 			log.Println("Using maria db")
-			coreConfig = rollsvcs.MariaDBConfig()
+			coreConfig = rollsvcs.MariaDBUnsecureConfig()
 		} else {
 			log.Println("Using dynamo db")
 			coreConfig = rollsvcs.DefaultUnsecureConfig()
 		}
 	} else {
-		coreConfig = rollsvcs.DefaultConfig()
+		if dbutil.UseMariaDB() {
+			log.Println("Using maria db")
+			coreConfig = rollsvcs.MariaDBSecureConfig()
+		} else {
+			log.Println("Using dynamo db")
+			coreConfig = rollsvcs.DefaultConfig()
+		}
 	}
 
 	rollsvcs.RunRoll(*port, coreConfig)

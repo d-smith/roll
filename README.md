@@ -134,10 +134,15 @@ Below are some older instructions (this documentation is in the process of being
 In a nutshell, you need to:
 
 1. Boot roll in unsecure mode
-2. Seed a roll application - see seed.js in the [Roll Setup](https://github.com/xtraclabs/rollsetup) repository.
-3. Register a sample application for use with rollsample and rollecho in trying out the grants as outlined below. See
-register.js in the [Roll Setup](https://github.com/xtraclabs/rollsetup) repository.
+    * In rollsvcs/cmd set the environment using setenv.sh then run `go run rollmain.go -port 3000 -unsecure`
+2. Seed a roll application - see seed.js in the [Roll Setup](https://github.com/xtraclabs/rollsetup) repository. Seed.js
+registers a developer and seeds a portal application associated with that developer. Roll can then being run in secure
+mode as the registered application created by seed.js
 3. Reboot roll in secure mode, using the application client_id obtained in the previous step.
+3. Register a sample application for use with rollsample and rollecho in trying out the grants as outlined below. See
+register.js in the [Roll Setup](https://github.com/xtraclabs/rollsetup) repository. Note you'll need to grab the
+client id and secret for the seeded roll app from the application table and set the values of 
+portClientId and clientSecret in register.js
 4. Start the [rollsample](https://github.com/xtraclabs/rollsample) and 
 [rollecho](https://github.com/xtraclabs/rollecho) applications. Roll sample is a  sample application that obtains auth tokens
  via roll, and roll echo is a service that requires an auth token associated with the sample application for

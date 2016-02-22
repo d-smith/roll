@@ -205,6 +205,7 @@ func (ar *MariaDBAppRepo) SystemRetrieveApplication(clientID string) (*roll.Appl
 	redirectUri,jwtFlowAudience, jwtFlowIssuer, jwtFlowPublicKey from application where clientId = ?
 	`
 
+	log.Println("Looking up app for", clientID)
 	var app roll.Application
 	err := ar.db.QueryRow(appSql,
 		clientID).Scan(

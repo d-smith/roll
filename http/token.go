@@ -173,7 +173,7 @@ func lookupApplication(core *roll.Core, clientID string) (*roll.Application, err
 	}
 
 	if app == nil {
-		log.Println("invalid client id")
+		log.Println("Invalid client id", clientID)
 		return nil, errors.New("Invalid client id")
 	}
 
@@ -328,7 +328,7 @@ func handleAuthCodeGrantType(core *roll.Core, w http.ResponseWriter, r *http.Req
 func handlePasswordGrantType(core *roll.Core, w http.ResponseWriter, r *http.Request, codeContext *authCodeContext) {
 	//Validate client details
 	log.Println("Handle password grant type")
-	log.Println("validate client details")
+	log.Println("Validate client details")
 	app, err := validateClientDetails(core, codeContext)
 	if err != nil {
 		log.Println(err.Error())

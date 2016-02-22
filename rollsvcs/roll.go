@@ -32,7 +32,7 @@ func DefaultUnsecureConfig() *roll.CoreConfig {
 	}
 }
 
-func MariaDBConfig() *roll.CoreConfig {
+func MariaDBUnsecureConfig() *roll.CoreConfig {
 	return &roll.CoreConfig{
 		AdminRepo:       mdb.NewMBDAdminRepo(),
 		DeveloperRepo:   mdb.NewMBDDevRepo(),
@@ -40,6 +40,17 @@ func MariaDBConfig() *roll.CoreConfig {
 		SecretsRepo:     repos.NewVaultSecretsRepo(),
 		IdGenerator:     new(roll.UUIDIdGenerator),
 		Secure:          false,
+	}
+}
+
+func MariaDBSecureConfig() *roll.CoreConfig {
+	return &roll.CoreConfig{
+		AdminRepo:       mdb.NewMBDAdminRepo(),
+		DeveloperRepo:   mdb.NewMBDDevRepo(),
+		ApplicationRepo: mdb.NewMBDAppRepo(),
+		SecretsRepo:     repos.NewVaultSecretsRepo(),
+		IdGenerator:     new(roll.UUIDIdGenerator),
+		Secure:          true,
 	}
 }
 

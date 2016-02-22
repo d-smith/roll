@@ -46,11 +46,4 @@ func TestCreateAndRetrieveDev(t *testing.T) {
 	assert.Equal(t, dev.LastName, retDev.LastName)
 	assert.Equal(t, dev.ID, retDev.ID)
 
-	devs, err := devRepo.ListDevelopers("foo", false)
-	assert.Nil(t, err)
-	assert.Equal(t, 1, len(devs))
-
-	devs, err = devRepo.ListDevelopers("foo2", true)
-	assert.Nil(t, err)
-	assert.Equal(t, 1, len(devs))
 }
