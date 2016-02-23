@@ -135,7 +135,7 @@ func GenerateKeyExtractionFunctionForJTWFlow(applicationRepo ApplicationRepo) jw
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 		}
 
-		//The api key is carried in iss
+		//The aud claim conveys the intended application the token is used to gain access to.
 		clientID := token.Claims["aud"]
 		if clientID == nil {
 			return nil, errors.New("Foreign token does not include aud claim")
@@ -150,6 +150,12 @@ func GenerateKeyExtractionFunctionForJTWFlow(applicationRepo ApplicationRepo) jw
 		if app == nil {
 			log.Println("No app definition associated with audience found: ", clientID.(string))
 			return nil, errors.New("No app definition associated with aud found")
+		}
+
+		//We also check that the token was issued by the entity registered with the application
+		issuer := token.Claims["iss"]
+		if issuer == nil || issuer != app.JWTFlowIssuer {
+			return nil, errors.New("Foreign token issuer not known")
 		}
 
 		//Grab the public key from the app definition

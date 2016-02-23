@@ -56,11 +56,11 @@ T9276oM42khyKY36lXvLi4yjk2yHysIvO7ckuX0F/vZtQjG1zuBb
 `
 
 const (
-	clientID       = "d80c9758-f965-4286-7003-e5af065d8082"
-	clientSecret   = "4suKio+75Vsm2o+i8H8dEjxVbXhoB81G+rJolRw8+XU="
+	clientID       = "5d130f17-2fe5-4462-4e9d-9b6eb2d806e8"
+	clientSecret   = "0KizQCINnU0DtIkgwGs5ipc1AMt3WfUU1lNt6zTQTu4="
 	baseJWTCertURL = "http://localhost:3000/v1/jwtflowcerts/"
 	tokenURL       = "http://localhost:3000/oauth2/token"
-	authToken      = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBsaWNhdGlvbiI6InNhbXBsZSBkZXYgYXBwIiwiYXVkIjoiZDgwYzk3NTgtZjk2NS00Mjg2LTcwMDMtZTVhZjA2NWQ4MDgyIiwiZXhwIjoxNDU0MDc3NjE0LCJpYXQiOjE0NTM5OTEyMTQsImp0aSI6IjM5YzIzZTZiLWRjYmEtNDVmOC01OTA4LTcyYmEzZTZlZTllNyIsInNjb3BlIjoiIiwic3ViIjoidXNlciJ9.AelDKwAoJny_hbgLzeRZYbfLyNVi9A2csMIp8pYirp6EbSp-n7akvgmKKV3Rn_ZiElZRbkg4safXVRVXCT-pirHAn_7pzwI2HthNaqWIKLdjASo-PkZmlEgv_9Sbprpn9JTsQfgVUXNjnaKqNWSWYd3qCb43TrK-9TMYewKYaVQ"
+	authToken      = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBsaWNhdGlvbiI6ImRldiBwb3J0YWwiLCJhdWQiOiI1ZDEzMGYxNy0yZmU1LTQ0NjItNGU5ZC05YjZlYjJkODA2ZTgiLCJleHAiOjE0NTYzMzQzMDQsImlhdCI6MTQ1NjI0NzkwNCwianRpIjoiYmJhMTIwNTAtNWExMy00OTEzLTU4NjEtMWI0YjIyMWJmMTg4Iiwic2NvcGUiOiIiLCJzdWIiOiJwb3J0YWwtYWRtaW4ifQ.gSVgnCwTUT3yP_SaT9kcbtpMdl3niBtzpCJ743QlIgmQyGnghgP3GTEDpv312FW8n6D-o7Bapp0Zbz2Eep3RzXIs9B2Qo-cpP--Iq5VPnByTSZoxLN_-MNkkYC6jR-lQl-K1tCerIA8T1cZJVEuxSaBozepkX1HBqpvfxYiqbxM"
 )
 
 func main() {
