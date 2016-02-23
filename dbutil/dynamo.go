@@ -3,13 +3,13 @@ package dbutil
 import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+
 	"log"
 	"os"
 )
 
 func CreateDynamoDBClient() *dynamodb.DynamoDB {
 	var dynamoClient *dynamodb.DynamoDB
-
 
 	localAddr := os.Getenv("LOCAL_DYNAMO_ADDR") //e.g. export LOCAL_DYNAMO_ADDR=http://localhost:8000
 	if localAddr != "" {

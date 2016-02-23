@@ -4,6 +4,7 @@ import (
 	"fmt"
 	rollhttp "github.com/xtraclabs/roll/http"
 	"github.com/xtraclabs/roll/repos"
+	"github.com/xtraclabs/roll/repos/mdb"
 	"github.com/xtraclabs/roll/roll"
 	"log"
 	"net/http"
@@ -28,6 +29,28 @@ func DefaultUnsecureConfig() *roll.CoreConfig {
 		SecretsRepo:     repos.NewVaultSecretsRepo(),
 		IdGenerator:     new(roll.UUIDIdGenerator),
 		Secure:          false,
+	}
+}
+
+func MariaDBUnsecureConfig() *roll.CoreConfig {
+	return &roll.CoreConfig{
+		AdminRepo:       mdb.NewMBDAdminRepo(),
+		DeveloperRepo:   mdb.NewMBDDevRepo(),
+		ApplicationRepo: mdb.NewMBDAppRepo(),
+		SecretsRepo:     repos.NewVaultSecretsRepo(),
+		IdGenerator:     new(roll.UUIDIdGenerator),
+		Secure:          false,
+	}
+}
+
+func MariaDBSecureConfig() *roll.CoreConfig {
+	return &roll.CoreConfig{
+		AdminRepo:       mdb.NewMBDAdminRepo(),
+		DeveloperRepo:   mdb.NewMBDDevRepo(),
+		ApplicationRepo: mdb.NewMBDAppRepo(),
+		SecretsRepo:     repos.NewVaultSecretsRepo(),
+		IdGenerator:     new(roll.UUIDIdGenerator),
+		Secure:          true,
 	}
 }
 
