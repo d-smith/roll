@@ -232,7 +232,7 @@ func validateAndReturnCodeToken(secretsRepo roll.SecretsRepo, ctx *authCodeConte
 
 	//make sure the client_id used to validate the token matches the token aud claim
 	if clientID != token.Claims["aud"] {
-		return nil, errors.New("token not associated client ID presented")
+		return nil, errors.New("Token not associated with client id")
 	}
 
 	return token, nil
