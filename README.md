@@ -43,7 +43,7 @@ To interact with vault from the command line, you will need to set the VAULT_ADD
 
 Refer to the vault documentation for details.
 
-#### AWS
+#### AWS DynamoDB Support
 You will need to set up AWS credentials for a user associated with the following policy:
 
 <pre>
@@ -80,6 +80,14 @@ variable, e.g.
 <pre>
 export LOCAL_DYNAMO_ADDR=http://localhost:8000
 </pre>
+
+#### MariaDB Support
+
+As an alternative to DynamoDB, Roll can be configured to use MariaDB as its database. To set up MariaDB,
+use the rolldb.sql script in repos/ddl to create the database and user for the application. Minimally, the user
+should be customized. Once the database and user have been created, the tabledefs.sql script can be run to create
+the tables and grant the appropriate accesss to the roll db user created in the first step, which means tabledefs.sql
+will need to be edited to reference the user created in step 1.
 
 ### Build Dependencies
 
