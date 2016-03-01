@@ -132,6 +132,7 @@ func handleApplicationPost(core *roll.Core, w http.ResponseWriter, r *http.Reque
 	log.Println("storing app def ", app)
 	err = core.CreateApplication(&app)
 	if err != nil {
+		log.Println("Error storing app def", err.Error())
 		switch err.(type) {
 		case *repos.DuplicateAppdefError:
 			respondError(w, http.StatusConflict, err)
@@ -143,6 +144,7 @@ func handleApplicationPost(core *roll.Core, w http.ResponseWriter, r *http.Reque
 	}
 
 	//Generate a private/public key pair
+	log.Println("Generate key pair")
 	private, public, err := secrets.GenerateKeyPair()
 	if err != nil {
 		respondError(w, http.StatusBadRequest, err)
@@ -150,6 +152,7 @@ func handleApplicationPost(core *roll.Core, w http.ResponseWriter, r *http.Reque
 	}
 
 	//Store keys in secrets vault
+	log.Println("store key pair in vault")
 	err = core.StoreKeysForApp(id, private, public)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, err)
@@ -157,6 +160,7 @@ func handleApplicationPost(core *roll.Core, w http.ResponseWriter, r *http.Reque
 	}
 
 	//Return the client id
+	log.Println("return client id", id)
 	clientID := ApplicationCreatedResponse{ClientID: id}
 
 	respondOk(w, clientID)

@@ -55,12 +55,16 @@ T9276oM42khyKY36lXvLi4yjk2yHysIvO7ckuX0F/vZtQjG1zuBb
 -----END RSA PRIVATE KEY-----
 `
 
+//Get the auth via the password grant flow as the dev portal app, e.g.
+//curl --data "client_id=5d130f17-2fe5-4462-4e9d-9b6eb2d806e8" --data scope=admin --data "grant_type=password" --data-urlencode "client_secret=0KizQCINnU0DtIkgwGs5ipc1AMt3WfUU1lNt6zTQTu4=" --data "username=portal-admin" --data "password=passw0rd" localhost:3000/oauth2/token
+
+
 const (
-	clientID       = "5d130f17-2fe5-4462-4e9d-9b6eb2d806e8"
-	clientSecret   = "0KizQCINnU0DtIkgwGs5ipc1AMt3WfUU1lNt6zTQTu4="
+	clientID       = "fdec6cea-7b4d-47b9-5c7b-e0854a4e282e"
+	clientSecret   = "TKI07OmwWGGb0e+hg+giKaZvzzoS/nNpftHem9/90ds="
 	baseJWTCertURL = "http://localhost:3000/v1/jwtflowcerts/"
 	tokenURL       = "http://localhost:3000/oauth2/token"
-	authToken      = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBsaWNhdGlvbiI6ImRldiBwb3J0YWwiLCJhdWQiOiI1ZDEzMGYxNy0yZmU1LTQ0NjItNGU5ZC05YjZlYjJkODA2ZTgiLCJleHAiOjE0NTYzMzQzMDQsImlhdCI6MTQ1NjI0NzkwNCwianRpIjoiYmJhMTIwNTAtNWExMy00OTEzLTU4NjEtMWI0YjIyMWJmMTg4Iiwic2NvcGUiOiIiLCJzdWIiOiJwb3J0YWwtYWRtaW4ifQ.gSVgnCwTUT3yP_SaT9kcbtpMdl3niBtzpCJ743QlIgmQyGnghgP3GTEDpv312FW8n6D-o7Bapp0Zbz2Eep3RzXIs9B2Qo-cpP--Iq5VPnByTSZoxLN_-MNkkYC6jR-lQl-K1tCerIA8T1cZJVEuxSaBozepkX1HBqpvfxYiqbxM"
+	authToken      = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBsaWNhdGlvbiI6ImRldiBwb3J0YWwiLCJhdWQiOiI1ZDEzMGYxNy0yZmU1LTQ0NjItNGU5ZC05YjZlYjJkODA2ZTgiLCJleHAiOjE0NTY4NjE1MzQsImlhdCI6MTQ1Njc3NTEzNCwianRpIjoiYmQ4ZTU4NTAtNWFlNy00ZDM3LTc5YjAtMzUwN2I3YjM2MzVkIiwic2NvcGUiOiIiLCJzdWIiOiJwb3J0YWwtYWRtaW4ifQ.udeXc5um9zpAOpMexZ2avgyIGSm7rGvjiOGAYepuz03DKmM_uzxS8Mn3vO5UZ0xpqOL-pJNvZEabaIzwXg-JzC0fMjPpDtXrqCfq1HJLLUzx7UL5SDVDHPcITHcfeamEmqolox9f7Z6KIqNCm2nyFXUCOWYf-M7LPalFNKV6JAs"
 )
 
 func main() {
