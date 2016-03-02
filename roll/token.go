@@ -144,6 +144,7 @@ func GenerateKeyExtractionFunctionForJTWFlow(applicationRepo ApplicationRepo) jw
 		//Look up the application
 		app, err := applicationRepo.SystemRetrieveApplicationByJWTFlowAudience(clientID.(string))
 		if err != nil {
+			log.Println("Error looking up app for",clientID,err.Error())
 			return nil, err
 		}
 
