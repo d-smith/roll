@@ -114,7 +114,7 @@ func runVault(docker *dockerclient.DockerClient) (string, string) {
 }
 
 func stopVaultOnShutdown(containerId string, docker *dockerclient.DockerClient) {
-	log.Info("... stopping container", containerId, "...")
+	log.Info("... stopping container ", containerId, "...")
 	docker.StopContainer(containerId, 5)
 	docker.RemoveContainer(containerId, true, false)
 }

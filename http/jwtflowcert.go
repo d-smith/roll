@@ -128,12 +128,12 @@ func handleCertPut(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Info("Putting cert for client_id", clientID)
+	log.Info("Putting cert for client_id: ", clientID)
 
 	//Extract the subject from the request header based on security mode
 	subject, _, err := subjectAndAdminScopeFromRequestCtx(r)
 	if err != nil {
-		log.Print("Error extracting subject:", err.Error())
+		log.Print("Error extracting subject: ", err.Error())
 		respondError(w, http.StatusInternalServerError, nil)
 		return
 	}
@@ -141,7 +141,7 @@ func handleCertPut(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 	//Parse body
 	var certCtx CertPutCtx
 	if err := parseRequest(r, &certCtx); err != nil {
-		log.Info("Error parsing request body", err.Error())
+		log.Info("Error parsing request body: ", err.Error())
 		respondError(w, http.StatusBadRequest, err)
 		return
 	}
@@ -213,7 +213,7 @@ func handleGetPublicKey(core *roll.Core, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	log.Info("retrieve public key for application", clientID)
+	log.Info("retrieve public key for application: ", clientID)
 
 	//Retrieve the app definition. Note that here since we are only returning publically
 	//available information, we do not have to apply the data security model

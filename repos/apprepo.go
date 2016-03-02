@@ -78,7 +78,7 @@ func (dar *DynamoAppRepo) CreateApplication(app *roll.Application) error {
 	//application name/developer email combination
 	existing, err := dar.RetrieveAppByNameAndDevEmail(app.ApplicationName, app.DeveloperEmail)
 	if err != nil {
-		log.Info("Internal error attempting to check for duplicate app", err.Error())
+		log.Info("Internal error attempting to check for duplicate app: ", err.Error())
 		return err
 	}
 
@@ -154,13 +154,13 @@ func (dar *DynamoAppRepo) UpdateApplication(app *roll.Application, subjectID str
 		return roll.NonOwnerUpdateError{}
 	}
 
-	log.Info("Updating", app.ClientID, "owned by", app.DeveloperID)
+	log.Info("Updating ", app.ClientID, " owned by ", app.DeveloperID)
 
 	//Build up the non-empty attributes to update
 	updateAttributes := make(map[string]*dynamodb.AttributeValueUpdate)
 
 	if app.LoginProvider != "" {
-		log.Info("Updating login provider:", app.LoginProvider)
+		log.Info("Updating login provider: ", app.LoginProvider)
 		updateAttributes[LoginProvider] = &dynamodb.AttributeValueUpdate{
 			Action: aws.String(dynamodb.AttributeActionPut),
 			Value: &dynamodb.AttributeValue{
@@ -170,7 +170,7 @@ func (dar *DynamoAppRepo) UpdateApplication(app *roll.Application, subjectID str
 	}
 
 	if app.RedirectURI != "" {
-		log.Info("Updating redirect uri:", app.RedirectURI)
+		log.Info("Updating redirect uri: ", app.RedirectURI)
 		updateAttributes[RedirectUri] = &dynamodb.AttributeValueUpdate{
 			Action: aws.String(dynamodb.AttributeActionPut),
 			Value: &dynamodb.AttributeValue{
@@ -191,7 +191,7 @@ func (dar *DynamoAppRepo) UpdateApplication(app *roll.Application, subjectID str
 			return roll.MissingJWTFlowAudience{}
 		}
 
-		log.Info("Updating public key:", app.JWTFlowPublicKey)
+		log.Info("Updating public key: ", app.JWTFlowPublicKey)
 		updateAttributes[JWTFlowPublicKey] = &dynamodb.AttributeValueUpdate{
 			Action: aws.String(dynamodb.AttributeActionPut),
 			Value: &dynamodb.AttributeValue{
@@ -199,7 +199,7 @@ func (dar *DynamoAppRepo) UpdateApplication(app *roll.Application, subjectID str
 			},
 		}
 
-		log.Info("Updating public key issuer:", app.JWTFlowIssuer)
+		log.Info("Updating public key issuer: ", app.JWTFlowIssuer)
 		updateAttributes[JWTFlowIssuer] = &dynamodb.AttributeValueUpdate{
 			Action: aws.String(dynamodb.AttributeActionPut),
 			Value: &dynamodb.AttributeValue{
@@ -207,7 +207,7 @@ func (dar *DynamoAppRepo) UpdateApplication(app *roll.Application, subjectID str
 			},
 		}
 
-		log.Info("Updating public key audience:", app.JWTFlowAudience)
+		log.Info("Updating public key audience: ", app.JWTFlowAudience)
 		updateAttributes[JWTFlowAudience] = &dynamodb.AttributeValueUpdate{
 			Action: aws.String(dynamodb.AttributeActionPut),
 			Value: &dynamodb.AttributeValue{
@@ -217,7 +217,7 @@ func (dar *DynamoAppRepo) UpdateApplication(app *roll.Application, subjectID str
 	}
 
 	if app.ApplicationName != "" {
-		log.Info("Updating application name:", app.ApplicationName)
+		log.Info("Updating application name: ", app.ApplicationName)
 		updateAttributes[ApplicationName] = &dynamodb.AttributeValueUpdate{
 			Action: aws.String(dynamodb.AttributeActionPut),
 			Value: &dynamodb.AttributeValue{
@@ -287,7 +287,7 @@ func (dar *DynamoAppRepo) RetrieveApplication(clientID string, subjectID string,
 		},
 	}
 
-	log.Info("Retrieve application", clientID)
+	log.Info("Retrieve application ", clientID)
 	out, err := dar.client.GetItem(params)
 	if err != nil {
 		return nil, err

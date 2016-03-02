@@ -167,7 +167,7 @@ func handleAuthZGet(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 	scopes := r.FormValue(oauth2Scope)
 	err = validateKnownScopes(scopes)
 	if err != nil {
-		log.Info("Error validating scope", err.Error())
+		log.Info("Error validating scope: ", err.Error())
 		redirectURL := buildScopeErrorRedirectURL(app)
 		http.Redirect(w, r, redirectURL, http.StatusFound)
 		return
@@ -226,7 +226,7 @@ func buildScopeErrorRedirectURL(app *roll.Application) string {
 }
 
 func buildRedirectURL(core *roll.Core, w http.ResponseWriter, responseType, subject, scope string, app *roll.Application) (string, error) {
-	log.Info("build redirect, app ctx:", app.RedirectURI)
+	log.Info("build redirect, app ctx: ", app.RedirectURI)
 
 	var redirectURL string
 	switch responseType {
@@ -247,7 +247,7 @@ func buildRedirectURL(core *roll.Core, w http.ResponseWriter, responseType, subj
 		panic(errors.New("unexpected response type in buildRedirectURL: " + responseType))
 	}
 
-	log.Info("redirect url", redirectURL)
+	log.Info("redirect url: ", redirectURL)
 
 	return redirectURL, nil
 }
@@ -414,7 +414,7 @@ func handleAuthZValidate(core *roll.Core, w http.ResponseWriter, r *http.Request
 	log.Info("validate scope")
 	valid, err := validateScopes(core, r)
 	if err != nil {
-		log.Info("error validating scope", err.Error())
+		log.Info("error validating scope: ", err.Error())
 		redirectURL := buildServerErrorRedirectURL(responseType, app, err.Error())
 		http.Redirect(w, r, redirectURL, http.StatusFound)
 		return

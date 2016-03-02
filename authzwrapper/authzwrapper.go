@@ -83,7 +83,7 @@ func (ah authHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	//Make sure the token is valid
 	if !token.Valid {
-		log.Info("Invalid token presented to service, ", token)
+		log.Info("Invalid token presented to service: ", token)
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write([]byte("Unauthorized\n"))
 		return
@@ -107,7 +107,7 @@ func (ah authHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !ah.whiteListOK(aud) {
-		log.Info("token failed whitelist check:", aud)
+		log.Info("token failed whitelist check: ", aud)
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write([]byte("Unauthorized\n"))
 		return
@@ -126,7 +126,7 @@ func (ah authHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if ok && scope == "admin" {
 		admin, err := ah.adminRepo.IsAdmin(sub)
 		if err != nil {
-			log.Info("error making admin scope determination", err.Error())
+			log.Info("error making admin scope determination: ", err.Error())
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte("Unauthorized\n"))
 			return

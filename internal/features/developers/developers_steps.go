@@ -51,7 +51,7 @@ func init() {
 	})
 
 	Then(`^An error is returned with StatusBadRequest$`, func() {
-		log.Info("Add dev with malformed email", malformed)
+		log.Info("Add dev with malformed email: ", malformed)
 		resp := rollhttp.TestHTTPPutWithRollSubject(T, "http://localhost:3000/v1/developers/"+malformed.Email, malformed)
 		assert.Equal(T, http.StatusBadRequest, resp.StatusCode)
 	})

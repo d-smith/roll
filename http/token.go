@@ -173,7 +173,7 @@ func lookupApplication(core *roll.Core, clientID string) (*roll.Application, err
 	}
 
 	if app == nil {
-		log.Info("Invalid client id", clientID)
+		log.Info("Invalid client id: ", clientID)
 		return nil, errors.New("Invalid client id")
 	}
 
@@ -226,7 +226,7 @@ func validateAndReturnCodeToken(secretsRepo roll.SecretsRepo, ctx *authCodeConte
 
 	//Make sure the token is valid
 	if !token.Valid {
-		log.Info("Invalid token presented to service, ", token)
+		log.Info("Invalid token presented to service: ", token)
 		return nil, errors.New("Invalid authorization code")
 	}
 
@@ -361,7 +361,7 @@ func handlePasswordGrantType(core *roll.Core, w http.ResponseWriter, r *http.Req
 	log.Info("validate scope")
 	valid, err := validateScopes(core, r)
 	if err != nil {
-		log.Info("error validating scope", err.Error())
+		log.Info("error validating scope: ", err.Error())
 		respondError(w, http.StatusInternalServerError, nil)
 		return
 	}

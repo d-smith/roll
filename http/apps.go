@@ -48,7 +48,7 @@ func handleApplications(core *roll.Core) http.Handler {
 }
 
 func retrieveApplication(clientID string, core *roll.Core, w http.ResponseWriter, r *http.Request) {
-	log.Info("ret appl called", clientID)
+	log.Info("ret appl called: ", clientID)
 	if clientID == "" {
 		respondError(w, http.StatusBadRequest, errors.New("Resource not specified"))
 		return
@@ -129,10 +129,10 @@ func handleApplicationPost(core *roll.Core, w http.ResponseWriter, r *http.Reque
 	app.DeveloperID = subject
 
 	//Store the application definition
-	log.Info("storing app def ", app)
+	log.Info("storing app def: ", app)
 	err = core.CreateApplication(&app)
 	if err != nil {
-		log.Info("Error storing app def", err.Error())
+		log.Info("Error storing app def: ", err.Error())
 		switch err.(type) {
 		case *repos.DuplicateAppdefError:
 			respondError(w, http.StatusConflict, err)
@@ -160,7 +160,7 @@ func handleApplicationPost(core *roll.Core, w http.ResponseWriter, r *http.Reque
 	}
 
 	//Return the client id
-	log.Info("return client id", id)
+	log.Info("return client id: ", id)
 	clientID := ApplicationCreatedResponse{ClientID: id}
 
 	respondOk(w, clientID)
@@ -217,7 +217,7 @@ func handleApplicationPut(core *roll.Core, w http.ResponseWriter, r *http.Reques
 	storedApp.DeveloperID = app.DeveloperID
 
 	//Store the application definition
-	log.Info("updating app def ", app)
+	log.Info("updating app def: ", app)
 	err = core.UpdateApplication(&app, subject)
 
 	if err != nil {

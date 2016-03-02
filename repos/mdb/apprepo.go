@@ -134,7 +134,7 @@ func (ar *MariaDBAppRepo) UpdateApplication(app *roll.Application, subjectID str
 		return roll.NonOwnerUpdateError{}
 	}
 
-	log.Info("Updating", app.ClientID, "owned by", app.DeveloperID)
+	log.Info("Updating ", app.ClientID, " owned by ", app.DeveloperID)
 
 	if app.JWTFlowPublicKey != "" {
 		err = applyUpdatesWithJWTColumns(ar.db, app)
@@ -205,7 +205,7 @@ func (ar *MariaDBAppRepo) SystemRetrieveApplication(clientID string) (*roll.Appl
 	redirectUri,jwtFlowAudience, jwtFlowIssuer, jwtFlowPublicKey from application where clientId = ?
 	`
 
-	log.Info("Looking up app for", clientID)
+	log.Info("Looking up app for ", clientID)
 	var app roll.Application
 	err := ar.db.QueryRow(appSql,
 		clientID).Scan(

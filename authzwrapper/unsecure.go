@@ -30,7 +30,7 @@ func (uh unsecureHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Info("setting subject and context", subject, false)
+	log.Info("setting subject and context:", subject, " ", false)
 	context.Set(r, AuthzSubject, subject)
 	context.Set(r, AuthzAdminScope, false)
 	uh.handler.ServeHTTP(w, r)

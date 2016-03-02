@@ -30,7 +30,7 @@ func URLGuard(url string) {
 
 		req,err := http.NewRequest("GET",url, nil)
 		if err != nil {
-			log.Info("Error creating request... bailing", err.Error())
+			log.Info("Error creating request... bailing...", err.Error())
 			return
 		}
 
