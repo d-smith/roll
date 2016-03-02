@@ -4,7 +4,7 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/context"
 	"github.com/xtraclabs/roll/roll"
-	"log"
+	log "github.com/Sirupsen/logrus"
 	"net/http"
 	"strings"
 )
@@ -56,7 +56,7 @@ func (ah authHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	//Check for header presence
 	authzHeader := r.Header.Get("Authorization")
 	if authzHeader == "" {
-		log.Println("Missing Authorization header")
+		log.Info("Missing Authorization header")
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write([]byte("Unauthorized\n"))
 		return
@@ -65,7 +65,7 @@ func (ah authHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	//Header format should be Bearer token
 	parts := strings.SplitAfter(authzHeader, "Bearer")
 	if len(parts) != 2 {
-		log.Println("Unexpected authorization header format - expecting bearer token")
+		log.Info("Unexpected authorization header format - expecting bearer token")
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write([]byte("Unauthorized\n"))
 		return
@@ -75,7 +75,7 @@ func (ah authHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	bearerToken := strings.TrimSpace(parts[1])
 	token, err := jwt.Parse(bearerToken, roll.GenerateKeyExtractionFunction(ah.secretsRepo))
 	if err != nil {
-		log.Println(err.Error())
+		log.Info(err.Error())
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write([]byte("Unauthorized\n"))
 		return
@@ -83,7 +83,7 @@ func (ah authHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	//Make sure the token is valid
 	if !token.Valid {
-		log.Println("Invalid token presented to service, ", token)
+		log.Info("Invalid token presented to service: ", token)
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write([]byte("Unauthorized\n"))
 		return
@@ -91,7 +91,7 @@ func (ah authHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	//Make sure it's no an authcode token
 	if roll.IsAuthCode(token) {
-		log.Println("Auth code used as access token - access denied")
+		log.Info("Auth code used as access token - access denied")
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write([]byte("Unauthorized\n"))
 		return
@@ -100,14 +100,14 @@ func (ah authHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	//Check against the whitelist
 	aud, ok := token.Claims["aud"].(string)
 	if !ok {
-		log.Println("aud claim not present in token")
+		log.Info("aud claim not present in token")
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write([]byte("Unauthorized\n"))
 		return
 	}
 
 	if !ah.whiteListOK(aud) {
-		log.Println("token failed whitelist check:", aud)
+		log.Info("token failed whitelist check: ", aud)
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write([]byte("Unauthorized\n"))
 		return
@@ -115,7 +115,7 @@ func (ah authHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	sub, ok := token.Claims["sub"].(string)
 	if !ok || sub == "" {
-		log.Println("sub claim not present in token")
+		log.Info("sub claim not present in token")
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write([]byte("Unauthorized\n"))
 		return
@@ -126,7 +126,7 @@ func (ah authHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if ok && scope == "admin" {
 		admin, err := ah.adminRepo.IsAdmin(sub)
 		if err != nil {
-			log.Println("error making admin scope determination", err.Error())
+			log.Info("error making admin scope determination: ", err.Error())
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte("Unauthorized\n"))
 			return

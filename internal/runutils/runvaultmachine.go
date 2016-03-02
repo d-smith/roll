@@ -8,7 +8,7 @@ import (
 	"github.com/samalba/dockerclient"
 	"github.com/xtraclabs/roll/internal/dockerutil"
 	"github.com/xtraclabs/roll/rollsvcs"
-	"log"
+	log "github.com/Sirupsen/logrus"
 	"net/http"
 	"os"
 	"os/signal"
@@ -44,7 +44,7 @@ func fatal(err error) {
 }
 
 func createVaultClient() *vault.Client {
-	log.Println("Create vault client")
+	log.Info("Create vault client")
 	config := &vault.Config{
 		Address:    "http://localhost:8200",
 		HttpClient: http.DefaultClient,
@@ -56,14 +56,14 @@ func createVaultClient() *vault.Client {
 }
 
 func unsealVault(vc *vault.Client, initResponse *vault.InitResponse) string {
-	log.Println("Unseal vault")
+	log.Info("Unseal vault")
 	_, err := vc.Sys().Unseal(initResponse.Keys[0])
 	fatal(err)
 	return initResponse.RootToken
 }
 
 func initializeNewVault(vc *vault.Client) *vault.InitResponse {
-	log.Println("Initialize fresh vault")
+	log.Info("Initialize fresh vault")
 	vaultInit := &vault.InitRequest{
 		SecretShares:    1,
 		SecretThreshold: 1,
@@ -85,21 +85,21 @@ func runVault(docker *dockerclient.DockerClient) (string, string) {
 	var bootedContainer bool
 
 	//Is vault running?
-	log.Println("Is vault running?")
+	log.Info("Is vault running?")
 	info := dockerutil.GetAcceptanceTestContainerInfo(docker, "atest-vault")
 
 	if info != nil {
-		log.Println("Vault container found - state is: ", info.State.StateString())
+		log.Info("Vault container found - state is: ", info.State.StateString())
 		log.Fatal("You must kill and remove the container manually - can't get the root token from an existing container in this test")
 		return "", "" //not reached
 	}
 
-	log.Println("Vault is not running - create container context")
+	log.Info("Vault is not running - create container context")
 	bootedContainer = true
 	vaultContainerCtx := createVaultTestContainerContext()
 
 	//Create and start the container.
-	log.Println("Create and start the container")
+	log.Info("Create and start the container")
 	containerId := dockerutil.CreateAndStartContainer(docker, []string{"IPC_LOCK"}, nil, vaultContainerCtx)
 
 	if bootedContainer {
@@ -114,7 +114,7 @@ func runVault(docker *dockerclient.DockerClient) (string, string) {
 }
 
 func stopVaultOnShutdown(containerId string, docker *dockerclient.DockerClient) {
-	log.Println("... stopping container", containerId, "...")
+	log.Info("... stopping container ", containerId, "...")
 	docker.StopContainer(containerId, 5)
 	docker.RemoveContainer(containerId, true, false)
 }
@@ -124,13 +124,13 @@ func RunVaultAndRoll() chan bool {
 	dockerHost, dockerCertPath := dockerutil.ReadDockerEnv()
 
 	// Init the client
-	log.Println("Create docker client")
+	log.Info("Create docker client")
 	docker, _ := dockerclient.NewDockerClient(dockerHost, dockerutil.BuildDockerTLSConfig(dockerCertPath))
 
 	containerName, token := runVault(docker)
 
 	log.Printf("export VAULT_TOKEN=%s\n", token)
-	log.Println("export VAULT_ADDR=http://localhost:8200")
+	log.Info("export VAULT_ADDR=http://localhost:8200")
 
 	//Set up interrupt signal handler
 	signalChan := make(chan os.Signal, 1)

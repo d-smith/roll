@@ -6,7 +6,7 @@ import (
 	rollhttp "github.com/xtraclabs/roll/http"
 	"github.com/xtraclabs/roll/internal/testutils"
 	"github.com/xtraclabs/roll/roll"
-	"log"
+	log "github.com/Sirupsen/logrus"
 	"net/http"
 )
 
@@ -20,7 +20,7 @@ func init() {
 	})
 
 	Given(`^A developer who registers on the portal$`, func() {
-		log.Println("Create dev with malformed email")
+		log.Info("Create dev with malformed email")
 		newDev = testutils.CreateNewTestDev()
 	})
 
@@ -38,7 +38,7 @@ func init() {
 	})
 
 	Given(`^a developer who registers on the portal$`, func() {
-		log.Println("Create dev with malformed email")
+		log.Info("Create dev with malformed email")
 		malformed = roll.Developer{
 			FirstName: "test",
 			LastName:  "test",
@@ -51,7 +51,7 @@ func init() {
 	})
 
 	Then(`^An error is returned with StatusBadRequest$`, func() {
-		log.Println("Add dev with malformed email", malformed)
+		log.Info("Add dev with malformed email: ", malformed)
 		resp := rollhttp.TestHTTPPutWithRollSubject(T, "http://localhost:3000/v1/developers/"+malformed.Email, malformed)
 		assert.Equal(T, http.StatusBadRequest, resp.StatusCode)
 	})

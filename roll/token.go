@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	jwt "github.com/dgrijalva/jwt-go"
-	"log"
+	log "github.com/Sirupsen/logrus"
 	"strings"
 	"time"
 )
@@ -144,12 +144,12 @@ func GenerateKeyExtractionFunctionForJTWFlow(applicationRepo ApplicationRepo) jw
 		//Look up the application
 		app, err := applicationRepo.SystemRetrieveApplicationByJWTFlowAudience(clientID.(string))
 		if err != nil {
-			log.Println("Error looking up app for",clientID,err.Error())
+			log.Info("Error looking up app for ",clientID, " ", err.Error())
 			return nil, err
 		}
 
 		if app == nil {
-			log.Println("No app definition associated with audience found: ", clientID.(string))
+			log.Info("No app definition associated with audience found: ", clientID.(string))
 			return nil, errors.New("No app definition associated with aud found")
 		}
 
@@ -162,7 +162,7 @@ func GenerateKeyExtractionFunctionForJTWFlow(applicationRepo ApplicationRepo) jw
 		//Grab the public key from the app definition
 		keystring := app.JWTFlowPublicKey
 
-		log.Println("validating with '", keystring, "'")
+		log.Info("validating with '", keystring, "'")
 
 		//Parse the keystring
 		return jwt.ParseRSAPublicKeyFromPEM([]byte(keystring))

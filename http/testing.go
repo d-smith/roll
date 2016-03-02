@@ -8,7 +8,7 @@ import (
 	"github.com/xtraclabs/roll/roll/mocks"
 	"io"
 	"io/ioutil"
-	"log"
+	log "github.com/Sirupsen/logrus"
 	"net"
 	"net/http"
 	"testing"
@@ -69,7 +69,7 @@ func NewTestCore() (*roll.Core, *roll.CoreConfig) {
 
 func checkFatal(t assert.TestingT, err error) {
 	if err != nil {
-		log.Println("checkFatal passed an error")
+		log.Info("checkFatal passed an error")
 		assert.Fail(t, err.Error())
 	}
 }
@@ -115,7 +115,7 @@ func testHTTPData(t assert.TestingT, method string, addr string, rollSubject boo
 
 	req.Header.Set("Content-Type", "application/json")
 	if rollSubject {
-		log.Println("setting X-Roll-Subject to rolltest")
+		log.Info("setting X-Roll-Subject to rolltest")
 		req.Header.Set("X-Roll-Subject", "rolltest")
 	}
 

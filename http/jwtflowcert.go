@@ -5,7 +5,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"github.com/xtraclabs/roll/roll"
-	"log"
+	log "github.com/Sirupsen/logrus"
 	"net/http"
 	"strings"
 )
@@ -68,16 +68,16 @@ func validateClientSecret(core *roll.Core, r *http.Request, clientID, clientSecr
 }
 
 func extractPublicKeyFromCert(certPEM string) (string, error) {
-	log.Println("extract public key from:")
-	log.Println(certPEM)
-	log.Println("certPEM len: ", len(certPEM))
+	log.Info("extract public key from:")
+	log.Info(certPEM)
+	log.Info("certPEM len: ", len(certPEM))
 
 	block, _ := pem.Decode([]byte(certPEM))
 	if block == nil {
 		return "", errors.New("Unable to decode certificate PEM")
 	}
 
-	log.Println("parse the cert")
+	log.Info("parse the cert")
 	cert, err := x509.ParseCertificate(block.Bytes)
 	if err != nil {
 		return "", errors.New("failed to parse certificate: " + err.Error())
@@ -128,12 +128,12 @@ func handleCertPut(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println("Putting cert for client_id", clientID)
+	log.Info("Putting cert for client_id: ", clientID)
 
 	//Extract the subject from the request header based on security mode
 	subject, _, err := subjectAndAdminScopeFromRequestCtx(r)
 	if err != nil {
-		log.Print("Error extracting subject:", err.Error())
+		log.Print("Error extracting subject: ", err.Error())
 		respondError(w, http.StatusInternalServerError, nil)
 		return
 	}
@@ -141,22 +141,22 @@ func handleCertPut(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 	//Parse body
 	var certCtx CertPutCtx
 	if err := parseRequest(r, &certCtx); err != nil {
-		log.Println("Error parsing request body", err.Error())
+		log.Info("Error parsing request body: ", err.Error())
 		respondError(w, http.StatusBadRequest, err)
 		return
 	}
 
 	//Check body content
-	log.Println("Checking content")
+	log.Info("Checking content")
 	err = checkBodyContent(certCtx)
 	if err != nil {
-		log.Println("Problem with content: ", err.Error())
+		log.Info("Problem with content: ", err.Error())
 		respondError(w, http.StatusBadRequest, err)
 		return
 	}
 
 	//Validate client secret
-	log.Println("validating client secret")
+	log.Info("validating client secret")
 	app, err := validateClientSecret(core, r, clientID, certCtx.ClientSecret)
 	if err != nil {
 		switch err {
@@ -171,7 +171,7 @@ func handleCertPut(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 	}
 
 	//Extract public key from cert
-	log.Println("Extract public key")
+	log.Info("Extract public key")
 	publicKeyPEM, err := extractPublicKeyFromCert(certCtx.CertPEM)
 	if err != nil {
 		respondError(w, http.StatusBadRequest, err)
@@ -180,7 +180,7 @@ func handleCertPut(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 
 	//Update the app with the public key. Note here we are adding the cert to the retrieved application
 	//attributes.
-	log.Println("Update app with signing key, etc")
+	log.Info("Update app with signing key, etc")
 	app.JWTFlowPublicKey = publicKeyPEM
 	app.JWTFlowIssuer = certCtx.CertIssuer
 	app.JWTFlowAudience = certCtx.CertAudience
@@ -213,19 +213,19 @@ func handleGetPublicKey(core *roll.Core, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	log.Println("retrieve public key for application", clientID)
+	log.Info("retrieve public key for application: ", clientID)
 
 	//Retrieve the app definition. Note that here since we are only returning publically
 	//available information, we do not have to apply the data security model
 	app, err := core.SystemRetrieveApplication(clientID)
 	if err != nil {
-		log.Println("error retrieving application")
+		log.Info("error retrieving application")
 		respondError(w, http.StatusInternalServerError, errReadingApplicationRecord)
 		return
 	}
 
 	if app == nil {
-		log.Println("application not found")
+		log.Info("application not found")
 		respondError(w, http.StatusNotFound, nil)
 		return
 	}

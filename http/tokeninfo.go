@@ -5,7 +5,7 @@ import (
 	"errors"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/xtraclabs/roll/roll"
-	"log"
+	log "github.com/Sirupsen/logrus"
 	"net/http"
 )
 
@@ -33,7 +33,7 @@ func handleTokenInfoGet(core *roll.Core, w http.ResponseWriter, r *http.Request)
 	//Grab the token
 	tokenString := r.FormValue("access_token")
 	if tokenString == "" {
-		log.Println("missing access token")
+		log.Info("missing access token")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -41,7 +41,7 @@ func handleTokenInfoGet(core *roll.Core, w http.ResponseWriter, r *http.Request)
 	//Parse and validate the token
 	token, err := jwt.Parse(tokenString, roll.GenerateKeyExtractionFunction(core.SecretsRepo))
 	if err != nil {
-		log.Println(err.Error())
+		log.Info(err.Error())
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}

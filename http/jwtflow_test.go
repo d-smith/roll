@@ -370,7 +370,7 @@ func TestJWTFlowValidAssertionOkYeah(t *testing.T) {
 		RedirectURI:      "http://localhost:3000/ab",
 		LoginProvider:    "xtrac://localhost:9000",
 		JWTFlowPublicKey: publicKey,
-		JWTFlowIssuer:    "joe",
+		JWTFlowIssuer:    "1111-2222-3333333-4444444",
 		JWTFlowAudience:  "captive",
 	}
 
@@ -419,6 +419,7 @@ func TestJWTFlowValidAssertionOkAdminScope(t *testing.T) {
 		RedirectURI:      "http://localhost:3000/ab",
 		LoginProvider:    "xtrac://localhost:9000",
 		JWTFlowPublicKey: publicKey,
+		JWTFlowIssuer:    "1111-2222-3333333-4444444",
 	}
 
 	appRepoMock := coreConfig.ApplicationRepo.(*mocks.ApplicationRepo)

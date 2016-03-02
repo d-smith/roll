@@ -6,7 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/xtraclabs/roll/dbutil"
 	"github.com/xtraclabs/roll/roll"
-	"log"
+	log "github.com/Sirupsen/logrus"
 )
 
 //DynamoDevRepo provides a repository for Developer objects implemented using DynamoDB
@@ -68,7 +68,7 @@ func (dddr DynamoDevRepo) RetrieveDeveloper(email string, subjectID string, admi
 		return nil, fmt.Errorf("Expected 1 result got %d instead", *resp.Count)
 	}
 
-	log.Println("Load struct with data returned from dynamo")
+	log.Info("Load struct with data returned from dynamo")
 	return &roll.Developer{
 		Email:     extractString(resp.Items[0][EMail]),
 		FirstName: extractString(resp.Items[0][FirstName]),

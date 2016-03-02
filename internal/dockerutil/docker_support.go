@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/samalba/dockerclient"
 	"io/ioutil"
-	"log"
+	log "github.com/Sirupsen/logrus"
 	"os"
 	"strings"
 )
@@ -143,7 +143,7 @@ func CreateAndStartContainer(docker *dockerclient.DockerClient, additionalCapabi
 		log.Fatal(err)
 	}
 
-	log.Println("...container started...")
+	log.Info("...container started...")
 
 	return containerId
 }

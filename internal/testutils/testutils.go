@@ -3,7 +3,7 @@ package testutils
 import (
 	"fmt"
 	"github.com/xtraclabs/roll/roll"
-	"log"
+	log "github.com/Sirupsen/logrus"
 	"net/http"
 	"time"
 )
@@ -24,13 +24,13 @@ func URLGuard(url string) {
 	const limit = 60
 	var count int
 	for {
-		log.Println("check test endpoint availability")
+		log.Info("check test endpoint availability")
 
 		client := http.Client{}
 
 		req,err := http.NewRequest("GET",url, nil)
 		if err != nil {
-			log.Println("Error creating request... bailing", err.Error())
+			log.Info("Error creating request... bailing...", err.Error())
 			return
 		}
 
@@ -45,5 +45,5 @@ func URLGuard(url string) {
 		time.Sleep(1 * time.Second)
 	}
 
-	log.Println("acceptance tests ready for action boss")
+	log.Info("acceptance tests ready for action boss")
 }

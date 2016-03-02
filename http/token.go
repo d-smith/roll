@@ -5,7 +5,7 @@ import (
 	"errors"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/xtraclabs/roll/roll"
-	"log"
+	log "github.com/Sirupsen/logrus"
 	"net/http"
 	"strings"
 )
@@ -168,12 +168,12 @@ func subjectFromBearerToken(core *roll.Core, r *http.Request) (string, error) {
 func lookupApplication(core *roll.Core, clientID string) (*roll.Application, error) {
 	app, err := core.SystemRetrieveApplication(clientID)
 	if err != nil {
-		log.Println("Error retrieving app data: ", err.Error())
+		log.Info("Error retrieving app data: ", err.Error())
 		return nil, ErrRetrievingAppData
 	}
 
 	if app == nil {
-		log.Println("Invalid client id", clientID)
+		log.Info("Invalid client id: ", clientID)
 		return nil, errors.New("Invalid client id")
 	}
 
@@ -183,12 +183,12 @@ func lookupApplication(core *roll.Core, clientID string) (*roll.Application, err
 func lookupApplicatioByAudience(core *roll.Core, audience string) (*roll.Application, error) {
 	app, err := core.SystemRetrieveApplicationByJWTFlowAudience(audience)
 	if err != nil {
-		log.Println("Error retrieving app data: ", err.Error())
+		log.Info("Error retrieving app data: ", err.Error())
 		return nil, ErrRetrievingAppData
 	}
 
 	if app == nil {
-		log.Println("invalid client id")
+		log.Info("invalid client id")
 		return nil, errors.New("Invalid client id")
 	}
 
@@ -198,20 +198,20 @@ func lookupApplicatioByAudience(core *roll.Core, audience string) (*roll.Applica
 func validateClientDetails(core *roll.Core, ctx *authCodeContext) (*roll.Application, error) {
 	app, err := lookupApplication(core, ctx.clientID)
 	if err != nil {
-		log.Println("error looking up application")
+		log.Info("error looking up application")
 		return nil, err
 	}
 
 	if app.ClientSecret != ctx.clientSecret {
-		log.Println("error validating client secret")
-		log.Println("secret from db: ", app.ClientSecret)
-		log.Println("secret from context: ", ctx.clientSecret)
+		log.Info("error validating client secret")
+		log.Info("secret from db: ", app.ClientSecret)
+		log.Info("secret from context: ", ctx.clientSecret)
 
 		return nil, ErrInvalidClientDetails
 	}
 
 	if ctx.grantType == "authorization_code" && app.RedirectURI != ctx.redirectURI {
-		log.Println("error validating registered redirect URI")
+		log.Info("error validating registered redirect URI")
 		return nil, ErrInvalidClientDetails
 	}
 
@@ -226,7 +226,7 @@ func validateAndReturnCodeToken(secretsRepo roll.SecretsRepo, ctx *authCodeConte
 
 	//Make sure the token is valid
 	if !token.Valid {
-		log.Println("Invalid token presented to service, ", token)
+		log.Info("Invalid token presented to service: ", token)
 		return nil, errors.New("Invalid authorization code")
 	}
 
@@ -327,11 +327,11 @@ func handleAuthCodeGrantType(core *roll.Core, w http.ResponseWriter, r *http.Req
 
 func handlePasswordGrantType(core *roll.Core, w http.ResponseWriter, r *http.Request, codeContext *authCodeContext) {
 	//Validate client details
-	log.Println("Handle password grant type")
-	log.Println("Validate client details")
+	log.Info("Handle password grant type")
+	log.Info("Validate client details")
 	app, err := validateClientDetails(core, codeContext)
 	if err != nil {
-		log.Println(err.Error())
+		log.Info(err.Error())
 		switch err {
 		case ErrInvalidClientDetails:
 			respondError(w, http.StatusBadRequest, ErrInvalidClientDetails)
@@ -343,10 +343,10 @@ func handlePasswordGrantType(core *roll.Core, w http.ResponseWriter, r *http.Req
 	}
 
 	//If the client details checkout, authenticate the user credentials
-	log.Println("authenticate user credentials")
+	log.Info("authenticate user credentials")
 	authenticated, err := authenticateUser(codeContext.username, codeContext.password, app)
 	if err != nil {
-		log.Println("Error authenticating user: ", err.Error())
+		log.Info("Error authenticating user: ", err.Error())
 		respondError(w, http.StatusInternalServerError, err)
 		return
 	}
@@ -358,16 +358,16 @@ func handlePasswordGrantType(core *roll.Core, w http.ResponseWriter, r *http.Req
 	}
 
 	//If a scope is present, validate it.
-	log.Println("validate scope")
+	log.Info("validate scope")
 	valid, err := validateScopes(core, r)
 	if err != nil {
-		log.Println("error validating scope", err.Error())
+		log.Info("error validating scope: ", err.Error())
 		respondError(w, http.StatusInternalServerError, nil)
 		return
 	}
 
 	if !valid {
-		log.Println("scope is invalid")
+		log.Info("scope is invalid")
 		respondError(w, http.StatusUnauthorized, nil)
 		return
 	}
@@ -396,19 +396,19 @@ func filterUnsupportedClaims(scope string) string {
 }
 
 func handleJWTGrantType(core *roll.Core, w http.ResponseWriter, r *http.Request, codeContext *authCodeContext) {
-	log.Println("handleJWTGrantType")
+	log.Info("handleJWTGrantType")
 
 	//First step is to verify the token signature
-	log.Println("verify token signature")
+	log.Info("verify token signature")
 	token, err := jwt.Parse(codeContext.assertion, roll.GenerateKeyExtractionFunctionForJTWFlow(core.ApplicationRepo))
 	if err != nil {
-		log.Println(err.Error())
+		log.Info(err.Error())
 		respondError(w, http.StatusUnauthorized, err)
 		return
 	}
 
 	//Grab the app definition based on iss carries the api key/client_id
-	log.Println("look up application definition")
+	log.Info("look up application definition")
 	app, err := lookupApplicatioByAudience(core, token.Claims["aud"].(string))
 	if err != nil {
 		switch err {
@@ -441,7 +441,7 @@ func handleJWTGrantType(core *roll.Core, w http.ResponseWriter, r *http.Request,
 	}
 
 	//Now we can generate a token since we had the app needed to form the token
-	log.Println("generate token")
+	log.Info("generate token")
 
 	//TODO - extract and validate scope
 	generateAndRespondWithAccessToken(core, subject, filterUnsupportedClaims(scope), app, w)

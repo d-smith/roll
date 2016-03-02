@@ -7,7 +7,7 @@ import (
 	"github.com/xtraclabs/roll/login"
 	"github.com/xtraclabs/roll/roll"
 	"html/template"
-	"log"
+	log "github.com/Sirupsen/logrus"
 	"net/http"
 	"net/url"
 	"strings"
@@ -128,7 +128,7 @@ func executeAuthTemplate(w http.ResponseWriter, r *http.Request, pageCtx *authPa
 //means validation fails.
 func validateKnownScopes(scope string) error {
 	if scope == "" {
-		log.Println("No scope content to validate")
+		log.Info("No scope content to validate")
 		return nil
 	}
 
@@ -144,7 +144,7 @@ func validateKnownScopes(scope string) error {
 		return errors.New("admin is the only known scope")
 	}
 
-	log.Println("scope content valid")
+	log.Info("scope content valid")
 	return nil
 }
 
@@ -167,7 +167,7 @@ func handleAuthZGet(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 	scopes := r.FormValue(oauth2Scope)
 	err = validateKnownScopes(scopes)
 	if err != nil {
-		log.Println("Error validating scope", err.Error())
+		log.Info("Error validating scope: ", err.Error())
 		redirectURL := buildScopeErrorRedirectURL(app)
 		http.Redirect(w, r, redirectURL, http.StatusFound)
 		return
@@ -226,7 +226,7 @@ func buildScopeErrorRedirectURL(app *roll.Application) string {
 }
 
 func buildRedirectURL(core *roll.Core, w http.ResponseWriter, responseType, subject, scope string, app *roll.Application) (string, error) {
-	log.Println("build redirect, app ctx:", app.RedirectURI)
+	log.Info("build redirect, app ctx: ", app.RedirectURI)
 
 	var redirectURL string
 	switch responseType {
@@ -247,7 +247,7 @@ func buildRedirectURL(core *roll.Core, w http.ResponseWriter, responseType, subj
 		panic(errors.New("unexpected response type in buildRedirectURL: " + responseType))
 	}
 
-	log.Println("redirect url", redirectURL)
+	log.Info("redirect url: ", redirectURL)
 
 	return redirectURL, nil
 }
@@ -313,14 +313,14 @@ func authenticateUser(username, password string, app *roll.Application) (bool, e
 	req.Header.Add("SOAPAction", "\"\"")
 	req.Header.Add("Content-Type", "text/xml")
 
-	log.Println(fmt.Sprintf("%v\n%s", req, loginRequest))
+	log.Info(fmt.Sprintf("%v\n%s", req, loginRequest))
 
 	resp, err := client.Do(req)
 	if err != nil {
 		return false, err
 	}
 
-	log.Println(fmt.Sprintf("%v", resp))
+	log.Info(fmt.Sprintf("%v", resp))
 
 	return resp.StatusCode == http.StatusOK, nil
 
@@ -328,14 +328,14 @@ func authenticateUser(username, password string, app *roll.Application) (bool, e
 
 func validateScopes(core *roll.Core, r *http.Request) (bool, error) {
 	scope := r.FormValue(oauth2Scope)
-	log.Println("validating scope", scope)
+	log.Info("validating scope", scope)
 	if scope == "" {
 		return true, nil
 	}
 
 	scopeParts := strings.Fields(scope)
 	if len(scopeParts) > 1 || scopeParts[0] != adminScope {
-		log.Println("scope not allowed")
+		log.Info("scope not allowed")
 		return false, nil
 	}
 
@@ -398,7 +398,7 @@ func handleAuthZValidate(core *roll.Core, w http.ResponseWriter, r *http.Request
 	//Authenticate the user
 	authenticated, err := authenticateUser(r.FormValue("username"), r.FormValue("password"), app)
 	if err != nil {
-		log.Println("Error authenticating user: ", err.Error())
+		log.Info("Error authenticating user: ", err.Error())
 		respondError(w, http.StatusInternalServerError, err)
 		return
 	}
@@ -411,17 +411,17 @@ func handleAuthZValidate(core *roll.Core, w http.ResponseWriter, r *http.Request
 	}
 
 	//If a scope is present, validate it.
-	log.Println("validate scope")
+	log.Info("validate scope")
 	valid, err := validateScopes(core, r)
 	if err != nil {
-		log.Println("error validating scope", err.Error())
+		log.Info("error validating scope: ", err.Error())
 		redirectURL := buildServerErrorRedirectURL(responseType, app, err.Error())
 		http.Redirect(w, r, redirectURL, http.StatusFound)
 		return
 	}
 
 	if !valid {
-		log.Println("scope is invalid")
+		log.Info("scope is invalid")
 		redirectURL := buildInvalidScopeRedirectURL(responseType, app)
 		http.Redirect(w, r, redirectURL, http.StatusFound)
 		return
@@ -430,7 +430,7 @@ func handleAuthZValidate(core *roll.Core, w http.ResponseWriter, r *http.Request
 	//Build redirect url with embedded token or code
 	redirectURL, err := buildRedirectURL(core, w, responseType, r.FormValue("username"), r.FormValue("scope"), app)
 	if err != nil {
-		log.Println("Error generating redirect url: ", err.Error())
+		log.Info("Error generating redirect url: ", err.Error())
 		respondError(w, http.StatusInternalServerError, err)
 		return
 	}

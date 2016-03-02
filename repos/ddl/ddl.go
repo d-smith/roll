@@ -4,7 +4,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/xtraclabs/roll/dbutil"
-	"log"
+	log "github.com/Sirupsen/logrus"
 	"os"
 )
 
@@ -26,7 +26,7 @@ func DeleteTable(tableName string) {
 
 	localAddr := os.Getenv("LOCAL_DYNAMO_ADDR")
 	if localAddr == "" {
-		log.Println("DeleteAppTable will only attempt to delete a local dynamodb table... returning.")
+		log.Info("DeleteAppTable will only attempt to delete a local dynamodb table... returning.")
 		return
 	}
 
@@ -38,7 +38,7 @@ func DeleteTable(tableName string) {
 	resp, err := svc.DeleteTable(params)
 
 	if err != nil {
-		log.Println(err.Error())
+		log.Info(err.Error())
 		return
 	}
 
@@ -96,7 +96,7 @@ func CreateAppTable() {
 		log.Fatal(err)
 	}
 
-	log.Println(resp)
+	log.Info(resp)
 }
 
 func CreateDevTable() {
@@ -150,7 +150,7 @@ func CreateDevTable() {
 		log.Fatal(err)
 	}
 
-	log.Println(resp)
+	log.Info(resp)
 }
 
 func CreateAdminTable() {
@@ -181,5 +181,5 @@ func CreateAdminTable() {
 		log.Fatal(err)
 	}
 
-	log.Println(resp)
+	log.Info(resp)
 }

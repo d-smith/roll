@@ -5,7 +5,7 @@ import (
 	"github.com/xtraclabs/roll/repos"
 	"github.com/xtraclabs/roll/roll"
 	"github.com/xtraclabs/roll/secrets"
-	"log"
+	log "github.com/Sirupsen/logrus"
 	"net/http"
 	"strings"
 )
@@ -48,7 +48,7 @@ func handleApplications(core *roll.Core) http.Handler {
 }
 
 func retrieveApplication(clientID string, core *roll.Core, w http.ResponseWriter, r *http.Request) {
-	log.Println("ret appl called", clientID)
+	log.Info("ret appl called: ", clientID)
 	if clientID == "" {
 		respondError(w, http.StatusBadRequest, errors.New("Resource not specified"))
 		return
@@ -91,7 +91,7 @@ func listApplications(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 }
 
 func handleApplicationGet(core *roll.Core, w http.ResponseWriter, r *http.Request) {
-	log.Println("handleApplicationGet called")
+	log.Info("handleApplicationGet called")
 	clientID := strings.TrimPrefix(r.RequestURI, ApplicationsURI)
 	retrieveApplication(clientID, core, w, r)
 }
@@ -129,10 +129,10 @@ func handleApplicationPost(core *roll.Core, w http.ResponseWriter, r *http.Reque
 	app.DeveloperID = subject
 
 	//Store the application definition
-	log.Println("storing app def ", app)
+	log.Info("storing app def: ", app)
 	err = core.CreateApplication(&app)
 	if err != nil {
-		log.Println("Error storing app def", err.Error())
+		log.Info("Error storing app def: ", err.Error())
 		switch err.(type) {
 		case *repos.DuplicateAppdefError:
 			respondError(w, http.StatusConflict, err)
@@ -144,7 +144,7 @@ func handleApplicationPost(core *roll.Core, w http.ResponseWriter, r *http.Reque
 	}
 
 	//Generate a private/public key pair
-	log.Println("Generate key pair")
+	log.Info("Generate key pair")
 	private, public, err := secrets.GenerateKeyPair()
 	if err != nil {
 		respondError(w, http.StatusBadRequest, err)
@@ -152,7 +152,7 @@ func handleApplicationPost(core *roll.Core, w http.ResponseWriter, r *http.Reque
 	}
 
 	//Store keys in secrets vault
-	log.Println("store key pair in vault")
+	log.Info("store key pair in vault")
 	err = core.StoreKeysForApp(id, private, public)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, err)
@@ -160,7 +160,7 @@ func handleApplicationPost(core *roll.Core, w http.ResponseWriter, r *http.Reque
 	}
 
 	//Return the client id
-	log.Println("return client id", id)
+	log.Info("return client id: ", id)
 	clientID := ApplicationCreatedResponse{ClientID: id}
 
 	respondOk(w, clientID)
@@ -217,11 +217,11 @@ func handleApplicationPut(core *roll.Core, w http.ResponseWriter, r *http.Reques
 	storedApp.DeveloperID = app.DeveloperID
 
 	//Store the application definition
-	log.Println("updating app def ", app)
+	log.Info("updating app def: ", app)
 	err = core.UpdateApplication(&app, subject)
 
 	if err != nil {
-		log.Println("Error updating definition: ", err.Error())
+		log.Info("Error updating definition: ", err.Error())
 		switch err.(type) {
 		case roll.NonOwnerUpdateError:
 			respondError(w, http.StatusUnauthorized, err)

@@ -7,7 +7,7 @@ import (
 	"github.com/xtraclabs/roll/repos"
 	"github.com/xtraclabs/roll/roll"
 	"github.com/xtraclabs/roll/secrets"
-	"log"
+	log "github.com/Sirupsen/logrus"
 )
 
 type MariaDBAppRepo struct {
@@ -64,11 +64,11 @@ func (ar *MariaDBAppRepo) CreateApplication(app *roll.Application) error {
 	)
 
 	if err != nil {
-		log.Println(err)
+		log.Info(err)
 		sqlErr := err.(*mysql.MySQLError)
 		switch sqlErr.Number {
 		case 1062:
-			log.Println("Duplicate app definition found")
+			log.Info("Duplicate app definition found")
 			return repos.NewDuplicationAppdefError(app.ApplicationName, app.DeveloperEmail)
 		default:
 			return err
@@ -120,21 +120,21 @@ func applyUpdate(db *sql.DB, app *roll.Application) error {
 func (ar *MariaDBAppRepo) UpdateApplication(app *roll.Application, subjectID string) error {
 	storedApp, err := ar.SystemRetrieveApplication(app.ClientID)
 	if err != nil {
-		log.Println("Error retrieving app to verify ownership")
+		log.Info("Error retrieving app to verify ownership")
 		return err
 	}
 
 	if storedApp == nil {
-		log.Println("Application to update does not exist")
+		log.Info("Application to update does not exist")
 		return roll.NoSuchApplicationError{}
 	}
 
 	if storedApp.DeveloperID != subjectID {
-		log.Println("Application updater does not own app (" + subjectID + ")")
+		log.Info("Application updater does not own app (" + subjectID + ")")
 		return roll.NonOwnerUpdateError{}
 	}
 
-	log.Println("Updating", app.ClientID, "owned by", app.DeveloperID)
+	log.Info("Updating ", app.ClientID, " owned by ", app.DeveloperID)
 
 	if app.JWTFlowPublicKey != "" {
 		err = applyUpdatesWithJWTColumns(ar.db, app)
@@ -205,7 +205,7 @@ func (ar *MariaDBAppRepo) SystemRetrieveApplication(clientID string) (*roll.Appl
 	redirectUri,jwtFlowAudience, jwtFlowIssuer, jwtFlowPublicKey from application where clientId = ?
 	`
 
-	log.Println("Looking up app for", clientID)
+	log.Info("Looking up app for ", clientID)
 	var app roll.Application
 	err := ar.db.QueryRow(appSql,
 		clientID).Scan(
