@@ -8,7 +8,7 @@ import (
 	"github.com/xtraclabs/roll/internal/testutils"
 	"github.com/xtraclabs/roll/roll"
 	"io/ioutil"
-	"log"
+	log "github.com/Sirupsen/logrus"
 	"net/http"
 	"strings"
 )

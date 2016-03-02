@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	vault "github.com/hashicorp/vault/api"
-	"log"
+	log "github.com/Sirupsen/logrus"
 	"os"
 )
 
@@ -53,23 +53,23 @@ func (v *VaultSecretsRepo) StoreKeysForApp(clientID string, privateKey string, p
 	path := pathForKey(clientID)
 	s, err := logical.Write(path, data)
 	if s == nil {
-		log.Println("Keys for "+clientID+" written to ", path)
+		log.Info("Keys for "+clientID+" written to ", path)
 	}
-	log.Println(fmt.Sprintf("%v", s))
+	log.Info(fmt.Sprintf("%v", s))
 	return err
 }
 
 func (v *VaultSecretsRepo) retrieveKeyFromVault(clientID string, whichKey string) (string, error) {
 	logical := v.vaultClient.Logical()
 	path := pathForKey(clientID)
-	log.Println("Load secret from path ", path)
+	log.Info("Load secret from path ", path)
 	secret, err := logical.Read(path)
 	if err != nil {
 		return "", err
 	}
 
 	if secret == nil {
-		log.Println("return error - nil secret")
+		log.Info("return error - nil secret")
 		return "", errors.New("No keys stored for clientID " + clientID)
 	}
 

@@ -6,7 +6,7 @@ import (
 	"github.com/xtraclabs/roll/repos"
 	"github.com/xtraclabs/roll/repos/mdb"
 	"github.com/xtraclabs/roll/roll"
-	"log"
+	log "github.com/Sirupsen/logrus"
 	"net/http"
 )
 
@@ -56,6 +56,6 @@ func MariaDBSecureConfig() *roll.CoreConfig {
 
 func RunRoll(port int, config *roll.CoreConfig) {
 	core := roll.NewCore(config)
-	log.Println("Starting roll - listening on port ", port)
+	log.Info("Starting roll - listening on port ", port)
 	http.ListenAndServe(fmt.Sprintf(":%d", port), rollhttp.Handler(core))
 }

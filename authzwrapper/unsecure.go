@@ -2,7 +2,7 @@ package authzwrapper
 
 import (
 	"github.com/gorilla/context"
-	"log"
+	log "github.com/Sirupsen/logrus"
 	"net/http"
 )
 
@@ -21,20 +21,20 @@ func WrapUnsecure(h http.Handler) http.Handler {
 
 func (uh unsecureHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
-	log.Println("unsecure wrapped")
+	log.Info("unsecure wrapped")
 	subject := r.Header.Get(UnsecureRollSubjectHeader)
 	if subject == "" {
-		log.Println("Missing Authorization header (unsecure mode)")
+		log.Info("Missing Authorization header (unsecure mode)")
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write([]byte("Unauthorized\n"))
 		return
 	}
 
-	log.Println("setting subject and context", subject, false)
+	log.Info("setting subject and context", subject, false)
 	context.Set(r, AuthzSubject, subject)
 	context.Set(r, AuthzAdminScope, false)
 	uh.handler.ServeHTTP(w, r)
 
-	log.Println("clear context")
+	log.Info("clear context")
 	context.Clear(r)
 }

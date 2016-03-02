@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"github.com/xtraclabs/roll/dbutil"
 	"github.com/xtraclabs/roll/roll"
-	"log"
+	log "github.com/Sirupsen/logrus"
 )
 
 type MBDDevRepo struct {

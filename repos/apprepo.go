@@ -8,7 +8,7 @@ import (
 	"github.com/xtraclabs/roll/dbutil"
 	"github.com/xtraclabs/roll/roll"
 	"github.com/xtraclabs/roll/secrets"
-	"log"
+	log "github.com/Sirupsen/logrus"
 )
 
 const (
@@ -57,12 +57,12 @@ func (dae *DuplicateAppdefError) Error() string {
 func CheckJWTCertParts(app *roll.Application) error {
 	if app.JWTFlowPublicKey != "" {
 		if app.JWTFlowIssuer == "" {
-			log.Println("JWTFlowPlublic submitted without JWTFlowIssuer")
+			log.Info("JWTFlowPlublic submitted without JWTFlowIssuer")
 			return roll.MissingJWTFlowIssuer{}
 		}
 
 		if app.JWTFlowAudience == "" {
-			log.Println("JWTFlowPublic submitted without JWTFlowAudience")
+			log.Info("JWTFlowPublic submitted without JWTFlowAudience")
 			return roll.MissingJWTFlowAudience{}
 		}
 		return nil
@@ -72,18 +72,18 @@ func CheckJWTCertParts(app *roll.Application) error {
 
 //CreateApplication stores an application definition in DynamoDB
 func (dar *DynamoAppRepo) CreateApplication(app *roll.Application) error {
-	log.Println("create application")
+	log.Info("create application")
 
 	//Make sure we are not creating a new application definition for an existing
 	//application name/developer email combination
 	existing, err := dar.RetrieveAppByNameAndDevEmail(app.ApplicationName, app.DeveloperEmail)
 	if err != nil {
-		log.Println("Internal error attempting to check for duplicate app", err.Error())
+		log.Info("Internal error attempting to check for duplicate app", err.Error())
 		return err
 	}
 
 	if existing != nil {
-		log.Println("Duplicate app definition found")
+		log.Info("Duplicate app definition found")
 		return NewDuplicationAppdefError(app.ApplicationName, app.DeveloperEmail)
 	}
 
@@ -140,27 +140,27 @@ func (dar *DynamoAppRepo) UpdateApplication(app *roll.Application, subjectID str
 	//Check that the app exists and the owner is performing the update
 	storedApp, err := dar.SystemRetrieveApplication(app.ClientID)
 	if err != nil {
-		log.Println("Error retrieving app to verify ownership")
+		log.Info("Error retrieving app to verify ownership")
 		return err
 	}
 
 	if storedApp == nil {
-		log.Println("Application to update does not exist")
+		log.Info("Application to update does not exist")
 		return roll.NoSuchApplicationError{}
 	}
 
 	if storedApp.DeveloperID != subjectID {
-		log.Println("Application updater does not own app (" + subjectID + ")")
+		log.Info("Application updater does not own app (" + subjectID + ")")
 		return roll.NonOwnerUpdateError{}
 	}
 
-	log.Println("Updating", app.ClientID, "owned by", app.DeveloperID)
+	log.Info("Updating", app.ClientID, "owned by", app.DeveloperID)
 
 	//Build up the non-empty attributes to update
 	updateAttributes := make(map[string]*dynamodb.AttributeValueUpdate)
 
 	if app.LoginProvider != "" {
-		log.Println("Updating login provider:", app.LoginProvider)
+		log.Info("Updating login provider:", app.LoginProvider)
 		updateAttributes[LoginProvider] = &dynamodb.AttributeValueUpdate{
 			Action: aws.String(dynamodb.AttributeActionPut),
 			Value: &dynamodb.AttributeValue{
@@ -170,7 +170,7 @@ func (dar *DynamoAppRepo) UpdateApplication(app *roll.Application, subjectID str
 	}
 
 	if app.RedirectURI != "" {
-		log.Println("Updating redirect uri:", app.RedirectURI)
+		log.Info("Updating redirect uri:", app.RedirectURI)
 		updateAttributes[RedirectUri] = &dynamodb.AttributeValueUpdate{
 			Action: aws.String(dynamodb.AttributeActionPut),
 			Value: &dynamodb.AttributeValue{
@@ -182,16 +182,16 @@ func (dar *DynamoAppRepo) UpdateApplication(app *roll.Application, subjectID str
 	if app.JWTFlowPublicKey != "" {
 
 		if app.JWTFlowIssuer == "" {
-			log.Println("JWTFlowPlublic submitted without JWTFlowIssuer")
+			log.Info("JWTFlowPlublic submitted without JWTFlowIssuer")
 			return roll.MissingJWTFlowIssuer{}
 		}
 
 		if app.JWTFlowAudience == "" {
-			log.Println("JWTFlowPublic submitted without JWTFlowAudience")
+			log.Info("JWTFlowPublic submitted without JWTFlowAudience")
 			return roll.MissingJWTFlowAudience{}
 		}
 
-		log.Println("Updating public key:", app.JWTFlowPublicKey)
+		log.Info("Updating public key:", app.JWTFlowPublicKey)
 		updateAttributes[JWTFlowPublicKey] = &dynamodb.AttributeValueUpdate{
 			Action: aws.String(dynamodb.AttributeActionPut),
 			Value: &dynamodb.AttributeValue{
@@ -199,7 +199,7 @@ func (dar *DynamoAppRepo) UpdateApplication(app *roll.Application, subjectID str
 			},
 		}
 
-		log.Println("Updating public key issuer:", app.JWTFlowIssuer)
+		log.Info("Updating public key issuer:", app.JWTFlowIssuer)
 		updateAttributes[JWTFlowIssuer] = &dynamodb.AttributeValueUpdate{
 			Action: aws.String(dynamodb.AttributeActionPut),
 			Value: &dynamodb.AttributeValue{
@@ -207,7 +207,7 @@ func (dar *DynamoAppRepo) UpdateApplication(app *roll.Application, subjectID str
 			},
 		}
 
-		log.Println("Updating public key audience:", app.JWTFlowAudience)
+		log.Info("Updating public key audience:", app.JWTFlowAudience)
 		updateAttributes[JWTFlowAudience] = &dynamodb.AttributeValueUpdate{
 			Action: aws.String(dynamodb.AttributeActionPut),
 			Value: &dynamodb.AttributeValue{
@@ -217,7 +217,7 @@ func (dar *DynamoAppRepo) UpdateApplication(app *roll.Application, subjectID str
 	}
 
 	if app.ApplicationName != "" {
-		log.Println("Updating application name:", app.ApplicationName)
+		log.Info("Updating application name:", app.ApplicationName)
 		updateAttributes[ApplicationName] = &dynamodb.AttributeValueUpdate{
 			Action: aws.String(dynamodb.AttributeActionPut),
 			Value: &dynamodb.AttributeValue{
@@ -287,7 +287,7 @@ func (dar *DynamoAppRepo) RetrieveApplication(clientID string, subjectID string,
 		},
 	}
 
-	log.Println("Retrieve application", clientID)
+	log.Info("Retrieve application", clientID)
 	out, err := dar.client.GetItem(params)
 	if err != nil {
 		return nil, err
@@ -297,7 +297,7 @@ func (dar *DynamoAppRepo) RetrieveApplication(clientID string, subjectID string,
 		return nil, nil
 	}
 
-	log.Println("Load struct with data returned from dynamo")
+	log.Info("Load struct with data returned from dynamo")
 	app := &roll.Application{
 		ClientID:         extractString(out.Item[ClientID]),
 		ApplicationName:  extractString(out.Item[ApplicationName]),
@@ -328,7 +328,7 @@ func (dar *DynamoAppRepo) SystemRetrieveApplication(clientID string) (*roll.Appl
 		},
 	}
 
-	log.Println("Get item")
+	log.Info("Get item")
 	out, err := dar.client.GetItem(params)
 	if err != nil {
 		return nil, err
@@ -338,7 +338,7 @@ func (dar *DynamoAppRepo) SystemRetrieveApplication(clientID string) (*roll.Appl
 		return nil, nil
 	}
 
-	log.Println("Load struct with data returned from dynamo")
+	log.Info("Load struct with data returned from dynamo")
 	return &roll.Application{
 		ClientID:         extractString(out.Item[ClientID]),
 		ApplicationName:  extractString(out.Item[ApplicationName]),

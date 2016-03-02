@@ -6,7 +6,7 @@ import (
 	"github.com/gorilla/context"
 	"github.com/xtraclabs/roll/authzwrapper"
 	"github.com/xtraclabs/roll/roll"
-	"log"
+	log "github.com/Sirupsen/logrus"
 	"net/http"
 	"strings"
 )
@@ -61,13 +61,13 @@ func listDevelopers(core *roll.Core, w http.ResponseWriter, r *http.Request) {
 }
 
 func subjectAndAdminScopeFromRequestCtx(r *http.Request) (string, bool, error) {
-	log.Println("get subject and admin scope from request")
+	log.Info("get subject and admin scope from request")
 	subject, subjectOk := context.Get(r, authzwrapper.AuthzSubject).(string)
 	adminScope, adminOk := context.Get(r, authzwrapper.AuthzAdminScope).(bool)
 	if !subjectOk || !adminOk {
-		log.Println("error with subject or scope conversion")
-		log.Println(subject)
-		log.Println(adminScope)
+		log.Info("error with subject or scope conversion")
+		log.Info(subject)
+		log.Info(adminScope)
 		return "", false, errors.New("System handler misconfiguration")
 	}
 

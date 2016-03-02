@@ -3,7 +3,7 @@ package mdb
 import (
 	"database/sql"
 	"github.com/xtraclabs/roll/dbutil"
-	"log"
+	log "github.com/Sirupsen/logrus"
 )
 
 type MBDAdminRepo struct {
