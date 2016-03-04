@@ -7,6 +7,8 @@ import (
 	"github.com/xtraclabs/roll/roll"
 	"github.com/xtraclabs/roll/rollsvcs"
 	log "github.com/Sirupsen/logrus"
+	"strings"
+	"os"
 )
 
 var unsecureBanner = `
@@ -36,6 +38,29 @@ func createMariaDBConfig() *roll.CoreConfig {
 	return rollsvcs.MariaDBSecureConfig()
 }
 
+func init() {
+	log.SetFormatter(&log.JSONFormatter{})
+	setLoggingLevel()
+}
+
+func setLoggingLevel() {
+
+	logLevel := strings.ToLower(os.Getenv("ROLL_LOGGING_LEVEL"))
+	switch logLevel {
+	default:
+		log.SetLevel(log.InfoLevel)
+	case "debug":
+		log.SetLevel(log.DebugLevel)
+	case "warn":
+		log.SetLevel(log.WarnLevel)
+	case "error":
+		log.SetLevel(log.ErrorLevel)
+	//Note - makes no sense to set the default log levels to fatal or to panic
+	}
+
+	log.Info("log level set: ", log.GetLevel())
+}
+
 func main() {
 
 	var port = flag.Int("port", -1, "Port to listen on")
@@ -49,7 +74,7 @@ func main() {
 	var coreConfig *roll.CoreConfig
 
 	if *unsecureMode == true {
-		log.Info(unsecureBanner)
+		fmt.Println(unsecureBanner)
 		if dbutil.UseMariaDB() {
 			log.Info("Using maria db")
 			coreConfig = rollsvcs.MariaDBUnsecureConfig()
