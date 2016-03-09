@@ -1,10 +1,10 @@
 package authzwrapper
 
 import (
+	log "github.com/Sirupsen/logrus"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/context"
 	"github.com/xtraclabs/roll/roll"
-	log "github.com/Sirupsen/logrus"
 	"net/http"
 	"strings"
 )

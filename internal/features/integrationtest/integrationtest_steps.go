@@ -1,9 +1,9 @@
 package integrationtest
 
 import (
+	log "github.com/Sirupsen/logrus"
 	. "github.com/lsegal/gucumber"
 	"github.com/xtraclabs/roll/internal/runutils"
-	log "github.com/Sirupsen/logrus"
 	"syscall"
 	"time"
 )

@@ -3,8 +3,8 @@ package roll
 import (
 	"errors"
 	"fmt"
-	jwt "github.com/dgrijalva/jwt-go"
 	log "github.com/Sirupsen/logrus"
+	jwt "github.com/dgrijalva/jwt-go"
 	"strings"
 	"time"
 )
@@ -144,7 +144,7 @@ func GenerateKeyExtractionFunctionForJTWFlow(applicationRepo ApplicationRepo) jw
 		//Look up the application
 		app, err := applicationRepo.SystemRetrieveApplicationByJWTFlowAudience(clientID.(string))
 		if err != nil {
-			log.Info("Error looking up app for ",clientID, " ", err.Error())
+			log.Info("Error looking up app for ", clientID, " ", err.Error())
 			return nil, err
 		}
 

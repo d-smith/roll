@@ -2,9 +2,9 @@ package mdb
 
 import (
 	"database/sql"
+	log "github.com/Sirupsen/logrus"
 	"github.com/xtraclabs/roll/dbutil"
 	"github.com/xtraclabs/roll/roll"
-	log "github.com/Sirupsen/logrus"
 )
 
 type MBDDevRepo struct {

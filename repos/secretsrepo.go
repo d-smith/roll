@@ -3,8 +3,8 @@ package repos
 import (
 	"errors"
 	"fmt"
-	vault "github.com/hashicorp/vault/api"
 	log "github.com/Sirupsen/logrus"
+	vault "github.com/hashicorp/vault/api"
 	"os"
 )
 

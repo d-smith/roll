@@ -2,11 +2,11 @@ package rollsvcs
 
 import (
 	"fmt"
+	log "github.com/Sirupsen/logrus"
 	rollhttp "github.com/xtraclabs/roll/http"
 	"github.com/xtraclabs/roll/repos"
 	"github.com/xtraclabs/roll/repos/mdb"
 	"github.com/xtraclabs/roll/roll"
-	log "github.com/Sirupsen/logrus"
 	"net/http"
 )
 

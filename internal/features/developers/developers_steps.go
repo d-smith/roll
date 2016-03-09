@@ -1,12 +1,12 @@
 package developers
 
 import (
+	log "github.com/Sirupsen/logrus"
 	. "github.com/lsegal/gucumber"
 	"github.com/stretchr/testify/assert"
 	rollhttp "github.com/xtraclabs/roll/http"
 	"github.com/xtraclabs/roll/internal/testutils"
 	"github.com/xtraclabs/roll/roll"
-	log "github.com/Sirupsen/logrus"
 	"net/http"
 )
 

@@ -4,7 +4,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/xtraclabs/roll/roll"
 	"github.com/xtraclabs/roll/roll/mocks"
-	"github.com/xtraclabs/roll/secrets"
+	"github.com/xtraclabs/rollsecrets/secrets"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"

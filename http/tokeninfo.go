@@ -3,9 +3,9 @@ package http
 import (
 	"encoding/json"
 	"errors"
+	log "github.com/Sirupsen/logrus"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/xtraclabs/roll/roll"
-	log "github.com/Sirupsen/logrus"
 	"net/http"
 )
 

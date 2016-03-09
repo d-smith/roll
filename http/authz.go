@@ -3,11 +3,11 @@ package http
 import (
 	"errors"
 	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"github.com/xtraclabs/roll/html"
 	"github.com/xtraclabs/roll/login"
 	"github.com/xtraclabs/roll/roll"
 	"html/template"
-	log "github.com/Sirupsen/logrus"
 	"net/http"
 	"net/url"
 	"strings"

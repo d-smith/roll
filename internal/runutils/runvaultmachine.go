@@ -4,11 +4,11 @@ package runutils
 
 import (
 	"fmt"
+	log "github.com/Sirupsen/logrus"
 	vault "github.com/hashicorp/vault/api"
 	"github.com/samalba/dockerclient"
 	"github.com/xtraclabs/roll/internal/dockerutil"
 	"github.com/xtraclabs/roll/rollsvcs"
-	log "github.com/Sirupsen/logrus"
 	"net/http"
 	"os"
 	"os/signal"
