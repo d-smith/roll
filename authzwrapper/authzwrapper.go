@@ -5,6 +5,7 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/context"
 	"github.com/xtraclabs/roll/roll"
+	"github.com/xtraclabs/rollsecrets/secrets"
 	"net/http"
 	"strings"
 )
@@ -17,13 +18,13 @@ const AuthzAdminScope key = 1
 
 type authHandler struct {
 	handler     http.Handler
-	secretsRepo roll.SecretsRepo
+	secretsRepo secrets.SecretsRepo
 	adminRepo   roll.AdminRepo
 	whiteList   map[string]string
 }
 
 //Wrap takes a handler and decorates it with JWT bearer token validation.
-func Wrap(secretsRepo roll.SecretsRepo, adminRepo roll.AdminRepo, whitelistedClientIDs []string, h http.Handler) http.Handler {
+func Wrap(secretsRepo secrets.SecretsRepo, adminRepo roll.AdminRepo, whitelistedClientIDs []string, h http.Handler) http.Handler {
 	wl := make(map[string]string)
 	for _, cid := range whitelistedClientIDs {
 		wl[cid] = cid

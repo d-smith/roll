@@ -5,6 +5,7 @@ import (
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/xtraclabs/rollsecrets/secrets"
 	"strings"
 	"time"
 )
@@ -104,7 +105,7 @@ func GenerateCode(subject, scope string, app *Application, privateKey string) (s
 
 //GenerateKeyExtractionFunction generates a key extraction function for verifying the signature
 //associated with a JWT
-func GenerateKeyExtractionFunction(secretsRepo SecretsRepo) jwt.Keyfunc {
+func GenerateKeyExtractionFunction(secretsRepo secrets.SecretsRepo) jwt.Keyfunc {
 	return func(token *jwt.Token) (interface{}, error) {
 		//Check the signing method
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {

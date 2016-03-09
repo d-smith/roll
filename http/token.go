@@ -6,6 +6,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/xtraclabs/roll/roll"
+	"github.com/xtraclabs/rollsecrets/secrets"
 	"net/http"
 	"strings"
 )
@@ -19,7 +20,7 @@ var (
 	//ErrInvalidClientDetails is returned when supplied client details don't match those on record
 	ErrInvalidClientDetails = errors.New("Invalid application details")
 
-	//ErrRetrievingAppData is generated if the app data assocaited with a client_id (aka api key) cannot be retrieved
+	//ErrRetrievingAppData is generated if the app data associated with a client_id (aka api key) cannot be retrieved
 	ErrRetrievingAppData = errors.New("Missing or invalid form data")
 )
 
@@ -218,7 +219,7 @@ func validateClientDetails(core *roll.Core, ctx *authCodeContext) (*roll.Applica
 	return app, nil
 }
 
-func validateAndReturnCodeToken(secretsRepo roll.SecretsRepo, ctx *authCodeContext, clientID string) (*jwt.Token, error) {
+func validateAndReturnCodeToken(secretsRepo secrets.SecretsRepo, ctx *authCodeContext, clientID string) (*jwt.Token, error) {
 	token, err := jwt.Parse(ctx.authCode, roll.GenerateKeyExtractionFunction(secretsRepo))
 	if err != nil {
 		return nil, err
