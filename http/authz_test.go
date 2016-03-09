@@ -7,6 +7,7 @@ import (
 	"github.com/xtraclabs/roll/roll"
 	"github.com/xtraclabs/roll/roll/mocks"
 	"github.com/xtraclabs/rollsecrets/secrets"
+	rolltoken "github.com/xtraclabs/rollsecrets/token"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -265,7 +266,7 @@ func TestAuthValidateCodeResponseAuthenticateOk(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		callbackInvoked = true
 		code := r.FormValue("code")
-		token, err := jwt.Parse(code, roll.GenerateKeyExtractionFunction(core.SecretsRepo))
+		token, err := jwt.Parse(code, rolltoken.GenerateKeyExtractionFunction(core.SecretsRepo))
 		assert.Nil(t, err)
 		scope, ok := token.Claims["scope"].(string)
 		assert.True(t, ok)
@@ -323,7 +324,7 @@ func TestAuthValidateCodeResponseAuthenticateAdminScopeOk(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		callbackInvoked = true
 		code := r.FormValue("code")
-		token, err := jwt.Parse(code, roll.GenerateKeyExtractionFunction(core.SecretsRepo))
+		token, err := jwt.Parse(code, rolltoken.GenerateKeyExtractionFunction(core.SecretsRepo))
 		assert.Nil(t, err)
 		scope, ok := token.Claims["scope"].(string)
 		assert.True(t, ok)

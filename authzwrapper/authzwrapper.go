@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/context"
 	"github.com/xtraclabs/roll/roll"
 	"github.com/xtraclabs/rollsecrets/secrets"
+	rolltoken "github.com/xtraclabs/rollsecrets/token"
 	"net/http"
 	"strings"
 )
@@ -74,7 +75,7 @@ func (ah authHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	//Parse the token
 	bearerToken := strings.TrimSpace(parts[1])
-	token, err := jwt.Parse(bearerToken, roll.GenerateKeyExtractionFunction(ah.secretsRepo))
+	token, err := jwt.Parse(bearerToken, rolltoken.GenerateKeyExtractionFunction(ah.secretsRepo))
 	if err != nil {
 		log.Info(err.Error())
 		w.WriteHeader(http.StatusUnauthorized)
@@ -91,7 +92,7 @@ func (ah authHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//Make sure it's no an authcode token
-	if roll.IsAuthCode(token) {
+	if rolltoken.IsAuthCode(token) {
 		log.Info("Auth code used as access token - access denied")
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write([]byte("Unauthorized\n"))

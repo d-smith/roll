@@ -7,6 +7,7 @@ import (
 	"github.com/xtraclabs/roll/html"
 	"github.com/xtraclabs/roll/login"
 	"github.com/xtraclabs/roll/roll"
+	rolltoken "github.com/xtraclabs/rollsecrets/token"
 	"html/template"
 	"net/http"
 	"net/url"
@@ -258,7 +259,7 @@ func generateJWT(subject, scope string, core *roll.Core, app *roll.Application) 
 		return "", err
 	}
 
-	token, err := roll.GenerateToken(subject, scope, app, privateKey)
+	token, err := rolltoken.GenerateToken(subject, scope, app.ClientID, app.ApplicationName, privateKey)
 	return token, err
 }
 
@@ -268,7 +269,7 @@ func generateSignedCode(core *roll.Core, subject, scope string, app *roll.Applic
 		return "", err
 	}
 
-	token, err := roll.GenerateCode(subject, scope, app, privateKey)
+	token, err := rolltoken.GenerateCode(subject, scope, app.ClientID, privateKey)
 	return token, err
 }
 

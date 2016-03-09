@@ -8,6 +8,7 @@ import (
 	"github.com/xtraclabs/roll/roll"
 	"github.com/xtraclabs/roll/roll/mocks"
 	"github.com/xtraclabs/rollsecrets/secrets"
+	rolltoken "github.com/xtraclabs/rollsecrets/token"
 	"net/http"
 	"net/url"
 	"strings"
@@ -257,7 +258,7 @@ func TestTokenSignedWithWrongKey(t *testing.T) {
 	otherKey, _, err := secrets.GenerateKeyPair()
 	assert.Nil(t, err)
 
-	code, err := roll.GenerateCode("a-subject", "", &returnVal, otherKey)
+	code, err := rolltoken.GenerateCode("a-subject", "", returnVal.ClientID, otherKey)
 	assert.Nil(t, err)
 
 	resp, err := http.PostForm(addr+OAuth2TokenBaseURI,
@@ -297,7 +298,7 @@ func TestTokenValidCode(t *testing.T) {
 	secretsMock.On("RetrievePrivateKeyForApp", "1111-2222-3333333-4444444").Return(privateKey, nil)
 	secretsMock.On("RetrievePublicKeyForApp", "1111-2222-3333333-4444444").Return(publicKey, nil)
 
-	code, err := roll.GenerateCode("b-subject", "", &returnVal, privateKey)
+	code, err := rolltoken.GenerateCode("b-subject", "", returnVal.ClientID, privateKey)
 	assert.Nil(t, err)
 
 	resp, err := http.PostForm(addr+OAuth2TokenBaseURI,
@@ -343,7 +344,7 @@ func TestTokenValidCodeWithAdminScope(t *testing.T) {
 	secretsMock.On("RetrievePrivateKeyForApp", "1111-2222-3333333-4444444").Return(privateKey, nil)
 	secretsMock.On("RetrievePublicKeyForApp", "1111-2222-3333333-4444444").Return(publicKey, nil)
 
-	code, err := roll.GenerateCode("b-subject", "admin", &returnVal, privateKey)
+	code, err := rolltoken.GenerateCode("b-subject", "admin", returnVal.ClientID, privateKey)
 	assert.Nil(t, err)
 
 	resp, err := http.PostForm(addr+OAuth2TokenBaseURI,
@@ -363,7 +364,7 @@ func TestTokenValidCodeWithAdminScope(t *testing.T) {
 	assert.True(t, jsonResponse.AccessToken != "")
 	assert.True(t, jsonResponse.TokenType == "Bearer")
 
-	token, err := jwt.Parse(jsonResponse.AccessToken, roll.GenerateKeyExtractionFunction(core.SecretsRepo))
+	token, err := jwt.Parse(jsonResponse.AccessToken, rolltoken.GenerateKeyExtractionFunction(core.SecretsRepo))
 	assert.Nil(t, err)
 	scope, ok := token.Claims["scope"].(string)
 	assert.True(t, ok)

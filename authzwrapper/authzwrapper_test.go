@@ -5,6 +5,7 @@ import (
 	"github.com/xtraclabs/roll/roll"
 	"github.com/xtraclabs/roll/roll/mocks"
 	"github.com/xtraclabs/rollsecrets/secrets"
+	rolltoken "github.com/xtraclabs/rollsecrets/token"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -63,7 +64,7 @@ func TestGoodToken(t *testing.T) {
 
 	adminRepo := new(mocks.AdminRepo)
 
-	token, err := roll.GenerateToken("a-subject", "", &app, privateKey)
+	token, err := rolltoken.GenerateToken("a-subject", "", app.ClientID, app.ApplicationName, privateKey)
 	assert.Nil(t, err)
 
 	testServer := httptest.NewServer(Wrap(secretsMock, adminRepo, []string{}, echoHandler()))
@@ -165,7 +166,7 @@ func TestInvalidSignature(t *testing.T) {
 
 	adminRepo := new(mocks.AdminRepo)
 
-	token, err := roll.GenerateToken("b-subject", "", &app, private2)
+	token, err := rolltoken.GenerateToken("b-subject", "", app.ClientID, app.ApplicationName, private2)
 	assert.Nil(t, err)
 
 	testServer := httptest.NewServer(Wrap(secretsMock, adminRepo, []string{}, echoHandler()))
@@ -203,7 +204,7 @@ func TestAuthCodeUsedForAccess(t *testing.T) {
 
 	adminRepo := new(mocks.AdminRepo)
 
-	token, err := roll.GenerateCode("a-subject", "", &app, privateKey)
+	token, err := rolltoken.GenerateCode("a-subject", "", app.ClientID, privateKey)
 	assert.Nil(t, err)
 
 	testServer := httptest.NewServer(Wrap(secretsMock, adminRepo, []string{}, echoHandler()))

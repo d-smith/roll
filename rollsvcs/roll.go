@@ -8,6 +8,7 @@ import (
 	"github.com/xtraclabs/roll/repos/mdb"
 	"github.com/xtraclabs/roll/roll"
 	secretsrepos "github.com/xtraclabs/rollsecrets/repos"
+	rolltoken "github.com/xtraclabs/rollsecrets/token"
 	"net/http"
 )
 
@@ -17,7 +18,7 @@ func DefaultConfig() *roll.CoreConfig {
 		ApplicationRepo: repos.NewDynamoAppRepo(),
 		AdminRepo:       repos.NewDynamoAdminRepo(),
 		SecretsRepo:     secretsrepos.NewVaultSecretsRepo(),
-		IdGenerator:     new(roll.UUIDIdGenerator),
+		IdGenerator:     new(rolltoken.UUIDIdGenerator),
 		Secure:          true,
 	}
 }
@@ -28,7 +29,7 @@ func DefaultUnsecureConfig() *roll.CoreConfig {
 		ApplicationRepo: repos.NewDynamoAppRepo(),
 		AdminRepo:       repos.NewDynamoAdminRepo(),
 		SecretsRepo:     secretsrepos.NewVaultSecretsRepo(),
-		IdGenerator:     new(roll.UUIDIdGenerator),
+		IdGenerator:     new(rolltoken.UUIDIdGenerator),
 		Secure:          false,
 	}
 }
@@ -39,7 +40,7 @@ func MariaDBUnsecureConfig() *roll.CoreConfig {
 		DeveloperRepo:   mdb.NewMBDDevRepo(),
 		ApplicationRepo: mdb.NewMBDAppRepo(),
 		SecretsRepo:     secretsrepos.NewVaultSecretsRepo(),
-		IdGenerator:     new(roll.UUIDIdGenerator),
+		IdGenerator:     new(rolltoken.UUIDIdGenerator),
 		Secure:          false,
 	}
 }
@@ -50,7 +51,7 @@ func MariaDBSecureConfig() *roll.CoreConfig {
 		DeveloperRepo:   mdb.NewMBDDevRepo(),
 		ApplicationRepo: mdb.NewMBDAppRepo(),
 		SecretsRepo:     secretsrepos.NewVaultSecretsRepo(),
-		IdGenerator:     new(roll.UUIDIdGenerator),
+		IdGenerator:     new(rolltoken.UUIDIdGenerator),
 		Secure:          true,
 	}
 }
