@@ -4,8 +4,8 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
-	"github.com/xtraclabs/roll/roll"
 	log "github.com/Sirupsen/logrus"
+	"github.com/xtraclabs/roll/roll"
 	"net/http"
 	"strings"
 )

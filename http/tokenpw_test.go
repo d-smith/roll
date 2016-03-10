@@ -8,7 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/xtraclabs/roll/roll"
 	"github.com/xtraclabs/roll/roll/mocks"
-	"github.com/xtraclabs/roll/secrets"
+	"github.com/xtraclabs/rollsecrets/secrets"
+	rolltoken "github.com/xtraclabs/rollsecrets/token"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -201,7 +202,7 @@ func TestPWGrantLoginOk(t *testing.T) {
 	assert.True(t, jsonResponse.AccessToken != "")
 	assert.True(t, jsonResponse.TokenType == "Bearer")
 
-	token, err := jwt.Parse(jsonResponse.AccessToken, roll.GenerateKeyExtractionFunction(core.SecretsRepo))
+	token, err := jwt.Parse(jsonResponse.AccessToken, rolltoken.GenerateKeyExtractionFunction(core.SecretsRepo))
 	assert.Nil(t, err)
 	fmt.Println(token.Claims)
 	assert.Equal(t, "1111-2222-3333333-4444444", token.Claims["aud"].(string))
@@ -264,7 +265,7 @@ func TestPWGrantLoginOkAdminScope(t *testing.T) {
 	assert.True(t, jsonResponse.AccessToken != "")
 	assert.True(t, jsonResponse.TokenType == "Bearer")
 
-	token, err := jwt.Parse(jsonResponse.AccessToken, roll.GenerateKeyExtractionFunction(core.SecretsRepo))
+	token, err := jwt.Parse(jsonResponse.AccessToken, rolltoken.GenerateKeyExtractionFunction(core.SecretsRepo))
 	assert.Nil(t, err)
 	fmt.Println(token.Claims)
 	assert.Equal(t, "1111-2222-3333333-4444444", token.Claims["aud"].(string))

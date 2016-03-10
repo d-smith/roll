@@ -2,8 +2,8 @@ package mdb
 
 import (
 	"database/sql"
-	"github.com/xtraclabs/roll/dbutil"
 	log "github.com/Sirupsen/logrus"
+	"github.com/xtraclabs/roll/dbutil"
 )
 
 type MBDAdminRepo struct {

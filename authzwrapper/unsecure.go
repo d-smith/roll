@@ -1,8 +1,8 @@
 package authzwrapper
 
 import (
-	"github.com/gorilla/context"
 	log "github.com/Sirupsen/logrus"
+	"github.com/gorilla/context"
 	"net/http"
 )
 

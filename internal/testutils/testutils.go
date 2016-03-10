@@ -2,8 +2,8 @@ package testutils
 
 import (
 	"fmt"
-	"github.com/xtraclabs/roll/roll"
 	log "github.com/Sirupsen/logrus"
+	"github.com/xtraclabs/roll/roll"
 	"net/http"
 	"time"
 )
@@ -28,13 +28,13 @@ func URLGuard(url string) {
 
 		client := http.Client{}
 
-		req,err := http.NewRequest("GET",url, nil)
+		req, err := http.NewRequest("GET", url, nil)
 		if err != nil {
 			log.Info("Error creating request... bailing...", err.Error())
 			return
 		}
 
-		req.Header.Set("X-Roll-Subject","rolltest")
+		req.Header.Set("X-Roll-Subject", "rolltest")
 
 		resp, err := client.Do(req)
 		if err == nil && resp.StatusCode == http.StatusOK || count == limit {

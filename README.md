@@ -101,7 +101,7 @@ Still need to vendor my dependencies, but they are:
 * Context package from the [Gorilla Web Toolkit]()
 * [Go MySQL Driver](github.com/go-sql-driver/mysql)
 
-Use `go get github.com/hashicorp/vault/api` to install the API portion of Vautl
+Use `go get github.com/hashicorp/vault/api` to install the API portion of Vault
 
 I used the [mockery tool](https://github.com/vektra/mockery) to generate the mocks - I don't think there's a runtime
  dependency but go get it as per its instructions if you see build weirdness.

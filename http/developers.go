@@ -3,10 +3,10 @@ package http
 import (
 	"errors"
 	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/context"
 	"github.com/xtraclabs/roll/authzwrapper"
 	"github.com/xtraclabs/roll/roll"
-	log "github.com/Sirupsen/logrus"
 	"net/http"
 	"strings"
 )

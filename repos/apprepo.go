@@ -3,12 +3,12 @@ package repos
 import (
 	"errors"
 	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/xtraclabs/roll/dbutil"
 	"github.com/xtraclabs/roll/roll"
-	"github.com/xtraclabs/roll/secrets"
-	log "github.com/Sirupsen/logrus"
+	"github.com/xtraclabs/rollsecrets/secrets"
 )
 
 const (

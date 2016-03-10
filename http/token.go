@@ -3,9 +3,12 @@ package http
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	log "github.com/Sirupsen/logrus"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/xtraclabs/roll/roll"
-	log "github.com/Sirupsen/logrus"
+	"github.com/xtraclabs/rollsecrets/secrets"
+	rolltoken "github.com/xtraclabs/rollsecrets/token"
 	"net/http"
 	"strings"
 )
@@ -19,7 +22,7 @@ var (
 	//ErrInvalidClientDetails is returned when supplied client details don't match those on record
 	ErrInvalidClientDetails = errors.New("Invalid application details")
 
-	//ErrRetrievingAppData is generated if the app data assocaited with a client_id (aka api key) cannot be retrieved
+	//ErrRetrievingAppData is generated if the app data associated with a client_id (aka api key) cannot be retrieved
 	ErrRetrievingAppData = errors.New("Missing or invalid form data")
 )
 
@@ -146,7 +149,7 @@ func subjectFromBearerToken(core *roll.Core, r *http.Request) (string, error) {
 
 	//Parse the token
 	bearerToken := strings.TrimSpace(parts[1])
-	token, err := jwt.Parse(bearerToken, roll.GenerateKeyExtractionFunction(core.SecretsRepo))
+	token, err := jwt.Parse(bearerToken, rolltoken.GenerateKeyExtractionFunction(core.SecretsRepo))
 	if err != nil {
 		return "", err
 	}
@@ -218,8 +221,8 @@ func validateClientDetails(core *roll.Core, ctx *authCodeContext) (*roll.Applica
 	return app, nil
 }
 
-func validateAndReturnCodeToken(secretsRepo roll.SecretsRepo, ctx *authCodeContext, clientID string) (*jwt.Token, error) {
-	token, err := jwt.Parse(ctx.authCode, roll.GenerateKeyExtractionFunction(secretsRepo))
+func validateAndReturnCodeToken(secretsRepo secrets.SecretsRepo, ctx *authCodeContext, clientID string) (*jwt.Token, error) {
+	token, err := jwt.Parse(ctx.authCode, rolltoken.GenerateKeyExtractionFunction(secretsRepo))
 	if err != nil {
 		return nil, err
 	}
@@ -400,7 +403,7 @@ func handleJWTGrantType(core *roll.Core, w http.ResponseWriter, r *http.Request,
 
 	//First step is to verify the token signature
 	log.Info("verify token signature")
-	token, err := jwt.Parse(codeContext.assertion, roll.GenerateKeyExtractionFunctionForJTWFlow(core.ApplicationRepo))
+	token, err := jwt.Parse(codeContext.assertion, generateKeyExtractionFunctionForJTWFlow(core.ApplicationRepo))
 	if err != nil {
 		log.Info(err.Error())
 		respondError(w, http.StatusUnauthorized, err)
@@ -446,4 +449,45 @@ func handleJWTGrantType(core *roll.Core, w http.ResponseWriter, r *http.Request,
 	//TODO - extract and validate scope
 	generateAndRespondWithAccessToken(core, subject, filterUnsupportedClaims(scope), app, w)
 
+}
+
+func generateKeyExtractionFunctionForJTWFlow(applicationRepo roll.ApplicationRepo) jwt.Keyfunc {
+	return func(token *jwt.Token) (interface{}, error) {
+		//Check the signing method
+		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
+			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+		}
+
+		//The aud claim conveys the intended application the token is used to gain access to.
+		clientID := token.Claims["aud"]
+		if clientID == nil {
+			return nil, errors.New("Foreign token does not include aud claim")
+		}
+
+		//Look up the application
+		app, err := applicationRepo.SystemRetrieveApplicationByJWTFlowAudience(clientID.(string))
+		if err != nil {
+			log.Info("Error looking up app for ", clientID, " ", err.Error())
+			return nil, err
+		}
+
+		if app == nil {
+			log.Info("No app definition associated with audience found: ", clientID.(string))
+			return nil, errors.New("No app definition associated with aud found")
+		}
+
+		//We also check that the token was issued by the entity registered with the application
+		issuer := token.Claims["iss"]
+		if issuer == nil || issuer != app.JWTFlowIssuer {
+			return nil, errors.New("Foreign token issuer not known")
+		}
+
+		//Grab the public key from the app definition
+		keystring := app.JWTFlowPublicKey
+
+		log.Info("validating with '", keystring, "'")
+
+		//Parse the keystring
+		return jwt.ParseRSAPublicKeyFromPEM([]byte(keystring))
+	}
 }

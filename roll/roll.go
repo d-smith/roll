@@ -2,6 +2,8 @@ package roll
 
 import (
 	"errors"
+	"github.com/xtraclabs/rollsecrets/secrets"
+	"github.com/xtraclabs/rollsecrets/token"
 )
 
 //Core encapsulates the infrastructure dependencies associated with the application
@@ -9,8 +11,8 @@ type Core struct {
 	developerRepo   DeveloperRepo
 	ApplicationRepo ApplicationRepo
 	AdminRepo       AdminRepo
-	SecretsRepo     SecretsRepo
-	IdGenerator     IdGenerator
+	SecretsRepo     secrets.SecretsRepo
+	IdGenerator     token.IdGenerator
 	secure          bool
 	rollClientId    string
 }
@@ -21,8 +23,8 @@ type CoreConfig struct {
 	DeveloperRepo   DeveloperRepo
 	ApplicationRepo ApplicationRepo
 	AdminRepo       AdminRepo
-	SecretsRepo     SecretsRepo
-	IdGenerator     IdGenerator
+	SecretsRepo     secrets.SecretsRepo
+	IdGenerator     token.IdGenerator
 	Secure          bool
 	RollClientID    string
 }

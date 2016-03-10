@@ -3,12 +3,12 @@ package main
 import (
 	"flag"
 	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"github.com/xtraclabs/roll/dbutil"
 	"github.com/xtraclabs/roll/roll"
 	"github.com/xtraclabs/roll/rollsvcs"
-	log "github.com/Sirupsen/logrus"
-	"strings"
 	"os"
+	"strings"
 )
 
 var unsecureBanner = `
@@ -55,7 +55,7 @@ func setLoggingLevel() {
 		log.SetLevel(log.WarnLevel)
 	case "error":
 		log.SetLevel(log.ErrorLevel)
-	//Note - makes no sense to set the default log levels to fatal or to panic
+		//Note - makes no sense to set the default log levels to fatal or to panic
 	}
 
 	log.Info("log level set: ", log.GetLevel())

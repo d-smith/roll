@@ -4,9 +4,9 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"github.com/samalba/dockerclient"
 	"io/ioutil"
-	log "github.com/Sirupsen/logrus"
 	"os"
 	"strings"
 )

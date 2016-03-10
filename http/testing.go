@@ -3,12 +3,12 @@ package http
 import (
 	"bytes"
 	"encoding/json"
+	log "github.com/Sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/xtraclabs/roll/roll"
 	"github.com/xtraclabs/roll/roll/mocks"
 	"io"
 	"io/ioutil"
-	log "github.com/Sirupsen/logrus"
 	"net"
 	"net/http"
 	"testing"

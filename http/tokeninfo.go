@@ -3,9 +3,10 @@ package http
 import (
 	"encoding/json"
 	"errors"
+	log "github.com/Sirupsen/logrus"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/xtraclabs/roll/roll"
-	log "github.com/Sirupsen/logrus"
+	rolltoken "github.com/xtraclabs/rollsecrets/token"
 	"net/http"
 )
 
@@ -39,7 +40,7 @@ func handleTokenInfoGet(core *roll.Core, w http.ResponseWriter, r *http.Request)
 	}
 
 	//Parse and validate the token
-	token, err := jwt.Parse(tokenString, roll.GenerateKeyExtractionFunction(core.SecretsRepo))
+	token, err := jwt.Parse(tokenString, rolltoken.GenerateKeyExtractionFunction(core.SecretsRepo))
 	if err != nil {
 		log.Info(err.Error())
 		w.WriteHeader(http.StatusBadRequest)

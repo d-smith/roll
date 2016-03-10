@@ -1,10 +1,10 @@
 package ddl
 
 import (
+	log "github.com/Sirupsen/logrus"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/xtraclabs/roll/dbutil"
-	log "github.com/Sirupsen/logrus"
 	"os"
 )
 

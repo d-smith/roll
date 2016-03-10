@@ -7,7 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/xtraclabs/roll/roll"
 	"github.com/xtraclabs/roll/roll/mocks"
-	"github.com/xtraclabs/roll/secrets"
+	"github.com/xtraclabs/rollsecrets/secrets"
+	rolltoken "github.com/xtraclabs/rollsecrets/token"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -405,7 +406,7 @@ func TestImplGrantAuthValidateAuthenticateOkAdminScope(t *testing.T) {
 			m, _ := url.ParseQuery(req.URL.Fragment)
 
 			accessToken := m.Get("access_token")
-			token, err := jwt.Parse(accessToken, roll.GenerateKeyExtractionFunction(core.SecretsRepo))
+			token, err := jwt.Parse(accessToken, rolltoken.GenerateKeyExtractionFunction(core.SecretsRepo))
 			assert.Nil(t, err)
 			scope, ok := token.Claims["scope"].(string)
 			assert.True(t, ok)

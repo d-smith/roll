@@ -2,10 +2,10 @@ package http
 
 import (
 	"errors"
+	log "github.com/Sirupsen/logrus"
 	"github.com/xtraclabs/roll/repos"
 	"github.com/xtraclabs/roll/roll"
-	"github.com/xtraclabs/roll/secrets"
-	log "github.com/Sirupsen/logrus"
+	"github.com/xtraclabs/rollsecrets/secrets"
 	"net/http"
 	"strings"
 )

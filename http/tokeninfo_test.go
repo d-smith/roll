@@ -5,7 +5,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/xtraclabs/roll/roll"
 	"github.com/xtraclabs/roll/roll/mocks"
-	"github.com/xtraclabs/roll/secrets"
+	"github.com/xtraclabs/rollsecrets/secrets"
+	rolltoken "github.com/xtraclabs/rollsecrets/token"
 	"net/http"
 	"testing"
 )
@@ -64,7 +65,7 @@ func TestValidAccessToken(t *testing.T) {
 	secretsMock.On("RetrievePrivateKeyForApp", "1111-2222-3333333-4444444").Return(privateKey, nil)
 	secretsMock.On("RetrievePublicKeyForApp", "1111-2222-3333333-4444444").Return(publicKey, nil)
 
-	token, err := roll.GenerateToken("a-subject", "", &returnVal, privateKey)
+	token, err := rolltoken.GenerateToken("a-subject", "", returnVal.ClientID, returnVal.ApplicationName, privateKey)
 	assert.Nil(t, err)
 
 	resp, err := http.Get(addr + TokenInfoURI + "?access_token=" + token)
