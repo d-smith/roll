@@ -2,13 +2,11 @@ package authzwrapper
 
 import (
 	log "github.com/Sirupsen/logrus"
-	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/context"
 	"github.com/xtraclabs/roll/roll"
 	"github.com/xtraclabs/rollsecrets/secrets"
-	rolltoken "github.com/xtraclabs/rollsecrets/token"
+	"github.com/xtraclabs/rollauthz/rollauthz"
 	"net/http"
-	"strings"
 )
 
 type key int
@@ -19,7 +17,7 @@ const AuthzAdminScope key = 1
 
 type authHandler struct {
 	handler     http.Handler
-	secretsRepo secrets.SecretsRepo
+	rollAuthZ 	*rollauthz.RollAuthZ
 	adminRepo   roll.AdminRepo
 	whiteList   map[string]string
 }
@@ -33,7 +31,7 @@ func Wrap(secretsRepo secrets.SecretsRepo, adminRepo roll.AdminRepo, whitelisted
 
 	return &authHandler{
 		handler:     h,
-		secretsRepo: secretsRepo,
+		rollAuthZ: &rollauthz.RollAuthZ{secretsRepo},
 		adminRepo:   adminRepo,
 		whiteList:   wl,
 	}
@@ -64,43 +62,15 @@ func (ah authHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//Header format should be Bearer token
-	parts := strings.SplitAfter(authzHeader, "Bearer")
-	if len(parts) != 2 {
-		log.Info("Unexpected authorization header format - expecting bearer token")
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte("Unauthorized\n"))
-		return
-	}
-
-	//Parse the token
-	bearerToken := strings.TrimSpace(parts[1])
-	token, err := jwt.Parse(bearerToken, rolltoken.GenerateKeyExtractionFunction(ah.secretsRepo))
+	claims, err := ah.rollAuthZ.ValidateAccessToken(authzHeader)
 	if err != nil {
 		log.Info(err.Error())
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write([]byte("Unauthorized\n"))
-		return
-	}
-
-	//Make sure the token is valid
-	if !token.Valid {
-		log.Info("Invalid token presented to service: ", token)
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte("Unauthorized\n"))
-		return
-	}
-
-	//Make sure it's no an authcode token
-	if rolltoken.IsAuthCode(token) {
-		log.Info("Auth code used as access token - access denied")
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte("Unauthorized\n"))
-		return
 	}
 
 	//Check against the whitelist
-	aud, ok := token.Claims["aud"].(string)
+	aud, ok := claims["aud"].(string)
 	if !ok {
 		log.Info("aud claim not present in token")
 		w.WriteHeader(http.StatusUnauthorized)
@@ -115,16 +85,17 @@ func (ah authHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sub, ok := token.Claims["sub"].(string)
-	if !ok || sub == "" {
-		log.Info("sub claim not present in token")
+
+	sub, ok := claims["sub"].(string)
+	if !ok {
+		log.Info("Unable to extract sub from token claims")
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write([]byte("Unauthorized\n"))
 		return
 	}
 
 	context.Set(r, AuthzAdminScope, false)
-	scope, ok := token.Claims["scope"].(string)
+	scope, ok := claims["scope"].(string)
 	if ok && scope == "admin" {
 		admin, err := ah.adminRepo.IsAdmin(sub)
 		if err != nil {
@@ -137,7 +108,7 @@ func (ah authHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		context.Set(r, AuthzAdminScope, admin)
 	}
 
-	context.Set(r, AuthzSubject, token.Claims["sub"])
+	context.Set(r, AuthzSubject, sub)
 	ah.handler.ServeHTTP(w, r)
 	context.Clear(r)
 }
